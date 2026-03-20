@@ -1,0 +1,66 @@
+/* DIV Header Class */
+.header {
+  background-color: #ffffffff;
+  color: #000000;
+  position: fixed; /* NEW: keep header visible on scroll */
+  top: 0;
+  left: 0;
+  right: 0; 
+  width: 100%;
+}
+
+/* Header Title */
+div.header h1 {
+  min-width: 0;
+  text-align: center;
+  font-weight: bolder;
+  color: #010101;
+  font-size: 1rem;
+  white-space: normal;
+  overflow: visible;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 2rem;
+  gap: 0.5rem;
+
+  /* Nav Logo */
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    min-width: 50px;
+    width: 50px;
+    img {
+      height: auto;
+      height: 70px;
+      width: 70px;
+      object-fit: contain;
+    }
+  }
+}
+
+.navigation {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Links in Navigation Bar */
+a.navlink {
+  color: #000000;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 450;
+}
+
+.main-page{
+  padding-top: 5rem;
+}
+
+/* Footer CSS */
