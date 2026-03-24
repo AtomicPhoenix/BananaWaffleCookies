@@ -1,6 +1,7 @@
 # Dev Environment
 .env
 .envrc
+.direnv/
 flake.nix
 flake.lock
 node_modules
