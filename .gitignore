@@ -13,7 +13,6 @@ flake.lock
 !*.code-workspace
 
 # Packages
-go.mod
 node_modules
 
 # Build Artifacts
