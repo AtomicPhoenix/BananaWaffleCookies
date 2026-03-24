@@ -4,7 +4,6 @@
 .direnv/
 flake.nix
 flake.lock
-node_modules
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -12,6 +11,10 @@ node_modules
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 !*.code-workspace
+
+# Packages
+go.mod
+node_modules
 
 # Build Artifacts
 *.exe
