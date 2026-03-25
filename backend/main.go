@@ -25,7 +25,7 @@ func setup() {
 func main() {
 	setup()
 
-	http.Handle("/", http.FileServer(http.Dir("./dist")))
+	http.Handle("/", http.FileServer(http.Dir("./frontend/dist")))
 
 	portStr := fmt.Sprintf(":%d", *config.port)
 
