@@ -1,8 +1,8 @@
 <template>
-  <div class="base">
+  <body>
     <!-- Header Navigation Bar-->
     <!-- Main Header Wrapper (now sticky via site-header class) -->
-    <div class="header site-header">
+    <header class="header">
         <nav>
             <!-- Logo -->
             <a href="/" class="nav-logo">
@@ -21,16 +21,17 @@
             </div>
 
             <!-- Mobile Dropdown -->
-            <div v-if="isOpen" ref="menuRef" class="hamburger">
-              <a href="#" class="navlink">Dashboard</a>
-              <a href="#" class="navlink">Library</a>
-              <a href="#" class="navlink">Profile</a>
-              <a href="#" class="navlink">Settings</a>
+            <div v-if="isOpen" ref="menuRef" class="hamburger-menu">
+              <a href="#" class="moblink">Dashboard</a>
+              <a href="#" class="moblink">Library</a>
+              <a href="#" class="moblink">Profile</a>
+              <a href="#" class="moblink">Settings</a>
             </div>
+
             <!-- Mobile Menu Hamburger -->
             <button @click.stop="toggleMenu" class="hamburger" aria-label="Menu" aria-expanded="false">☰</button>
         </nav>
-    </div>
+      </header>
 
     <!-- Page Content -->
     <main class="main-page">
@@ -38,11 +39,36 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-100 text-center p-4">
-      © 2026 Banana Waffle Cookies
+    <footer class="footer">
+      <hr>
+      <div class="footer-row">
+        <!-- Footer Logo and Title -->
+        <div>
+          <div>
+            <a href="/" class="footer-logo">
+                <img src="/public/images/bwc.png" alt="BWC Logo">
+            </a>
+            <h1>Banana Waffle Cookies</h1>
+          </div>
+        </div>
+        <!-- Footer Quick Connect Links -->
+        <div class="footer-column">
+          <span> Connect </span>
+          <a href="https://github.com/AtomicPhoenix/BananaWaffleCookies" class="footer-info">Github</a> <!-- Private Link, placeholder -->
+          <a href="#" class="footer-info">LinkedIn</a> <!-- No Linkedin -->
+          <a href="https://discord.com/" class="footer-link">Discord</a> <!-- No Server Link -->
+        </div>
+        <div class="footer-column">
+          <span class="footer-header">Connect Information</span>
+          <span class="footer-info">support@bwc.org</span>
+          <span class="footer-info">XXX-XXX-XXXX</span>
+        </div>
+      </div>
+      <div class="copyright">
+        © 2026 Banana Waffle Cookies
+      </div>
     </footer>
-
-  </div>
+  </body>
 </template>
 
 <script setup>

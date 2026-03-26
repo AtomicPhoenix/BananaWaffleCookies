@@ -1,6 +1,6 @@
 <template>
   <BaseLayout>
-    <p>Welcome to the dashboard.</p>
+    <p>Welcome to the dashboard.</p><br><br><br><br>
   </BaseLayout>
 </template>
 
