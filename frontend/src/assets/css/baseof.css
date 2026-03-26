@@ -63,4 +63,46 @@ a.navlink {
   padding-top: 5rem;
 }
 
+.hamburger {
+  color: #fff;
+  display: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Mobile Responsiveness for Dashboard */
+/* Mobile Accessibility CSS */
+@media (max-width: 1100px) {
+  .navigation {
+    position: absolute;
+    top: 100%;
+    right: 0%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 1.5rem;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .navlink {
+    display: flex;
+    gap: 0;
+    padding: 0;
+    align-items: flex-start;
+
+  }
+  nav {
+    position: relative;
+    flex-wrap: wrap;
+  }
+  .dropdown-content {
+    top: 10%;
+    right: 100%;
+  }
+}
+
 /* Footer CSS */
