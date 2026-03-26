@@ -1,0 +1,20 @@
+@import './footer.css';
+@import './header.css';
+
+/* main css page for universal formating */
+html, body {
+  margin: 0;
+}
+
+main{
+  flex: 1;
+}
+
+body {
+  font-family: "Atkinson Hyperlegible Next", sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+  min-height: 100vh;
+  padding-top: 100px;
+}
+
