@@ -1,23 +1,20 @@
-@import './baseof.css';
+@import './footer.css';
+@import './header.css';
 
 /* main css page for universal formating */
 html, body {
-  height: 100%;
   margin: 0;
+}
+
+main{
+  flex: 1;
 }
 
 body {
   font-family: "Atkinson Hyperlegible Next", sans-serif;
   background-color: #ffffff;
   color: #000000;
-  position: relative;
-  display: flex;
-  flex-direction: column;
   min-height: 100vh;
-}
-
-#blur-content.footer-blur {
-  filter: blur(6px);
-  transition: filter 0.3s ease;
+  padding-top: 100px;
 }
 

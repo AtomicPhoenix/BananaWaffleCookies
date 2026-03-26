@@ -1,36 +1,11 @@
-/*                  */
-/* DIV Header Class */
-/*                  */
-
-main{
-  flex: 1;
-}
-
-footer{
-  background: linear-gradient(#E3E3E3,#B8B8B8);
-  height:250px;
-  position: relative;
-  padding-top: 20px;
-}
-
-footer hr{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  margin: 0;  
-  border: none;
-  border-top: 2px solid black;
-}
-
 header {
   background: linear-gradient(#E3E3E3,#B8B8B8);
   color: #000000;
-  position: fixed; /* NEW: keep header visible on scroll */
-  top: 0;
-  left: 0;
-  right: 0; 
+  position: fixed;
   width: 100%;
+  z-index: 0;
+  height: 86px;
+  top: 0;
 }
 
 /* Header Title */
@@ -84,7 +59,7 @@ a.navlink {
 }
 
 .main-page{
-  padding-top: 5rem;
+  padding-top: 1rem;
 }
 
 .hamburger {
@@ -96,39 +71,6 @@ a.navlink {
 
 .hamburger-menu{
   display: none;
-}
-
-/*            */
-/* Footer CSS */
-/*            */
-
-.footer-row {
-  display: flex;
-  flex-direction: row;
-  margin: 1rem;
-  justify-content:space-between;
-}
-
-.footer-column {
-  display: flex; 
-  flex-direction: column;
-}
-
-.footer-logo {
-    display: flex;
-    align-items: center;
-    min-width: 50px;
-    width: 50px;
-    img {
-      height: auto;
-      height: 70px;
-      width: 70px;
-      object-fit: contain;
-    }
-}
-
-.copyright {
-  text-align: center;
 }
 
 /*                  */
@@ -180,5 +122,3 @@ a.navlink {
     padding: 10px;
   }
 }
-
-/* Footer CSS */
