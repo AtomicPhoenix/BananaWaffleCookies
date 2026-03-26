@@ -1,0 +1,21 @@
+# Dev Environment
+.env
+.envrc
+.direnv/
+flake.nix
+flake.lock
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!*.code-workspace
+
+# Packages
+node_modules
+
+# Build Artifacts
+*.exe
+*.out
+dist
