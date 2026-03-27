@@ -21,8 +21,12 @@ jobs:
       with:
         go-version: '1.20'
 
+    - name: Format
+      run: [ -z "$(gofmt -l backend/)" ];
+
     - name: Build
       run: go -C backend/ build -v
 
     - name: Test
       run: go -C backend/ test -v
+
