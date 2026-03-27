@@ -1,0 +1,58 @@
+/*                  */
+/* Footer Class     */
+/*                  */
+
+footer{
+  background: linear-gradient(#E3E3E3,#B8B8B8);
+  height:250px;
+  position: fixed;
+  bottom:0%;
+  padding-top: 20px;
+  width:100%;
+}
+
+footer hr{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;  
+  border: none;
+  border-top: 2px solid black;
+}
+
+
+/*            */
+/* Footer CSS */
+/*            */
+
+.footer-row {
+  display: flex;
+  flex-direction: row;
+  margin: 1rem;
+  justify-content:space-between;
+}
+
+.footer-column {
+  display: flex; 
+  flex-direction: column;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    min-width: 50px;
+    width: 50px;
+    img {
+      height: auto;
+      height: 70px;
+      width: 70px;
+      object-fit: contain;
+    }
+}
+
+.copyright {
+  text-align: center;
+}
+
+/* Footer CSS */
