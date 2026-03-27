@@ -8,7 +8,7 @@ front-end:
 	npm --prefix frontend/ run build
 
 # Build frontend and Go backend
-bananaWaffleCookies: front-end
+bananaWaffleCookies: install front-end
 	go -C backend/ build -o ../bananaWaffleCookies 
 
 # Install Node.js and golang packages 
@@ -30,4 +30,10 @@ clean: check_clean
 	rm -f bananaWaffleCookies 
 	rm -rf frontend/dist
 
+# Reset DB
+reset_db: confirm_reset_db
+	psql -U username -d myDataBase -a -f myInsertFile
 
+# Confirmation check before resetting DB
+confirm_reset_db:
+	@echo -n "Are you sure you want to reset the database? [y/N] " && read ans && [ $${ans:-N} = y ]
