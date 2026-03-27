@@ -21,14 +21,14 @@ func get_db_connection_string() string {
 }
 
 func init() {
-	dbConn, err := pgx.Connect(context.Background(), get_db_connection_string())
+	DbConn, err := pgx.Connect(context.Background(), get_db_connection_string())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 
 	defer func() {
-		if err := dbConn.Close(context.Background()); err != nil {
+		if err := DbConn.Close(context.Background()); err != nil {
 			log.Fatalf("Error in closing database: %s", err)
 		}
 	}()
