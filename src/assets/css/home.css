@@ -1,0 +1,15 @@
+@import './footer.css';
+@import './header.css';
+@import './main.css';
+
+.button{
+    background-color: #F0A202;
+    color: #28262C;
+    border: none;
+    border-radius: 30px;
+    padding: 0.5rem 2rem;
+    font-size: 1rem;
+    font-weight: 450;
+    cursor: pointer;
+    font-family: "Atkinson Hyperlegible Next", sans-serif;
+}
