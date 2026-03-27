@@ -110,7 +110,7 @@ a.navlink {
     align-items: right;
     justify-content: center;
     padding: 1.5rem;
-    background: linear-gradient(#E3E3E3,#B8B8B8);
+    background: linear-gradient(#B8B8B8, #E3E3E3);
   }
 
   a.moblink {

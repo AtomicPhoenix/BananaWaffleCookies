@@ -1,7 +1,9 @@
 <template>
   <main>
-    <h1>Profile</h1>
-    <p>[Insert profile content here]</p>
+    <body>
+      <h1>Profile</h1>
+      <p>[Insert profile content here]</p>
+    </body>
   </main>
 </template>
 

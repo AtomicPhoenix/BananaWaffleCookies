@@ -1,7 +1,9 @@
 <template>
   <main>
-    <h1>Settings</h1>
-    <p>[Insert settings content here]</p>
+    <body>
+      <h1>Settings</h1>
+      <p>[Insert settings content here]</p>
+    </body>
   </main>
 </template>
 

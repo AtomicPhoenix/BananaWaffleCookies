@@ -1,7 +1,9 @@
 <template>
   <main>
-    <h1>Login</h1>
-    <p>[Insert login content here]</p>
+    <body>
+      <h1>Login</h1>
+      <p>[Insert login content here]</p>
+    </body>
   </main>
 </template>
 
