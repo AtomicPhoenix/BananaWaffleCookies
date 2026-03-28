@@ -6,9 +6,9 @@
         <!-- Footer Logo and Title -->
         <div>
           <div>
-            <a href="/" class="footer-logo">
-                <img src="/public/images/bwc.png" alt="BWC Logo">
-            </a>
+            <RouterLink to="/" class="footer-logo">
+                <img src="/images/bwc.png" alt="BWC Logo">
+            </RouterLink>
             <h1>Banana Waffle Cookies</h1>
           </div>
         </div>
