@@ -5,7 +5,7 @@
       <div class="search-box">
         <form action="backend.go" method="get">
             <label class="search-label" for="job-search">Search Jobs  </label>
-            <input class="search-bar" type="search" id="site-search" name="query" placeholder="Search Jobs">
+            <input class="search-bar" type="search" id="site-search" name="query" placeholder="Enter Job Information Here">
             <button class="search-unicode" type="submit">⌕</button>
         </form>
       </div>
@@ -28,9 +28,9 @@
         <div class="job-list">
                 <!-- Needs to be created of internal database information, template for now -->
                 <div class="job-listing">
-                    <div class="left top">Job Title 1</div>
-                    <div class="left mid">Last Modified: </div>
-                    <div class="left bot">Deadline: </div>
+                    <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
+                    <div class="left mid jdesc">[Last Modified: ] </div>
+                    <div class="left bot jdesc">[Deadline: ]</div>
 
                     <div class="listing-status-button right mid">Accepted </div>
                 </div>

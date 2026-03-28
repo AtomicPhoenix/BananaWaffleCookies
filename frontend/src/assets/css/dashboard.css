@@ -3,23 +3,27 @@
 /* Search Box */
 .search-box{
     margin-bottom: 2rem;
-    font-size: clamp(30px,2vh,14px);
+    background: #B8B8B8;
+    border-radius: 8px;
+    width: 96%;
+    padding: 1rem;
 }
 
 .search-label{
-
+    font-weight: 700;
+    font-size: clamp(.5rem, 1.5vw , 1.5rem);
 }
 
 .search-bar{
     height: 60px;
     width: 65%;
-    font-size: clamp(30px,2vh,14px);
+    font-size: clamp(.5rem, 1.5vw , 1.25rem);
 }
 
 .search-unicode{
     height: 60px;
     width: 60px;
-    font-size: clamp(30px,2vh,14px);
+    font-size: clamp(.3rem, 1.5vw , 1.25rem);
 }
 /* Job Information Row */
 .job-info{
@@ -30,8 +34,10 @@
 /* Overview Box */
 .overview{
     width:40%;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 1rem;
+    background: #B8B8B8;
+    margin-right: 2rem;
+    border-radius: 1rem;
 }
 
 .overview-title{
@@ -40,6 +46,7 @@
 
 .overview-items{
     font-size: clamp(16px,1vw,32px);
+    padding-left: 1rem;
 }
 
 img {
@@ -54,16 +61,24 @@ img {
 
 /* Job List Box */
 .job-list{
-    width:60%;
+    width:55%;
     display:flex;
     flex-direction: column;
+    background: #B8B8B8;
+    border-radius: 1rem;
 }
 
 .job-listing{
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 70% 30%;
     grid-template-rows: repeat(3, 2rem); 
     gap: 10px;
+    margin: 1rem;
+    padding: 10px;
+    border-radius: 2px;
+    border-color: #060606;
+    border-style: solid;
+    background: #E3E3E3;
 }
 .job-listing.left{
     background: #ccc;
@@ -77,9 +92,16 @@ img {
     justify-content: center; /* horizontal center */
     text-align: center;
     background: #999;
+    /* turn div into button shape */
+    
 }
 
-.top { grid-column: 1; grid-row: 1; }
+.top { 
+    grid-column: 1; 
+    grid-row: 1; 
+    font-size: clamp(.5rem, 1.5vw , 1.25rem);
+    font-weight: 700;
+}
 .mid { 
     .right{
         grid-column: 1;
@@ -91,6 +113,44 @@ img {
 }
 .bot { grid-column: 1; grid-row: 3; }
 
-.listing-status-button{
+.jdesc{
+    font-size: clamp(.4rem, 1.5vw , 1rem);
+}
 
+.listing-status-button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    width: fit-content;
+    margin-left: clamp(0rem, 1.5vw , 1.25rem);
+    font-size: clamp(.5rem, 1.5vw , 1.25rem);
+}
+
+@media (max-width: 700px){
+    .search-box{
+        width: 90%;
+        margin: 1rem;
+        padding: 0.25rem;
+    }
+    .job-info{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+    .overview{
+        width:90%;
+        margin: 1rem;
+        padding: .25rem;
+    }
+    .job-list{
+        width:90%;
+        margin: 1rem;
+        padding: 0.25rem;
+    }
+    img{
+        display: none;
+    }
 }
