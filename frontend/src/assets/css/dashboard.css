@@ -2,22 +2,95 @@
 
 /* Search Box */
 .search-box{
+    margin-bottom: 2rem;
+    font-size: clamp(30px,2vh,14px);
+}
+
+.search-label{
 
 }
 
+.search-bar{
+    height: 60px;
+    width: 65%;
+    font-size: clamp(30px,2vh,14px);
+}
+
+.search-unicode{
+    height: 60px;
+    width: 60px;
+    font-size: clamp(30px,2vh,14px);
+}
+/* Job Information Row */
+.job-info{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
 /* Overview Box */
 .overview{
-
+    width:40%;
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 .overview-title{
-        
+    font-size: clamp(16px,1vw,32px);
 }
 
 .overview-items{
-
+    font-size: clamp(16px,1vw,32px);
 }
 
-.pie-template{
-    
+img {
+    min-width: 150px;
+    min-height: 100px;
+    max-width: 80%;
+    height: auto;
+    display: block;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Job List Box */
+.job-list{
+    width:60%;
+    display:flex;
+    flex-direction: column;
+}
+
+.job-listing{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 2rem); 
+    gap: 10px;
+}
+.job-listing.left{
+    background: #ccc;
+}
+.job-listing.right{
+    grid-column: 2;
+    grid-row: 1 / 4;
+
+    display: flex;
+    align-items: center;     /* vertical center */
+    justify-content: center; /* horizontal center */
+    text-align: center;
+    background: #999;
+}
+
+.top { grid-column: 1; grid-row: 1; }
+.mid { 
+    .right{
+        grid-column: 1;
+    }
+    .left{
+        grid-column: 2;
+    }
+    grid-row: 2; 
+}
+.bot { grid-column: 1; grid-row: 3; }
+
+.listing-status-button{
+
 }
