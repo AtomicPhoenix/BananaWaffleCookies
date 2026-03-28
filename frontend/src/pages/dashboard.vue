@@ -14,11 +14,11 @@
         <div class="overview">
             <h1 class="overview-title"> Overview </h1>
             <p class="overview-items"> 
-                Interested: <br>
-                Applied: <br>
-                Interview Offered: <br>
-                Accepted: <br>
-                Rejected: <br>
+                Interested: 34<br>
+                Applied: 13<br>
+                Interview Offered: 2<br>
+                Accepted: 1<br>
+                Rejected: 1<br>
             </p>
             <RouterLink to="/" class="pie-template">
             <img src="/images/pie-template.png" alt="pie">
@@ -32,7 +32,23 @@
                     <div class="left mid jdesc">[Last Modified: ] </div>
                     <div class="left bot jdesc">[Deadline: ]</div>
 
-                    <div class="listing-status-button right mid">Accepted </div>
+                    <div class="listing-status-button right mid" id="accepted">Accepted </div>
+                </div>
+
+                <div class="job-listing">
+                    <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
+                    <div class="left mid jdesc">[Last Modified: ] </div>
+                    <div class="left bot jdesc">[Deadline: ]</div>
+
+                    <div class="listing-status-button right mid" id="interview">Interview </div>
+                </div>
+
+                <div class="job-listing">
+                    <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
+                    <div class="left mid jdesc">[Last Modified: ] </div>
+                    <div class="left bot jdesc">[Deadline: ]</div>
+
+                    <div class="listing-status-button right mid" id="applied">Applied </div>
                 </div>
         </div>
       </div>
