@@ -1,7 +1,9 @@
 -- =========================
--- USERS
+-- UP SCRIPT
 -- =========================
-CREATE TABLE users (
+
+-- USERS
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
@@ -9,10 +11,8 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- =========================
 -- PROFILES (1:1 with users)
--- =========================
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     first_name TEXT,
@@ -29,10 +29,8 @@ CREATE TABLE profiles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- =========================
 -- JOBS
--- =========================
-CREATE TABLE jobs (
+CREATE TABLE IF NOT EXISTS jobs (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     company_name TEXT NOT NULL,
@@ -49,10 +47,8 @@ CREATE TABLE jobs (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- =========================
 -- JOB ACTIVITIES
--- =========================
-CREATE TABLE job_activities (
+CREATE TABLE IF NOT EXISTS job_activities (
     id BIGSERIAL PRIMARY KEY,
     job_id BIGINT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
     activity_type TEXT NOT NULL CHECK (
@@ -71,10 +67,8 @@ CREATE TABLE job_activities (
     metadata JSONB
 );
 
--- =========================
 -- DOCUMENTS
--- =========================
-CREATE TABLE documents (
+CREATE TABLE IF NOT EXISTS documents (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
@@ -86,10 +80,8 @@ CREATE TABLE documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- =========================
 -- DOCUMENT VERSIONS
--- =========================
-CREATE TABLE document_versions (
+CREATE TABLE IF NOT EXISTS document_versions (
     id BIGSERIAL PRIMARY KEY,
     document_id BIGINT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
     version_number INT NOT NULL,
@@ -103,10 +95,8 @@ CREATE TABLE document_versions (
     CONSTRAINT uq_document_version UNIQUE (document_id, version_number)
 );
 
--- =========================
 -- JOB <-> DOCUMENT VERSION LINKS
--- =========================
-CREATE TABLE job_document_links (
+CREATE TABLE IF NOT EXISTS job_document_links (
     id BIGSERIAL PRIMARY KEY,
     job_id BIGINT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
     document_version_id BIGINT NOT NULL REFERENCES document_versions(id) ON DELETE CASCADE,
@@ -117,18 +107,30 @@ CREATE TABLE job_document_links (
     CONSTRAINT uq_job_document_version_link UNIQUE (job_id, document_version_id, link_type)
 );
 
--- =========================
--- INDEXES (for performance)
--- =========================
-CREATE INDEX idx_jobs_user_id ON jobs(user_id);
-CREATE INDEX idx_jobs_user_status ON jobs(user_id, status);
-CREATE INDEX idx_jobs_last_activity_at ON jobs(user_id, last_activity_at DESC);
+-- INDEXES
+CREATE INDEX IF NOT EXISTS idx_jobs_user_id
+    ON jobs(user_id);
 
-CREATE INDEX idx_documents_user_id ON documents(user_id);
-CREATE INDEX idx_document_versions_document_id ON document_versions(document_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_user_status
+    ON jobs(user_id, status);
 
-CREATE INDEX idx_job_activities_job_id ON job_activities(job_id);
-CREATE INDEX idx_job_activities_activity_at ON job_activities(job_id, activity_at DESC);
+CREATE INDEX IF NOT EXISTS idx_jobs_last_activity_at
+    ON jobs(user_id, last_activity_at DESC);
 
-CREATE INDEX idx_job_document_links_job_id ON job_document_links(job_id);
-CREATE INDEX idx_job_document_links_document_version_id ON job_document_links(document_version_id);
+CREATE INDEX IF NOT EXISTS idx_documents_user_id
+    ON documents(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_versions_document_id
+    ON document_versions(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_job_activities_job_id
+    ON job_activities(job_id);
+
+CREATE INDEX IF NOT EXISTS idx_job_activities_activity_at
+    ON job_activities(job_id, activity_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_job_document_links_job_id
+    ON job_document_links(job_id);
+
+CREATE INDEX IF NOT EXISTS idx_job_document_links_document_version_id
+    ON job_document_links(document_version_id);
