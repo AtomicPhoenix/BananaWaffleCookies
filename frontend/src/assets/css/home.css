@@ -1,13 +1,115 @@
 @import './main.css';
 
+main {
+    display: flex;
+    color: #421603;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: #F18805;
+    background: linear-gradient(90deg, #F18805 0%, #E3E3E3 30%, #E3E3E3 70%, #F18805 100%);
+}
+
+.home-content {
+    margin: 0;
+    padding-top: 0;
+    padding: clamp(1rem, 5vw, 3rem) clamp(1rem, 5vw, 3rem);
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: clamp(600px, 100vh, 100vh);
+    box-sizing: border-box;
+    gap: clamp(0.5rem, 3vw, 1.5rem);
+    background: transparent;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.6rem, 2vw, 1rem);
+}
+
+.title-logo-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.title-logo {
+    width: clamp(72px, 10vw, 120px);
+    height: clamp(72px, 10vw, 120px);
+    object-fit: contain;
+}
+
+h1 {
+    font-size: clamp(1.85rem, 7vw, 3.1rem);
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+    text-align: left;
+}
+
+p {
+    font-size: clamp(1.05rem, 4vw, 1.45rem);
+    font-weight: 700;
+    margin: 0;
+    max-width: min(90vw, 700px);
+    line-height: 1.6;
+}
+
 .button{
-    background-color: #F0A202;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(90deg, #F0A202 0%, #E74C3C 50%, #F0A202 100%);
+    background-size: 200% 100%;
+    background-position: 0% 50%;
     color: #28262C;
     border: none;
     border-radius: 30px;
-    padding: 0.5rem 2rem;
-    font-size: 1rem;
-    font-weight: 450;
+    padding: clamp(0.4rem, 1.5vw, 0.6rem) clamp(1rem, 3.5vw, 1.8rem);
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    font-weight: 700;
     cursor: pointer;
+    text-align: center;
+    text-decoration: none;
     font-family: "Atkinson Hyperlegible Next", sans-serif;
+    min-height: 44px;
+    margin-top: 0.5rem;
+    transition: background-position 0.55s ease, transform 0.2s ease;
+}
+
+.button:hover {
+    background-position: 100% 50%;
+}
+
+@media (max-width: 480px) {
+    .home-content {
+        gap: 0.8rem;
+    }
+
+    .title-row {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+}
+
+@media (max-width: 700px) {
+    .home-content {
+        gap: 1rem;
+    }
+}
+
+@media (min-width: 701px) {
+    .home-content {
+        gap: 1.5rem;
+    }
 }
