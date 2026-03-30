@@ -26,6 +26,8 @@
         </div>
         <!-- Job List -->
         <div class="job-list">
+                <!-- -->
+
                 <!-- Needs to be created of internal database information, template for now -->
                 <div class="job-listing">
                     <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
