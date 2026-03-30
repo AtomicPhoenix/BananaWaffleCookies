@@ -1,7 +1,7 @@
 <template>
   <main>
     <body>
-      <h1>Dashboard</h1>
+      <h1>Getting Started</h1>
       <p>Welcome to Banana Waffle Cookies.</p>
       <div>
         <RouterLink to="/login" class="button">Get Started</RouterLink>
