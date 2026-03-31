@@ -59,9 +59,9 @@ func checkTables() {
 	var result bool
 	tables := []string{"users", "profiles", "jobs", "job_activities", "documents", "document_versions"}
 	for _, table := range tables {
-		err := DbConn.QueryRow(context.Background(), "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename  = '$1');", table).Scan(&result)
+		err := DbConn.QueryRow(context.Background(), "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = $1);", table).Scan(&result)
 		if err != nil || result == false {
-			fmt.Fprintf(os.Stderr, "Table does not exist: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Table %s does not exist: %v\n", table, err)
 			os.Exit(1)
 		}
 	}
