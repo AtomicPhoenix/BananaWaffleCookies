@@ -22,9 +22,11 @@ func get_db_connection_string() string {
 }
 
 func init() {
-	err := godotenv.Load() 
+	fmt.Printf("-----------------------\nInitializing Database\n")
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "Unable to load env file: %v\n", err)
+		os.Exit(1)
 	}
 
 	DbConn, err = pgx.Connect(context.Background(), get_db_connection_string())
@@ -39,6 +41,10 @@ func init() {
 	}
 
 	fmt.Println("Successfully connected to database.")
+
+	checkTables()
+
+	fmt.Printf("Database setup completed!\n-----------------------\n")
 }
 
 func main() {
@@ -47,4 +53,17 @@ func main() {
 			log.Fatalf("Error in closing database: %s", err)
 		}
 	}()
+}
+
+func checkTables() {
+	var result bool
+	tables := []string{"users", "profiles", "jobs", "job_activities", "documents", "document_versions"}
+	for _, table := range tables {
+		err := DbConn.QueryRow(context.Background(), "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename  = '$1');", table).Scan(&result)
+		if err != nil || result == false {
+			fmt.Fprintf(os.Stderr, "Table does not exist: %v\n", err)
+			os.Exit(1)
+		}
+	}
+	fmt.Println("All tables exist!")
 }
