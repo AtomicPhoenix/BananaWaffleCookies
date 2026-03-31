@@ -19,7 +19,6 @@ var AuthToken *jwtauth.JWTAuth
 func init() {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to load env file: %v\n", err)
 		os.Exit(1)
 	}
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
@@ -47,12 +46,12 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), 14)
+	password_bytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12)
 	if err != nil {
 		http.Error(w, "Failed to generate password hash", http.StatusInternalServerError)
 		return
 	}
-	password_hash := string(bytes)
+	password_hash := string(password_bytes)
 
 	user := db.User{
 		Email:         req.Email,
@@ -63,7 +62,6 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to register user", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("Successfully created user")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -88,26 +86,53 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password_hash), []byte(req.Password))
-
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		http.Error(w, "Invalid password", http.StatusUnauthorized)
+		fmt.Printf("Failed to encrypt password: %v", err)
 		return
 	}
 
-	// Create & return user authorization token based on user data
-	inputData := map[string]interface{}{"id": user.Id, "email": user.Email, "exp": time.Now().Add(24 * time.Hour).Unix()}
-	_, tokenString, err := AuthToken.Encode(inputData)
+	// Create JWT token
+	claims := map[string]interface{}{
+		"id":    fmt.Sprintf("%v", user.Id),
+		"email": user.Email,
+	}
+
+	_, tokenString, err := AuthToken.Encode(claims)
 	if err != nil {
+		fmt.Println("JWT encode error:", err)
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
-	// Return token
+	// Set JWT as an HTTP-only cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    tokenString,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(24 * time.Hour),
+	})
+
+	// Respond to client with success message
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, fmt.Sprintf(`{"token":"%s"}`, tokenString))
+	fmt.Fprintf(w, `{"message":"Login successful."}`)
 }
 
 // Handles user logout
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	// Overwrite the auth_token cookie with empty value and expired date
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		MaxAge:   -1,
+		SameSite: http.SameSiteLaxMode,
+	})
 
+	w.Header().Set("Content-Type", "application/json")
 }

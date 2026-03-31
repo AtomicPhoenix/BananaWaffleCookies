@@ -8,7 +8,6 @@ import (
 
 	"bananawafflecookies.com/m/v2/handlers"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/jwtauth/v5"
 )
 
 // CLI Arguments
@@ -38,19 +37,30 @@ func main() {
 
 	// Protected routes
 	router.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(handlers.AuthToken))
 		r.Use(AuthRedirect)
 
-		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/api/auth/check", func(w http.ResponseWriter, r *http.Request) {
+			cookie, err := r.Cookie("auth_token")
+			w.Header().Set("Content-Type", "application/json")
+			if err != nil || cookie.Value == "" {
+				w.Write([]byte(`{"authenticated": false}`))
+				return
+			}
+
+			if err != nil {
+				w.Write([]byte(`{"authenticated": false}`))
+				return
+			}
+
+			w.Write([]byte(`{"authenticated": true}`)) 
 		})
-		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {
-		})
-		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-		})
-		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {
-		})
-		r.Get("/create-job", func(w http.ResponseWriter, r *http.Request) {
-		})
+
+		// Example protected routes
+		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {})
+		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
+		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
+		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {})
+		r.Get("/create-job", func(w http.ResponseWriter, r *http.Request) {})
 	})
 
 	// Serve frontend for Vue routes
@@ -68,13 +78,20 @@ func main() {
 
 func AuthRedirect(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extract token from context
-		_, _, err := jwtauth.FromContext(r.Context())
+		cookie, err := r.Cookie("auth_token")
+		if err != nil || cookie.Value == "" {
+			// If not authenticated, redirect to /login
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		_, err = handlers.AuthToken.Decode(cookie.Value)
 		if err != nil {
 			// If not authenticated, redirect to /login
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }

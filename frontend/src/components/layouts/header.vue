@@ -38,14 +38,18 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-
+import axios from "axios";
 const isOpen = ref(false)
 const menuRef = ref(null)
 
-const signOut = () => {
-  //insert logic to sign out here
-  console.log("Signed Out!")
-}
+const signOut = async () => {
+  try {
+    await axios.post("/logout", { withCredentials: true });
+    window.location.href = "/login";
+  } catch (err) {
+    console.error("Logout failed:", err);
+  }
+};
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
