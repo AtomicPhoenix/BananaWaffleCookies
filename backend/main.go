@@ -39,17 +39,42 @@ func main() {
 	// Protected routes
 	router.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(handlers.AuthToken))
-		r.Use(jwtauth.Authenticator(handlers.AuthToken))
+		r.Use(AuthRedirect)
 
-		r.Get("/protected", func(w http.ResponseWriter, r *http.Request) {
-			_, claims, _ := jwtauth.FromContext(r.Context())
-			w.Write([]byte(fmt.Sprintf("Hello user %v", claims["id"])))
+		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {
+		})
+		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {
+		})
+		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+		})
+		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {
+		})
+		r.Get("/create-job", func(w http.ResponseWriter, r *http.Request) {
 		})
 	})
 
-	router.Handle("/*", http.FileServer(http.Dir("./frontend/dist")))
+	// Serve frontend for Vue routes
+	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./frontend/dist/index.html")
+	})
+	// Serve static assets
+	router.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("./frontend/dist/assets"))))
+
 	portStr := fmt.Sprintf(":%d", *config.port)
 
 	log.Printf("[INFO] Server running on %s\n", portStr)
 	log.Fatal(http.ListenAndServe(portStr, router))
+}
+
+func AuthRedirect(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Extract token from context
+		_, _, err := jwtauth.FromContext(r.Context())
+		if err != nil {
+			// If not authenticated, redirect to /login
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
