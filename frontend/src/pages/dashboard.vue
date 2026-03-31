@@ -26,8 +26,12 @@
         </div>
         <!-- Job List -->
         <div class="job-list">
-                <!-- -->
-
+                <!-- Field to add jobs to listing-->
+                <div class="create-job">
+                  <form action="post">
+                    <input class="create-job-button" type="submit" value="Create New Job Application" />
+                  </form>
+                </div>
                 <!-- Needs to be created of internal database information, template for now -->
                 <div class="job-listing">
                     <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
@@ -57,5 +61,10 @@
     </body>
   </main>
 </template>
-
 <style scoped src="@/assets/css/dashboard.css"></style>
+<script setup>
+import { ref } from 'vue'
+
+const username = ref('')
+const onSubmit = () => console.log(username.value)
+</script>

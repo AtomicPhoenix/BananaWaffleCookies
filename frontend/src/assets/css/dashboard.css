@@ -65,6 +65,23 @@ img {
 }
 
 /* Job List Box */
+
+.create-job{
+    margin-left: 1rem;
+    margin-top: 1rem;
+}
+
+.create-job-button{
+    background: linear-gradient(to right, #ffa946,#fc5b2e);
+    width: 300px;
+    height: 50px;
+    border-color: #B8B8B8;
+    border-radius: 10px;
+    border-width: 3px;
+
+    font-size: clamp(1rem, 1.5vw , 1.25rem);
+}
+
 .job-list{
     width:55%;
     display:flex;
@@ -183,6 +200,10 @@ img {
 @media (max-width: 520px){
     .search-unicode{
         display: none;
+    }
+
+    .create-job-button{
+        width: 250px;
     }
     .job-listing{
         grid-template-columns: 75% 25%;
