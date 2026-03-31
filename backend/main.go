@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"bananawafflecookies.com/m/v2/handlers"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth/v5"
 )
 
 // CLI Arguments
@@ -25,10 +29,27 @@ func setup() {
 func main() {
 	setup()
 
-	http.Handle("/", http.FileServer(http.Dir("./frontend/dist")))
+	router := chi.NewRouter()
 
+	// Public routes
+	router.Post("/signup", handlers.RegistrationHandler)
+	router.Post("/login", handlers.LoginHandler)
+	router.Post("/logout", handlers.LogoutHandler)
+
+	// Protected routes
+	router.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(handlers.AuthToken))
+		r.Use(jwtauth.Authenticator(handlers.AuthToken))
+
+		r.Get("/protected", func(w http.ResponseWriter, r *http.Request) {
+			_, claims, _ := jwtauth.FromContext(r.Context())
+			w.Write([]byte(fmt.Sprintf("Hello user %v", claims["id"])))
+		})
+	})
+
+	router.Handle("/*", http.FileServer(http.Dir("./frontend/dist")))
 	portStr := fmt.Sprintf(":%d", *config.port)
 
 	log.Printf("[INFO] Server running on %s\n", portStr)
-	log.Fatal(http.ListenAndServe(portStr, nil))
+	log.Fatal(http.ListenAndServe(portStr, router))
 }
