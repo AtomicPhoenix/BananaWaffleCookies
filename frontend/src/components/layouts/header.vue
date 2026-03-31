@@ -13,7 +13,7 @@
 
             <!-- Navigation Links -->
             <div class="navigation" id="navbar">
-              <RouterLink to="/" class="navlink">Dashboard</RouterLink>
+              <RouterLink to="/dashboard" class="navlink">Dashboard</RouterLink>
               <RouterLink to="/library" class="navlink">Document Library</RouterLink>
               <RouterLink to="/profile" class="navlink">Profile</RouterLink>
               <RouterLink to="/settings" class="navlink">Settings</RouterLink>
@@ -21,7 +21,7 @@
 
             <!-- Mobile Dropdown -->
             <div v-if="isOpen" ref="menuRef" class="hamburger-menu">
-              <RouterLink to="/" class="moblink" @click="isOpen = false">Dashboard</RouterLink>
+              <RouterLink to="/dashboard" class="moblink" @click="isOpen = false">Dashboard</RouterLink>
               <RouterLink to="/library" class="moblink" @click="isOpen = false">Library</RouterLink>
               <RouterLink to="/profile" class="moblink" @click="isOpen = false">Profile</RouterLink>
               <RouterLink to="/settings" class="moblink" @click="isOpen = false">Settings</RouterLink>
