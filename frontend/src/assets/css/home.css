@@ -73,6 +73,7 @@ p {
     min-height: 44px;
     margin-top: 0.5rem;
     transition: background-position 0.55s ease, transform 0.2s ease;
+    margin-right: 1rem;
 }
 
 .button:hover {

@@ -1,8 +1,8 @@
 <template>
-    <div class="login-page">
-      <h1>Login</h1>
+    <div class="signup-page">
+      <h1>Sign Up</h1>
       <!-- Form wrapper that prevents default page reload on submit -->
-      <form @submit.prevent="handleLogin" class="login-form">
+      <form @submit.prevent="handleSignup" class="signup-form">
 
       <!-- Email field container -->
       <div class="input-field">
@@ -36,14 +36,14 @@
 
       <!-- Submit button to trigger login logic -->
       <div class="submit">
-        <button class="login-button" type="submit">Login</button>
+        <button class="register-button" type="submit">Register</button>
       </div>
 
       <!-- Login with OAuth -->
       <div class="oauth">
         <!-- OAuth Logic Goes Here -->
         <router-link class="oauth-button" to="/">
-          Login with Github <img src="/images/github.png" class="github-logo" alt="Github">
+          Sign up with Github <img src="/images/github.png" class="github-logo" alt="Github">
         </router-link>
       </div>
 
@@ -62,8 +62,8 @@ const form = reactive({
 })
 
 // Function that runs when the form is submitted //
-function handleLogin() {
-  // Place Authentication Logic here //
+function handleSignup() {
+  // Place Signup Logic here //
   
 
   // Example: clear form after submission //
@@ -72,4 +72,4 @@ function handleLogin() {
 }
 </script>
 
-<style scoped src="@/assets/css/login.css"></style>
+<style scoped src="@/assets/css/signup.css"></style>
