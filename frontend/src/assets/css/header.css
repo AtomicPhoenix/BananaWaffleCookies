@@ -65,6 +65,20 @@ a.navlink {
   padding-top: 1rem;
 }
 
+.signout-button{
+  background: linear-gradient(to right, #ffa946,#fc5b2e);
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  border-style: none;
+  margin-left: 1rem;
+  border-radius: 5px;
+  font-weight: 450;
+}
+
+.mobdropdown{
+  display: none;
+}
+
 .hamburger {
   color: #000;
   display: none;
@@ -132,7 +146,16 @@ a.navlink {
     padding: 10px;
   }
 }
-
+@media (max-width: 650px){
+  .mobdropdown{
+    display: block;
+    align-items: center;
+    justify-content: center;
+  }
+  .desktop{
+    display: none;
+  }
+}
 @media (max-width: 500px) {
   .header h1{
     font-size: .95rem;
