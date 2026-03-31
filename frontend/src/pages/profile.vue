@@ -75,7 +75,7 @@ onMounted(() => {
 async function saveProfile() {
   try {
     const res = await fetch(`/api/profile`, {
-      method: 'UPDATE',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firstName: form.firstName, 
                              lastName: form.lastName,
