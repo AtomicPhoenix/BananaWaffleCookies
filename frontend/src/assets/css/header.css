@@ -135,7 +135,7 @@ a.navlink {
 
 @media (max-width: 500px) {
   .header h1{
-    font-size: .8rem;
-    margin-left: 2.5rem;
+    font-size: .95rem;
+    margin-left: 1rem;
   }
 }

@@ -15,6 +15,7 @@
           type="text"
           v-model="form.username"
           required
+          class="input-text"
         />
       </div>
 
@@ -29,19 +30,21 @@
           type="password"
           v-model="form.password"
           required
+          class="input-text"
         />
-      </div>
-
-      <!-- Login with OAuth -->
-      <div class="oauth">
-        <router-link class="login-button" to="/">
-          Login with Github
-        </router-link>
       </div>
 
       <!-- Submit button to trigger login logic -->
       <div class="submit">
         <button class="login-button" type="submit">Login</button>
+      </div>
+
+      <!-- Login with OAuth -->
+      <div class="oauth">
+        <!-- OAuth Logic Goes Here -->
+        <router-link class="oauth-button" to="/">
+          Login with Github <img src="/images/github.png" class="github-logo" alt="Github">
+        </router-link>
       </div>
 
     </form>
