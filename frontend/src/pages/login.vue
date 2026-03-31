@@ -2,12 +2,12 @@
     <div class="login-page">
       <h1>Login</h1>
       <!-- Form wrapper that prevents default page reload on submit -->
-      <form @submit.prevent="handleLogin">
+      <form @submit.prevent="handleLogin" class="login-form">
 
       <!-- Username field container -->
       <div class="input-field">
         <!-- Label describing the input -->
-        <label for="username">Username</label>
+        <label for="username">Username: </label>
 
         <!-- Input bound to reactive state using v-model -->
         <input
@@ -21,7 +21,7 @@
       <!-- Password field container -->
       <div class="input-field">
         <!-- Label describing the input -->
-        <label for="password">Password</label>
+        <label for="password">Password: </label>
 
         <!-- Password input (masked) bound to reactive state -->
         <input
@@ -33,12 +33,15 @@
       </div>
 
       <!-- Login with OAuth -->
-      <div class="oauth-button"> 
-        <button>IDK</button>
+      <div class="oauth">
+        <router-link class="login-button" to="/">
+          Login with Github
+        </router-link>
       </div>
+
       <!-- Submit button to trigger login logic -->
-      <div>
-        <button type="submit">Login</button>
+      <div class="submit">
+        <button class="login-button" type="submit">Login</button>
       </div>
 
     </form>
