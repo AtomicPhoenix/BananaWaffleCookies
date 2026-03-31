@@ -7,7 +7,8 @@ html, body {
 }
 
 main{
-  flex: 1;
+  flex-grow: 1;
+  margin: 1rem;
 }
 
 body {
@@ -16,5 +17,9 @@ body {
   color: #000000;
   min-height: 100vh;
   padding-top: 100px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the container takes at least the full viewport height */
+  margin: 0; /* Optional: Remove default body margin */
 }
 

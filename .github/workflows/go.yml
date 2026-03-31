@@ -19,10 +19,16 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.20'
+        go-version: '1.24'
 
     - name: Format
-      run: [ -z "$(gofmt -l backend/)" ];
+      run: |
+          fmt_out=$(gofmt -l backend/)
+          if [ -n "$fmt_out" ]; then
+            echo "The following files are not formatted:"
+            echo "$fmt_out"
+            exit 1
+          fi
 
     - name: Build
       run: go -C backend/ build -v

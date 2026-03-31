@@ -1,15 +1,13 @@
 <template>
-  <HeaderLayout></HeaderLayout>
-    <!-- Page Content -->
+  <main>
     <body>
-      <main class="main-page">
-        <p>Welcome</p>
-      </main>
+      <h1>Dashboard</h1>
+      <p>Welcome to Banana Waffle Cookies.</p>
+      <div>
+        <RouterLink to="/login" class="button">Get Started</RouterLink>
+      </div>
     </body>
-  <FooterLayout></FooterLayout>
+  </main>
 </template>
 
-<script setup>
-import HeaderLayout from "@/components/layouts/header.vue"
-import FooterLayout from "@/components/layouts/footer.vue"
-</script>
+<style scoped src="@/assets/css/home.css"></style>

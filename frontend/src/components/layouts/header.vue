@@ -4,27 +4,27 @@
     <header class="header">
         <nav>
             <!-- Logo -->
-            <a href="/" class="nav-logo">
-                <img src="/public/images/bwc.png" alt="BWC Logo">
-            </a>
+        <RouterLink to="/" class="nav-logo">
+          <img src="/images/bwc.png" alt="BWC Logo">
+        </RouterLink>
 
             <!-- Title -->
             <h1>Banana Waffle Cookies</h1>
 
             <!-- Navigation Links -->
             <div class="navigation" id="navbar">
-                <a href="#" class="navlink">Dashboard</a>
-                <a href="#" class="navlink">Document Library</a>
-                <a href="#" class="navlink">Profile</a>	
-                <a href="#" class="navlink">Settings</a>
+              <RouterLink to="/" class="navlink">Dashboard</RouterLink>
+              <RouterLink to="/library" class="navlink">Document Library</RouterLink>
+              <RouterLink to="/profile" class="navlink">Profile</RouterLink>
+              <RouterLink to="/settings" class="navlink">Settings</RouterLink>
             </div>
 
             <!-- Mobile Dropdown -->
             <div v-if="isOpen" ref="menuRef" class="hamburger-menu">
-              <a href="#" class="moblink">Dashboard</a>
-              <a href="#" class="moblink">Library</a>
-              <a href="#" class="moblink">Profile</a>
-              <a href="#" class="moblink">Settings</a>
+              <RouterLink to="/" class="moblink" @click="isOpen = false">Dashboard</RouterLink>
+              <RouterLink to="/library" class="moblink" @click="isOpen = false">Library</RouterLink>
+              <RouterLink to="/profile" class="moblink" @click="isOpen = false">Profile</RouterLink>
+              <RouterLink to="/settings" class="moblink" @click="isOpen = false">Settings</RouterLink>
             </div>
 
             <!-- Mobile Menu Hamburger -->
