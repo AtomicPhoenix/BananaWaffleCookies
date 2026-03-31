@@ -25,8 +25,11 @@
               <RouterLink to="/library" class="moblink" @click="isOpen = false">Library</RouterLink>
               <RouterLink to="/profile" class="moblink" @click="isOpen = false">Profile</RouterLink>
               <RouterLink to="/settings" class="moblink" @click="isOpen = false">Settings</RouterLink>
+              <button @click.stop="signOut" class="signout-button mobdropdown">Sign Out</button>
             </div>
 
+            <!-- Log Out Button -->
+            <button @click.stop="signOut" class="signout-button desktop">Sign Out</button>
             <!-- Mobile Menu Hamburger -->
             <button @click.stop="toggleMenu" class="hamburger" aria-label="Menu" aria-expanded="false">☰</button>
         </nav>
@@ -38,6 +41,11 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const isOpen = ref(false)
 const menuRef = ref(null)
+
+const signOut = () => {
+  //insert logic to sign out here
+  console.log("Signed Out!")
+}
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
