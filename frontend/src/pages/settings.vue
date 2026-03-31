@@ -1,10 +1,111 @@
 <template>
-  <div>
-    <body>
-      <h1>Settings</h1>
-      <p>[Insert settings content here]</p>
-    </body>
+  <div class="page-container">
+    <h2 class="page-title">Settings</h2>
+
+    <div class="form-card">
+      
+      <!-- Account Info -->
+      <div class="section">
+        <h3 class="section-title">Account Information</h3>
+
+        <div class="form-group">
+          <label>First Name</label>
+          <input v-model="form.firstName" />
+        </div>
+
+        <div class="form-group">
+          <label>Last Name</label>
+          <input v-model="form.lastName" />
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input v-model="form.email" type="email" />
+        </div>
+      </div>
+
+      <!-- Password Reset -->
+      <div class="section">
+        <h3 class="section-title">Password</h3>
+
+        <div class="form-group">
+          <label>New Password</label>
+          <input
+            v-model="form.password"
+            type="password"
+            placeholder="Enter new password"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input
+            v-model="form.confirmPassword"
+            type="password"
+            placeholder="Confirm new password"
+          />
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="section">
+        <h3 class="section-title">Preferences</h3>
+
+        <label class="checkbox-group">
+          <input type="checkbox" v-model="form.notifications" />
+          Enable notifications
+        </label>
+      </div>
+
+      <!-- Save Button -->
+      <button @click="saveSettings">
+        Save Changes
+      </button>
+
+      <!-- Messages -->
+      <p v-if="error" class="error">{{ error }}</p>
+      <p v-if="saved" class="success">
+        Settings saved successfully!
+      </p>
+    </div>
   </div>
 </template>
+
+<script setup>
+import { reactive, ref } from 'vue'
+
+const form = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  notifications: false
+})
+
+const saved = ref(false)
+const error = ref('')
+
+function saveSettings() {
+  error.value = ''
+
+  // Validation
+  if (form.password && form.password !== form.confirmPassword) {
+    error.value = 'Passwords do not match'
+    return
+  }
+
+  // TODO: Send updated settings to backend API
+  // Example: PUT /api/settings
+
+  console.log('Saved settings:', form)
+
+  saved.value = true
+
+  setTimeout(() => {
+    saved.value = false
+  }, 2000)
+}
+</script>
 
 <style scoped src="@/assets/css/settings.css"></style>
