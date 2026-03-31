@@ -50,7 +50,9 @@
 </template>
 <script setup>
 import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter();
 const form = reactive({
   jobName: '',
   deadline: '',
@@ -58,12 +60,16 @@ const form = reactive({
 })
 
 function handleSubmit() {
+  //FOR TESTING TO SEE
   console.log('Form Data:', { ...form })
 
   // Example: reset after submit
   form.jobName = ''
   form.deadline = ''
   form.status = ''
+
+  //move back to dashboard page
+  router.push('@/pages/dashboard')
 }
 </script>
 <style scoped src="@/assets/css/job-page.css"></style>
