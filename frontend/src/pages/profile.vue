@@ -70,14 +70,26 @@ onMounted(() => {
   }
 })
 
-function saveProfile() {
-  // TODO: Send profile data to backend API
-  // Example: POST /api/profile
 
-  // Simulate persistence
-  localStorage.setItem('profile', JSON.stringify(form))
+// Send profile data to backend API
+async function saveProfile() {
+  try {
+    const res = await fetch(`/api/profile`, {
+      method: 'UPDATE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName: form.firstName, 
+                             lastName: form.lastName,
+                             email: form.email 
+                             summary: form.summary })
+    })
 
-  console.log('Saved profile:', form)
+    if (res.ok) {
+      form.email = ''
+      form.password = ''
+    }   
+  } catch (err) {
+    console.error(err)
+  } 
 }
 </script>
 
