@@ -1,62 +1,82 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
+import axios from "axios";
+import HomePage from "@/pages/home.vue";
+import LibraryPage from "@/pages/library.vue";
+import ProfilePage from "@/pages/profile.vue";
+import SettingsPage from "@/pages/settings.vue";
+import LoginPage from "@/pages/login.vue";
+import DashboardPage from "@/pages/dashboard.vue";
+import CreateJobPage from "@/pages/create-job.vue";
+import SignupPage from "@/pages/signup.vue";
 
-import HomePage from '@/pages/home.vue'
-import LibraryPage from '@/pages/library.vue'
-import ProfilePage from '@/pages/profile.vue'
-import SettingsPage from '@/pages/settings.vue'
-import LoginPage from '@/pages/login.vue'
-import DashboardPage from '@/pages/dashboard.vue'
-import CreateJobPage from '@/pages/create-job.vue'
-import SignupPage from '@/pages/signup.vue'
+async function authGuard(to, from) {
+  try {
+    const response = await axios.get("/api/auth/check", {
+      withCredentials: true,
+    });
+    if (response.data.authenticated) {
+      return true; // allow navigation
+    } else {
+      return { name: "login" }; // redirect to login
+    }
+  } catch (err) {
+    return { name: "login" }; // redirect if API fails
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      name: 'home',
+      path: "/",
+      name: "home",
       component: HomePage,
     },
     {
-      path: '/library',
-      name: 'library',
+      path: "/library",
+      name: "library",
       component: LibraryPage,
+      beforeEnter: authGuard,
     },
     {
-      path: '/profile',
-      name: 'profile',
+      path: "/profile",
+      name: "profile",
       component: ProfilePage,
+      beforeEnter: authGuard,
     },
     {
-      path: '/settings',
-      name: 'settings',
+      path: "/settings",
+      name: "settings",
       component: SettingsPage,
+      beforeEnter: authGuard,
     },
     {
-      path: '/login',
-      name: 'login',
+      path: "/login",
+      name: "login",
       component: LoginPage,
     },
     {
-      path: '/dashboard',
-      name: 'dashboard',
+      path: "/dashboard",
+      name: "dashboard",
       component: DashboardPage,
+      beforeEnter: authGuard,
     },
     {
-      path: '/create-job',
-      name: 'create-job',
+      path: "/create-job",
+      name: "create-job",
       component: CreateJobPage,
+      beforeEnter: authGuard,
     },
     {
-      path: '/signup',
-      name: 'signup',
+      path: "/signup",
+      name: "signup",
       component: SignupPage,
     },
     {
-      path: '/:pathMatch(.*)*',
-      redirect: '/',
+      path: "/:pathMatch(.*)*",
+      redirect: "/",
     },
   ],
-})
+});
 
-export default router
+export default router;

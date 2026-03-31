@@ -55,6 +55,7 @@
 // Import reactive utility for form state //
 import { reactive } from 'vue'
 
+import axios from "axios";
 // Reactive object to store form input values //
 const form = reactive({
   email: '',
@@ -64,19 +65,28 @@ const form = reactive({
 // Function that runs when the form is submitted //
 async function handleLogin() {
   try {
-    const res = await fetch(`/signup`, {
+    const res = await fetch('/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: form.email, password: form.password })
-    })
+      body: JSON.stringify({ email: form.email, password: form.password }),
+      credentials: 'include', // important! ensures cookies are saved
+    });
 
     if (res.ok) {
+      // Clear form
       form.email = ''
       form.password = ''
-    }   
+
+      window.location.href = '/'
+    } else {
+      // Handle invalid login
+      const data = await res.json()
+      alert(data.message || 'Login failed')
+    }
   } catch (err) {
     console.error(err)
-  } 
+    alert('Login error')
+  }
 }
 </script>
 
