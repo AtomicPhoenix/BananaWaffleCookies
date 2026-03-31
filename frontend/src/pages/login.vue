@@ -62,13 +62,21 @@ const form = reactive({
 })
 
 // Function that runs when the form is submitted //
-function handleLogin() {
-  // Place Authentication Logic here //
-  
+async function handleLogin() {
+  try {
+    const res = await fetch(`/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.email, password: form.password })
+    })
 
-  // Example: clear form after submission //
-  form.email = ''
-  form.password = ''
+    if (res.ok) {
+      form.email = ''
+      form.password = ''
+    }   
+  } catch (err) {
+    console.error(err)
+  } 
 }
 </script>
 
