@@ -1,33 +1,21 @@
 @import './main.css';
 
-main {
-    display: flex;
-    color: #421603;
-    justify-content: center;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    background: #F18805;
-    background: linear-gradient(90deg, #F18805 0%, #E3E3E3 30%, #E3E3E3 70%, #F18805 100%);
-}
-
 .home-content {
-    margin: 0;
+    margin: 0 auto;
     padding-top: 0;
     padding: clamp(1rem, 5vw, 3rem) clamp(1rem, 5vw, 3rem);
     width: 100%;
-    max-width: 900px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    min-height: clamp(600px, 100vh, 100vh);
+    min-height: 100vh;
     box-sizing: border-box;
     gap: clamp(0.5rem, 3vw, 1.5rem);
-    background: transparent;
+    background: #F18805;
+    color: #421603;
+    background: linear-gradient(90deg, #F18805 0%, #E3E3E3 30%, #E3E3E3 70%, #F18805 100%);
 }
 
 .title-row {
@@ -91,25 +79,20 @@ p {
     background-position: 100% 50%;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 800px) {
     .home-content {
-        gap: 0.8rem;
-    }
-
-    .title-row {
-        flex-direction: column;
-        gap: 0.4rem;
+        min-height: auto;
+        justify-content: flex-start;
+        padding-top: 10rem;
+        padding-bottom: 10rem;
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 520px) {
     .home-content {
-        gap: 1rem;
-    }
-}
-
-@media (min-width: 701px) {
-    .home-content {
-        gap: 1.5rem;
+        min-height: auto;
+        justify-content: flex-start;
+        padding-top: 10rem;
+        padding-bottom: 10rem;
     }
 }
