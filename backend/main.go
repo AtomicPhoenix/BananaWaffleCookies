@@ -52,7 +52,7 @@ func main() {
 				return
 			}
 
-			w.Write([]byte(`{"authenticated": true}`)) 
+			w.Write([]byte(`{"authenticated": true}`))
 		})
 
 		// Example protected routes
