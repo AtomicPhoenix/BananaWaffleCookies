@@ -23,7 +23,7 @@ func GetUserID(email string) int {
 func RegisterUser(user User, profile Profile) bool {
 	err := DbConn.QueryRow(context.Background(), "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id", user.email, user.password_hash).Scan(&profile.user_id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to insert user into database: %v\n", err)
 		return false
 	}
 	return createProfile(profile)
