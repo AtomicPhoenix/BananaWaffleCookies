@@ -1,6 +1,5 @@
 <template>
-  <main>
-    <body>
+    <div class="dashboard">
       <!-- Search Bar to Query Job Information -->
       <div class="search-box">
         <form action="backend.go" method="get">
@@ -28,9 +27,9 @@
         <div class="job-list">
                 <!-- Field to add jobs to listing-->
                 <div class="create-job">
-                  <form action="post">
-                    <input class="create-job-button" type="submit" value="Create New Job Application" />
-                  </form>
+                  <router-link class="create-job-button" to="/create-job">
+                    Create New Job Application
+                  </router-link>
                 </div>
                 <!-- Needs to be created of internal database information, template for now -->
                 <div class="job-listing">
@@ -58,8 +57,7 @@
                 </div>
         </div>
       </div>
-    </body>
-  </main>
+    </div>
 </template>
 <style scoped src="@/assets/css/dashboard.css"></style>
 <script setup>
