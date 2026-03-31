@@ -8,7 +8,8 @@
       </div>
         <p>Keep applications organized, generate tailored resumes, and manage statuses in one place!</p>
       <div>
-        <RouterLink to="/login" class="button">Get Started</RouterLink>
+        <RouterLink to="/signup" class="button">Get Started</RouterLink>
+        <RouterLink to="/login" class="button">Login</RouterLink>
       </div>
     </div>
 </template>
