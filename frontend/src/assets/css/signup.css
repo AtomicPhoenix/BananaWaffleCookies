@@ -8,7 +8,7 @@ h1{
     color: #421603;
 }
 
-.login-page{
+.signup-page{
     display: flex;
     flex-direction: column;
     padding-top: 50px;
@@ -18,7 +18,7 @@ h1{
     min-height: 70vh;
 }
 
-.login-form{
+.signup-form{
     background: #D9D9D9;
     border-color: #B8B8B8;
     border-radius: 4px;
@@ -48,7 +48,7 @@ h1{
     margin: 1rem;
 }
 
-.login-button{
+.register-button{
     background: linear-gradient(to right, #ffa946,#fc5b2e);
     padding: 0.5rem 1rem 0.5rem;
     text-decoration: none;

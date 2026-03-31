@@ -12,14 +12,14 @@ main{
 }
 
 body {
+  background: #F18805;
+  color: #421603;
+  background: linear-gradient(90deg, #F18805 0%, #E3E3E3 15%, #E3E3E3 85%, #F18805 100%);
   font-family: "Atkinson Hyperlegible Next", sans-serif;
-  background-color: #ffffff;
-  color: #000000;
   min-height: 100vh;
-  padding-top: 100px;
+  padding-top: 86px;
   display: flex;
   flex-direction: column;
   min-height: 100vh; /* Ensures the container takes at least the full viewport height */
   margin: 0; /* Optional: Remove default body margin */
 }
-

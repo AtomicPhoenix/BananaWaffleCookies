@@ -1,13 +1,17 @@
 <template>
-  <main>
-    <body>
-      <h1>Dashboard</h1>
-      <p>Welcome to Banana Waffle Cookies.</p>
-      <div>
-        <RouterLink to="/login" class="button">Get Started</RouterLink>
+    <div class="home-content">
+      <div class="title-row">
+        <RouterLink to="/" class="title-logo-link" aria-label="Go to home page">
+          <img class="title-logo" src="/images/bwc.png" alt="BWC Logo">
+        </RouterLink>
+        <h1>Banana Waffle<br>Cookies</h1>
       </div>
-    </body>
-  </main>
+        <p>Keep applications organized, generate tailored resumes, and manage statuses in one place!</p>
+      <div>
+        <RouterLink to="/signup" class="button">Get Started</RouterLink>
+        <RouterLink to="/login" class="button">Login</RouterLink>
+      </div>
+    </div>
 </template>
 
 <style scoped src="@/assets/css/home.css"></style>

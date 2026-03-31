@@ -5,6 +5,9 @@ import LibraryPage from '@/pages/library.vue'
 import ProfilePage from '@/pages/profile.vue'
 import SettingsPage from '@/pages/settings.vue'
 import LoginPage from '@/pages/login.vue'
+import DashboardPage from '@/pages/dashboard.vue'
+import CreateJobPage from '@/pages/create-job.vue'
+import SignupPage from '@/pages/signup.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +36,21 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginPage,
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardPage,
+    },
+    {
+      path: '/create-job',
+      name: 'create-job',
+      component: CreateJobPage,
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: SignupPage,
     },
     {
       path: '/:pathMatch(.*)*',
