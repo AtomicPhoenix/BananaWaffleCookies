@@ -1,47 +1,44 @@
 <template>
-  <div>
-    <h2 class="text-2xl font-bold mb-6">Profile</h2>
+  <div class="page-container">
+    <h2 class="page-title">Profile</h2>
 
     <!-- Completion Indicator -->
-    <div class="mb-6">
-      <p class="mb-2 font-semibold">
+    <div class="completion-section">
+      <p class="completion-text">
         Profile Completion: {{ completionPercentage }}%
       </p>
 
-      <div class="w-full bg-gray-200 rounded h-4">
+      <div class="progress-bar">
         <div
-          class="bg-green-500 h-4 rounded"
+          class="progress-fill"
           :style="{ width: completionPercentage + '%' }"
         ></div>
       </div>
     </div>
 
     <!-- Profile Form -->
-    <div class="bg-white p-6 rounded shadow max-w-lg space-y-4">
-      <div>
-        <label class="block mb-1">First Name</label>
-        <input v-model="form.firstName" class="w-full border p-2 rounded" />
+    <div class="form-card">
+      <div class="form-group">
+        <label>First Name</label>
+        <input v-model="form.firstName" />
       </div>
 
-      <div>
-        <label class="block mb-1">Last Name</label>
-        <input v-model="form.lastName" class="w-full border p-2 rounded" />
+      <div class="form-group">
+        <label>Last Name</label>
+        <input v-model="form.lastName" />
       </div>
 
-      <div>
-        <label class="block mb-1">Email</label>
-        <input v-model="form.email" type="email" class="w-full border p-2 rounded" />
+      <div class="form-group">
+        <label>Email</label>
+        <input v-model="form.email" type="email" />
       </div>
 
-      <div>
-        <label class="block mb-1">Summary</label>
-        <textarea v-model="form.summary" class="w-full border p-2 rounded"></textarea>
+      <div class="form-group">
+        <label>Summary</label>
+        <textarea v-model="form.summary"></textarea>
       </div>
 
-      <button
-        @click="saveProfile"
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
+      <button @click="saveProfile">
         Save Profile
       </button>
     </div>
@@ -49,7 +46,7 @@
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue'
+import { reactive, computed, onMounted } from 'vue'
 
 const form = reactive({
   firstName: '',
@@ -65,7 +62,23 @@ const completionPercentage = computed(() => {
   return Math.round((filled / fields.length) * 100)
 })
 
+// Load saved profile (simulated persistence)
+onMounted(() => {
+  const saved = localStorage.getItem('profile')
+  if (saved) {
+    Object.assign(form, JSON.parse(saved))
+  }
+})
+
 function saveProfile() {
+  // TODO: Send profile data to backend API
+  // Example: POST /api/profile
+
+  // Simulate persistence
+  localStorage.setItem('profile', JSON.stringify(form))
+
   console.log('Saved profile:', form)
 }
 </script>
+
+<style scoped src="@/assets/css/profile.css"></style>
