@@ -116,5 +116,4 @@ func (profile *Profile) SetCompletionPercent() {
 	}
 
 	profile.CompletionPercent = int(float32(filledFields/numFields) * 100)
-	fmt.Println(profile)
 }
