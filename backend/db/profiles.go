@@ -7,17 +7,17 @@ import (
 )
 
 type Profile struct {
-	user_id            int
-	first_name         string
-	last_name          string
-	phone              string
-	city               string
-	state              string
-	country            string
-	linkedin_url       string
-	portfolio_url      string
-	summary            string
-	completion_percent int
+	UserID            int    `json:"user_id"`
+	FirstName         string `json:"first_name"`
+	LastName          string `json:"last_name"`
+	Phone             string `json:"phone"`
+	City              string `json:"city"`
+	State             string `json:"state"`
+	Country           string `json:"country"`
+	LinkedinURL       string `json:"linkedin_url"`
+	PortfolioURL      string `json:"portfolio_url"`
+	Summary           string `json:"summary"`
+	CompletionPercent int    `json:"completion_percent"`
 }
 
 func createProfile(uid int) bool {
