@@ -106,13 +106,6 @@ async function saveSettings() {
   }, 2000)
 }
 
-
-// Send profile data to backend API
-async function saveProfile() {
-    console.log('Saved profile:', form)
- }
- </script>
-
 </script>
 
 <style scoped src="@/assets/css/settings.css"></style>
