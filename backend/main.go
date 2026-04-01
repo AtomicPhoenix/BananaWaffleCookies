@@ -56,6 +56,7 @@ func main() {
 		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {})
+		r.Put("/api/settings", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/create-job", func(w http.ResponseWriter, r *http.Request) {})
 	})
 
