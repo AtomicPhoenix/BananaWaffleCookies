@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"time"
@@ -43,6 +44,35 @@ func UpdateProfile(profile Profile) error {
 		return err
 	}
 	return nil
+}
+
+func GetProfile(uid int) (Profile, error) {
+	var profile Profile
+	var first_name, last_name, phone, city, state, country, linkedin_url, portfolio, summary sql.NullString
+	err := DbConn.QueryRow(context.Background(), `SELECT first_name, last_name, phone, city, state, country, linkedin_url, portfolio_url, summary, completion_percent FROM profiles WHERE user_id = $1`, uid).Scan(&first_name, &last_name, &phone, &city, &state, &country, &linkedin_url, &portfolio, &summary, &profile.CompletionPercent)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to grab user from database: %v\n", err)
+		return Profile{}, err
+	}
+
+	profile.FirstName = extractValue(first_name)
+	profile.LastName = extractValue(last_name)
+	profile.City = extractValue(city)
+	profile.Phone = extractValue(phone)
+	profile.State = extractValue(state)
+	profile.Country = extractValue(country)
+	profile.LinkedinURL = extractValue(linkedin_url)
+	profile.PortfolioURL = extractValue(portfolio)
+	profile.Summary = extractValue(summary)
+
+	return profile, nil
+}
+
+func extractValue(str sql.NullString) string {
+	if str.Valid {
+		return str.String
+	}
+	return ""
 }
 
 // Calculate what percent of the profile is filled out
