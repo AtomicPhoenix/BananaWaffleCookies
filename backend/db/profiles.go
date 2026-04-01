@@ -37,7 +37,7 @@ func UpdateProfile(profile Profile) error {
 	var sql string = `UPDATE profiles
 				SET first_name = $1, last_name = $2, phone = $3, city = $4, state = $5, country = $6, linkedin_url = $7, portfolio_url = $8, summary = $9, completion_percent = $10
 				WHERE user_id = $11`
-	_, err := DbConn.Exec(context.Background(), sql, profile.first_name, profile.last_name, profile.phone, profile.city, profile.state, profile.country, profile.linkedin_url, profile.portfolio_url, profile.summary, profile.completion_percent, profile.user_id)
+	_, err := DbConn.Exec(context.Background(), sql, profile.FirstName, profile.LastName, profile.Phone, profile.City, profile.State, profile.Country, profile.LinkedinURL, profile.PortfolioURL, profile.Summary, profile.CompletionPercent, profile.UserID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to insert user into database: %v\n", err)
 		return err
