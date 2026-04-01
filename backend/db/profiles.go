@@ -44,3 +44,47 @@ func UpdateProfile(profile Profile) error {
 	}
 	return nil
 }
+
+// Calculate what percent of the profile is filled out
+func (profile *Profile) SetCompletionPercent() {
+	var filledFields int = 0
+	var numFields int = 9
+	if profile.FirstName != "" {
+		filledFields++
+	}
+
+	if profile.LastName != "" {
+		filledFields++
+	}
+
+	if profile.Phone != "" {
+		filledFields++
+	}
+
+	if profile.City != "" {
+		filledFields++
+	}
+
+	if profile.State != "" {
+		filledFields++
+	}
+
+	if profile.Country != "" {
+		filledFields++
+	}
+
+	if profile.LinkedinURL != "" {
+		filledFields++
+	}
+
+	if profile.PortfolioURL != "" {
+		filledFields++
+	}
+
+	if profile.Summary != "" {
+		filledFields++
+	}
+
+	profile.CompletionPercent = int(float32(filledFields/numFields) * 100)
+	fmt.Println(profile)
+}
