@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"bananawafflecookies.com/m/v2/db"
@@ -15,6 +16,11 @@ import (
 
 var JWT_SECRET_KEY string
 var AuthToken *jwtauth.JWTAuth
+
+type Claim struct {
+	Uid   int
+	Email string
+}
 
 func init() {
 	err := godotenv.Load()
@@ -135,4 +141,46 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "application/json")
+}
+
+// Grabs information from token claims
+func GrabToken(r *http.Request) (error, Claim) {
+	cookie, err := r.Cookie("auth_token")
+
+	// Grab cookie
+	if err != nil || cookie.Value == "" {
+		return err, Claim{}
+	}
+
+	// Decode auth token
+	reqToken, err := AuthToken.Decode(cookie.Value)
+	if err != nil {
+		fmt.Println("Failed to decode reqToken:", err)
+		return err, Claim{}
+	}
+
+	// Auth Token fields to grab
+	var uid_str, email string
+
+	// Decode auth token
+	err = reqToken.Get("id", &uid_str)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to decode user id from auth token: %v\n", err)
+		return err, Claim{}
+	}
+
+	uid, err := strconv.Atoi(uid_str)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		return err, Claim{}
+	}
+
+	// Grab email
+	err = reqToken.Get("id", &email)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to decode email from auth token: %v\n", err)
+		return err, Claim{}
+	}
+
+	return nil, Claim{Uid: uid, Email: email}
 }

@@ -47,16 +47,12 @@ func main() {
 				return
 			}
 
-			if err != nil {
-				w.Write([]byte(`{"authenticated": false}`))
-				return
-			}
-
 			w.Write([]byte(`{"authenticated": true}`))
 		})
 
-		// Example protected routes
 		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {})
+		r.Put("/api/profile", handlers.UpdateProfile)
+
 		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {})
