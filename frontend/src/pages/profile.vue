@@ -97,12 +97,33 @@ const completionPercentage = computed(() => {
 
 // Load saved profile (simulated persistence)
 onMounted(() => {
+
+  getProfile()
   const saved = localStorage.getItem('profile')
   if (saved) {
     Object.assign(form, JSON.parse(saved))
   }
 })
 
+async function getProfile() {
+  try {
+      const res = await fetch(`/api/profile`, {method: 'GET'})
+      if (res.ok) {
+        let profile_data = await res.json()
+        form.first_name = profile_data.first_name
+        form.last_name = profile_data.last_name
+        form.phone = profile_data.phone
+        form.city = profile_data.city
+        form.state = profile_data.state
+        form.country = profile_data.country
+        form.linkedin_url = profile_data.linkedin_url
+        form.portfolio_url  = profile_data.portfolio_url
+        form.summary = profile_data.summary
+      }   
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 // Send profile data to backend API
 async function saveProfile() {
