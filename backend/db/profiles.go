@@ -4,20 +4,24 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 )
 
 type Profile struct {
-	UserID            int    `json:"user_id"`
-	FirstName         string `json:"first_name"`
-	LastName          string `json:"last_name"`
-	Phone             string `json:"phone"`
-	City              string `json:"city"`
-	State             string `json:"state"`
-	Country           string `json:"country"`
-	LinkedinURL       string `json:"linkedin_url"`
-	PortfolioURL      string `json:"portfolio_url"`
-	Summary           string `json:"summary"`
-	CompletionPercent int    `json:"completion_percent"`
+	Id                int       `json:"id"`
+	UserID            int       `json:"user_id"`
+	FirstName         string    `json:"first_name"`
+	LastName          string    `json:"last_name"`
+	Phone             string    `json:"phone"`
+	City              string    `json:"city"`
+	State             string    `json:"state"`
+	Country           string    `json:"country"`
+	LinkedinURL       string    `json:"linkedin_url"`
+	PortfolioURL      string    `json:"portfolio_url"`
+	Summary           string    `json:"summary"`
+	CompletionPercent int       `json:"completion_percent"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 func createProfile(uid int) bool {
