@@ -99,10 +99,6 @@ const completionPercentage = computed(() => {
 onMounted(() => {
 
   getProfile()
-  const saved = localStorage.getItem('profile')
-  if (saved) {
-    Object.assign(form, JSON.parse(saved))
-  }
 })
 
 async function getProfile() {
