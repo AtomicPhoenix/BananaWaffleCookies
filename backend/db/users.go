@@ -69,3 +69,13 @@ func UpdateUserEmail(uid int, new_email string) error {
 	}
 	return nil
 }
+
+func GetUserEmail(uid int) (string, error) {
+	var email string
+	err := DbConn.QueryRow(context.Background(), "SELECT email FROM users WHERE id=$1", uid).Scan(&email)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to update get email: %v\n", err)
+		return "", err
+	}
+	return email, nil
+}

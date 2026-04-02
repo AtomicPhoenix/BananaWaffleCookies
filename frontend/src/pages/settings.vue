@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, onMounted, ref } from 'vue'
 
 const form = reactive({
   email: '',
@@ -73,6 +73,25 @@ const form = reactive({
 
 const saved = ref(false)
 const error = ref('')
+
+// Load saved settings
+onMounted(() => {
+  getSettings()
+})
+
+async function getSettings() {
+  try {
+      const res = await fetch(`/api/settings`, {method: 'GET'})
+      if (res.ok) {
+        let settings_data = await res.json()
+        form.email = settings_data.Email
+      }   
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
 
 async function saveSettings() {
   error.value = ''
