@@ -109,8 +109,7 @@ const stats = ref({
 const handleSearch = async () => {
   try {
     const query = encodeURIComponent(searchQuery.value.trim())
-
-    const res = await fetch(`/jobs/search?q=${query}`)
+    const res = await fetch(`/api/jobs/search?q=${query}`)
     const data = await res.json()
 
     searchResults.value = data
@@ -123,8 +122,9 @@ const handleSearch = async () => {
 const fetchUserJobs = async () => {
 
   try {
-    const res = await fetch('/user/jobs', {
+    const res = await fetch('/api/user/jobs', {
       //define GET right? not sure so not included
+      method: 'GET',
       credentials: 'include' // important if using sessions/cookies
     })
     const data = await res.json()

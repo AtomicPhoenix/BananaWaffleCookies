@@ -99,7 +99,7 @@ async function handleSubmit() {
       return
     }
 
-    const res = await fetch('/jobs', {
+    const res = await fetch('/api/jobs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
