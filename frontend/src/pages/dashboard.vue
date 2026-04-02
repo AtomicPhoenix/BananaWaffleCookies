@@ -17,7 +17,7 @@
 
     <div class="job-info">
 
-      <!-- OVERVIEW (can be dynamic later) -->
+      <!-- OVERVIEW -->
       <div class="overview">
         <h1 class="overview-title">Overview</h1>
         <p class="overview-items">
