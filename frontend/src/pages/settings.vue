@@ -9,16 +9,6 @@
         <h3 class="section-title">Account Information</h3>
 
         <div class="form-group">
-          <label>First Name</label>
-          <input v-model="form.firstName" />
-        </div>
-
-        <div class="form-group">
-          <label>Last Name</label>
-          <input v-model="form.lastName" />
-        </div>
-
-        <div class="form-group">
           <label>Email</label>
           <input v-model="form.email" type="email" />
         </div>
@@ -72,11 +62,9 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, onMounted, ref } from 'vue'
 
 const form = reactive({
-  firstName: '',
-  lastName: '',
   email: '',
   password: '',
   confirmPassword: '',
@@ -86,7 +74,26 @@ const form = reactive({
 const saved = ref(false)
 const error = ref('')
 
-function saveSettings() {
+// Load saved settings
+onMounted(() => {
+  getSettings()
+})
+
+async function getSettings() {
+  try {
+      const res = await fetch(`/api/settings`, {method: 'GET'})
+      if (res.ok) {
+        let settings_data = await res.json()
+        form.email = settings_data.Email
+      }   
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
+
+async function saveSettings() {
   error.value = ''
 
   // Validation
@@ -95,17 +102,29 @@ function saveSettings() {
     return
   }
 
-  // TODO: Send updated settings to backend API
-  // Example: PUT /api/settings
+  try {
+    const res = await fetch(`/api/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.email, password: form.password })
+    })
+
+  if (res.ok) {
+      form.confirmPassword = ''
+    }
+  } catch (err) {
+    console.error(err)
+    return
+  }
 
   console.log('Saved settings:', form)
-
   saved.value = true
 
   setTimeout(() => {
     saved.value = false
   }, 2000)
 }
+
 </script>
 
 <style scoped src="@/assets/css/settings.css"></style>
