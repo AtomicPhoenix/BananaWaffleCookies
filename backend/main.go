@@ -52,6 +52,7 @@ func main() {
 
 		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {})
 		r.Put("/api/profile", handlers.UpdateProfile)
+		r.Get("/api/profile", handlers.GetProfile)
 
 		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
