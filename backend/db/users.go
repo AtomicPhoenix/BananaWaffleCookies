@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -42,4 +44,38 @@ func LoginUser(user User) (bool, int) {
 		return false, -1
 	}
 	return true, uid
+}
+
+func UpdateUserPassword(uid int, new_password string) error {
+	password_bytes, err := bcrypt.GenerateFromPassword([]byte(new_password), 12)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to generate password hash: %v\n", err)
+		return err
+	}
+	password_hash := string(password_bytes)
+	_, err = DbConn.Exec(context.Background(), "UPDATE users SET password_hash=$1 WHERE id=$2", password_hash, uid)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to update user password: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func UpdateUserEmail(uid int, new_email string) error {
+	_, err := DbConn.Exec(context.Background(), "UPDATE users SET email=$1 WHERE id=$2", new_email, uid)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to update user email: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func GetUserEmail(uid int) (string, error) {
+	var email string
+	err := DbConn.QueryRow(context.Background(), "SELECT email FROM users WHERE id=$1", uid).Scan(&email)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to update get email: %v\n", err)
+		return "", err
+	}
+	return email, nil
 }

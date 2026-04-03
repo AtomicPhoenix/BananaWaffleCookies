@@ -57,6 +57,8 @@ func main() {
 		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {})
+		r.Put("/api/settings", func(w http.ResponseWriter, r *http.Request) {})
+		r.Get("/api/settings", handlers.GetSettings)
 		r.Get("/create-job", func(w http.ResponseWriter, r *http.Request) {})
 	})
 
@@ -64,7 +66,9 @@ func main() {
 	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./frontend/dist/index.html")
 	})
-	// Serve static assets
+
+	// Serve static images
+	router.Handle("/images/*", http.StripPrefix("/images/", http.FileServer(http.Dir("./frontend/dist/images"))))
 	router.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("./frontend/dist/assets"))))
 
 	portStr := fmt.Sprintf(":%d", *config.port)
