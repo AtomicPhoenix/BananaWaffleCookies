@@ -45,7 +45,7 @@
           class="job-listing"
         >
           <div class="left top">
-            {{ job.title }} | {{ job.company }} | {{ job.location }}
+            {{ job.title }} | {{ job.company_name }} | {{ job.location_text }}
           </div>
 
           <div class="left mid jdesc">
@@ -53,7 +53,7 @@
           </div>
 
           <div class="left bot jdesc">
-            Deadline: {{ formatDate(job.deadline) }}
+            Deadline: {{ formatDate(job.deadline_date) }}
           </div>
 
           <div
@@ -76,7 +76,7 @@
           class="job-listing"
         >
           <div class="left top">
-            {{ result.title }} | {{ result.company }} | {{ result.location }}
+            {{ result.title }} | {{ result.company_name }} | {{ result.location_text }}
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@ const stats = ref({
 const handleSearch = async () => {
   try {
     const query = encodeURIComponent(searchQuery.value.trim())
-    const res = await fetch(`/api/jobs/search?q=${query}`)
+    const res = await fetch(`/api/jobs`, { method: 'GET' })
     const data = await res.json()
 
     searchResults.value = data

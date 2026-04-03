@@ -13,13 +13,13 @@
       <!-- COMPANY -->
       <div class="form-group">
         <label>Company</label>
-        <input v-model="form.company" type="text" required class="status-bar" />
+        <input v-model="form.company_name" type="text" required class="status-bar" />
       </div>
 
       <!-- LOCATION -->
       <div class="form-group">
         <label>Location</label>
-        <input v-model="form.location" type="text" class="status-bar" />
+        <input v-model="form.location_text" type="text" class="status-bar" />
       </div>
 
       <!-- SALARY -->
@@ -37,19 +37,19 @@
       <!-- DEADLINE -->
       <div class="form-group">
         <label>Deadline</label>
-        <input v-model="form.deadline" type="date" required class="status-bar" />
+        <input v-model="form.deadline_date" type="date" required class="status-bar" />
       </div>
 
       <!-- STATUS -->
       <div class="form-group">
         <label>Status</label>
         <select v-model="form.status" required class="status-bar">
-          <option disabled value="">Select status</option>
-          <option>Interested</option>
-          <option>Applied</option>
-          <option>Interview</option>
-          <option>Accepted</option>
-          <option>Rejected</option>
+            <option disabled value="">Select status</option>
+            <option value="interested">Interested</option>
+            <option value="applied">Applied</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Offer</option>
+            <option value="rejected">Rejected</option>        
         </select>
       </div>
 
@@ -76,12 +76,11 @@ const router = useRouter()
 
 /* ---------------- STATE ---------------- */
 const form = reactive({
+  company_name: '',
   title: '',
-  company: '',
-  location: '',
-  salary: '',
-  date_applied: '',
-  deadline: '',
+  location_text: '',
+  salary: 0,
+  deadline_date: '',
   status: '',
   description: ''
 })
@@ -94,7 +93,7 @@ async function handleSubmit() {
     error.value = ''
 
     // Basic validation
-    if (!form.title || !form.company || !form.deadline || !form.status) {
+    if (!form.title || !form.company_name || !form.deadline_date || !form.status) {
       error.value = 'Please fill in all required fields'
       return
     }
