@@ -23,8 +23,8 @@
         <p class="overview-items">
           Interested: {{ stats.interested }}<br>
           Applied: {{ stats.applied }}<br>
-          Interview Offered: {{ stats.interview }}<br>
-          Accepted: {{ stats.accepted }}<br>
+          Interview: {{ stats.interview }}<br>
+          Offer: {{ stats.offer }}<br>
           Rejected: {{ stats.rejected }}<br>
         </p>
       </div>
@@ -34,10 +34,24 @@
 
         <div class="create-job">
           <router-link class="create-job-button" to="/create-job">
-            Create New Job Application
+            Add a New Job Listing
           </router-link>
         </div>
+        
+        <!-- OPTIONAL: SEARCH RESULTS -->
+        <div v-if="searchResults.length">
+          <h2>Search Results</h2>
 
+          <div
+            v-for="result in searchResults"
+            :key="result.id"
+            class="job-listing"
+          >
+            <div class="left top">
+              {{ result.title }} | {{ result.company_name }} | {{ result.location_text }}
+            </div>
+          </div>
+        </div>
         <!-- USER JOBS -->
         <div
           v-for="job in userJobs"
@@ -65,22 +79,6 @@
         </div>
 
       </div>
-
-      <!-- OPTIONAL: SEARCH RESULTS -->
-      <div v-if="searchResults.length">
-        <h2>Search Results</h2>
-
-        <div
-          v-for="result in searchResults"
-          :key="result.id"
-          class="job-listing"
-        >
-          <div class="left top">
-            {{ result.title }} | {{ result.company_name }} | {{ result.location_text }}
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </template>
@@ -144,7 +142,7 @@ const computeStats = (jobs) => {
     interested: 0,
     applied: 0,
     interview: 0,
-    accepted: 0,
+    offer: 0,
     rejected: 0
   }
 

@@ -1,6 +1,6 @@
 <template>
   <div class="job-page">
-    <h1>Create a Job Application</h1>
+    <h1>Add a Job Listing</h1>
 
     <form @submit.prevent="handleSubmit" class="job-form">
 
@@ -16,16 +16,22 @@
         <input v-model="form.company_name" type="text" required class="status-bar" />
       </div>
 
+      <!-- Salary -->
+      <div class="form-group">
+        <label>Salary</label>
+        <input v-model="form.salary" type="number" class="status-bar" />
+      </div>
+
       <!-- LOCATION -->
       <div class="form-group">
         <label>Location</label>
         <input v-model="form.location_text" type="text" class="status-bar" />
       </div>
 
-      <!-- SALARY -->
+      <!-- Posting URL -->
       <div class="form-group">
-        <label>Salary</label>
-        <input v-model="form.salary" type="number" class="status-bar" />
+        <label>Job Posting Link</label>
+        <input v-model="form.posting_url" type="url" required class="status-bar" />
       </div>
 
       <!-- DATE APPLIED -->
@@ -79,7 +85,8 @@ const form = reactive({
   company_name: '',
   title: '',
   location_text: '',
-  salary: 0,
+  posting_url: '',
+  salary: '',
   deadline_date: '',
   status: '',
   description: ''
