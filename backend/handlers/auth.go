@@ -190,6 +190,8 @@ func GetAuth(w http.ResponseWriter, r *http.Request) {
 	err, _ := GrabToken(r)
 
 	w.Header().Set("Content-Type", "application/json")
+
+	// GrabToken will error if it fails to find a valid authorization token
 	if err != nil {
 		w.Write([]byte(`{"authenticated": false}`))
 		return
