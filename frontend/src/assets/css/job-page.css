@@ -60,6 +60,6 @@ h1 {
 
 @media (max-width: 700px){
     .job-form{
-        width: 100%;
+        width: 90%;
     }
 }

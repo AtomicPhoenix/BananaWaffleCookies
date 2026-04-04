@@ -56,6 +56,8 @@ func main() {
 
 		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
+		r.Get("/api/jobs", handlers.GetJobs)
+		r.Post("/api/jobs", handlers.CreateJob)
 		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {})
 		r.Put("/api/settings", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/api/settings", handlers.GetSettings)
