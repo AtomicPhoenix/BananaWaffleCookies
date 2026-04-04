@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -183,4 +184,34 @@ func GrabToken(r *http.Request) (error, Claim) {
 	}
 
 	return nil, Claim{Uid: uid, Email: email}
+}
+
+func GetAuth(w http.ResponseWriter, r *http.Request) {
+	err, _ := GrabToken(r)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		w.Write([]byte(`{"authenticated": false}`))
+		return
+	}
+	w.Write([]byte(`{"authenticated": true}`))
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err, claim := GrabToken(r)
+
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error": "unauthorized"}`))
+			return
+		}
+
+		// Update request context to store user info
+		ctx := context.WithValue(r.Context(), "user", claim)
+
+		// Continue to next handler
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
