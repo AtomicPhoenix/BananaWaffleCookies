@@ -41,7 +41,7 @@ h1{
 .input-text{
     font-size: 2rem;
 }
-.oauth{
+.signin{
     margin: 1rem;
 }
 .submit{
@@ -58,14 +58,15 @@ h1{
     font-size: 1.75rem;
 }
 
-.oauth-button{
+.signin-text{
     background: white;
     padding: 0.5rem 1rem 0.5rem;
     text-decoration: none;
-    border-radius: 5px;
+    border-radius: 2px;
     color: #000;
+    border-color: #B8B8B8;
     border-style: solid;
-    font-size: 1.75rem;
+    font-size: 1rem;
 }
 
 .github-logo{
