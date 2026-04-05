@@ -1,75 +1,134 @@
 <template>
-    <div class="job-page">
-      <h1>Create a Job Application</h1>
+  <div class="job-page">
+    <h1>Add a Job Listing</h1>
 
-      <!-- Form for Job Creation -->
-      <form @submit.prevent="handleSubmit" class="job-form">
-    
-      <!-- Job Name -->
-      <div class="form-job-name">
-        <label for="jobName">Job Name</label>
-        <input
-          id="jobName"
-          v-model="form.jobName"
-          type="text"
-          required
-          placeholder="e.g. Software Engineer Intern"
-          class="status-bar"
-        />
+    <form @submit.prevent="handleSubmit" class="job-form">
+
+      <!-- TITLE -->
+      <div class="form-group">
+        <label>Job Title</label>
+        <input v-model="form.title" type="text" required class="status-bar" />
       </div>
 
-      <!-- Deadline -->
-      <div class="form-deadline">
-        <label for="deadline">Deadline</label>
-        <input
-          id="deadline"
-          v-model="form.deadline"
-          type="date"
-          required
-          class="status-bar"
-        />
+      <!-- COMPANY -->
+      <div class="form-group">
+        <label>Company</label>
+        <input v-model="form.company_name" type="text" required class="status-bar" />
       </div>
 
-      <!-- Application Status -->
-      <div class="form-status">
-        <label for="status">Application Status</label>
-        <select id="status" v-model="form.status" required class="status-bar">
-          <option disabled value="">Select status</option>
-          <option>Not Applied</option>
-          <option>Applied</option>
-          <option>Interviewing</option>
-          <option>Offer</option>
-          <option>Rejected</option>
+      <!-- Salary -->
+      <div class="form-group">
+        <label>Salary</label>
+        <input v-model="form.salary" type="number" class="status-bar" />
+      </div>
+
+      <!-- LOCATION -->
+      <div class="form-group">
+        <label>Location</label>
+        <input v-model="form.location_text" type="text" class="status-bar" />
+      </div>
+
+      <!-- Posting URL -->
+      <div class="form-group">
+        <label>Job Posting Link</label>
+        <input v-model="form.posting_url" type="url" required class="status-bar" />
+      </div>
+
+      <!-- DATE APPLIED -->
+      <div class="form-group">
+        <label>Date Applied</label>
+        <input v-model="form.date_applied" type="date" class="status-bar" />
+      </div>
+
+      <!-- DEADLINE -->
+      <div class="form-group">
+        <label>Deadline</label>
+        <input v-model="form.deadline_date" type="date" required class="status-bar" />
+      </div>
+
+      <!-- STATUS -->
+      <div class="form-group">
+        <label>Status</label>
+        <select v-model="form.status" required class="status-bar">
+            <option disabled value="">Select status</option>
+            <option value="interested">Interested</option>
+            <option value="applied">Applied</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Offer</option>
+            <option value="rejected">Rejected</option>        
         </select>
       </div>
 
-      <!-- Submit -->
+      <!-- NOTES -->
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea v-model="form.description" class="status-bar"></textarea>
+      </div>
+
+      <!-- SUBMIT -->
       <button type="submit" class="submit-job-button">Submit</button>
-      </form>
-    </div>
+
+      <!-- FEEDBACK -->
+      <p v-if="error" class="error">{{ error }}</p>
+    </form>
+  </div>
 </template>
+
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-const router = useRouter();
+const router = useRouter()
+
+/* ---------------- STATE ---------------- */
 const form = reactive({
-  jobName: '',
-  deadline: '',
-  status: ''
+  company_name: '',
+  title: '',
+  location_text: '',
+  posting_url: '',
+  salary: '',
+  deadline_date: '',
+  status: '',
+  description: ''
 })
 
-function handleSubmit() {
-  //FOR TESTING TO SEE
-  console.log('Form Data:', { ...form })
+const error = ref('')
 
-  // Example: reset after submit
-  form.jobName = ''
-  form.deadline = ''
-  form.status = ''
+/* ---------------- SUBMIT ---------------- */
+async function handleSubmit() {
+  try {
+    error.value = ''
 
-  //move back to dashboard page
-  router.push('@/pages/dashboard')
+    // Basic validation
+    if (!form.title || !form.company_name || !form.deadline_date || !form.status) {
+      error.value = 'Please fill in all required fields'
+      return
+    }
+
+    const res = await fetch('/api/jobs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(form)
+    })
+
+    if (!res.ok) {
+      throw new Error('Failed to create job')
+    }
+
+    // Reset form
+    Object.keys(form).forEach(key => form[key] = '')
+
+    // Redirect (FIXED)
+    router.push('/dashboard')
+
+  } catch (err) {
+    console.error(err)
+    error.value = 'Error submitting form'
+  }
 }
 </script>
+
 <style scoped src="@/assets/css/job-page.css"></style>

@@ -39,12 +39,9 @@
         <button class="login-button" type="submit">Login</button>
       </div>
 
-      <!-- Login with OAuth -->
-      <div class="oauth">
-        <!-- OAuth Logic Goes Here -->
-        <router-link class="oauth-button" to="/">
-          Login with Github <img src="/images/github.png" class="github-logo" alt="Github">
-        </router-link>
+      <!-- Sign Up -->
+      <div class="signup">
+        <RouterLink to="/signup" class="signin-text"> Don't have an account? Register Here! </RouterLink>
       </div>
 
     </form>
