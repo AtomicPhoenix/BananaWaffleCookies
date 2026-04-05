@@ -16,7 +16,7 @@ type Job struct {
 	LocationText string    `json:"location_text"`
 	Salary       int       `json:"salary"`
 	Status       string    `json:"status"`
-	DeadlineDate string    `json:"deadline_date"`
+	DeadlineDate time.Time `json:"deadline_date"`
 	Description  string    `json:"description"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
@@ -56,7 +56,8 @@ func GetAllJobs() ([]Job, error) {
 	for rows.Next() {
 		var j Job
 
-		var locationText, deadlineDate, description sql.NullString
+		var locationText, description sql.NullString
+		var deadlineDate sql.NullTime
 		var salary sql.NullInt64
 
 		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.CreatedAt, &j.UpdatedAt)
@@ -73,7 +74,7 @@ func GetAllJobs() ([]Job, error) {
 			j.Salary = int(salary.Int64)
 		}
 		if deadlineDate.Valid {
-			j.DeadlineDate = deadlineDate.String
+			j.DeadlineDate = deadlineDate.Time
 		}
 		if description.Valid {
 			j.Description = description.String
@@ -86,6 +87,19 @@ func GetAllJobs() ([]Job, error) {
 		return nil, err
 	}
 	return jobs, nil
+}
+
+func GetJob(job_id int) (Job, error) {
+	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs WHERE id = $1;`
+
+	var job Job
+	err := DbConn.QueryRow(context.Background(), sql_query, job_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.CreatedAt, &job.UpdatedAt)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get job with id %d from database: %v\n", job_id, err)
+		return Job{}, err
+	}
+	return job, nil
 }
 
 func UpdateJob(job Job) error {
