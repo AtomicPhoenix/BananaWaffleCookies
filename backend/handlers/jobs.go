@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"bananawafflecookies.com/m/v2/db"
+	"github.com/go-chi/chi/v5"
 )
 
 // Handler for /api/jobs (POST)
@@ -54,6 +56,29 @@ func GetJobs(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(jobs)
+}
+
+// Handler for /api/jobs/{id} (GET)
+func GetJob(w http.ResponseWriter, r *http.Request) {
+	job_id_raw := chi.URLParam(r, "id")
+
+	job_id, err := strconv.Atoi(job_id_raw)
+	if err != nil {
+		http.Error(w, "Failed to get job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		return
+	}
+
+	job, err := db.GetJob(job_id)
+	if err != nil {
+		http.Error(w, "Failed to get job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to get job: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(job)
+
 }
 
 // Handler for /api/jobs (PUT)
