@@ -53,10 +53,10 @@ func main() {
 		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {})
 		r.Put("/api/profile", handlers.UpdateProfile)
 		r.Get("/api/profile", handlers.GetProfile)
-
 		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
 		r.Get("/api/jobs", handlers.GetJobs)
+		r.Get("/api/jobs/{id}", handlers.GetJob)
 		r.Post("/api/jobs", handlers.CreateJob)
 		r.Put("/api/jobs", handlers.UpdateJob)
 		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {})
