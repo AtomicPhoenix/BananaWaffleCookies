@@ -55,6 +55,7 @@ func GetProfile(uid int) (Profile, error) {
 		return Profile{}, err
 	}
 
+	profile.Id = uid
 	profile.FirstName = extractValue(first_name)
 	profile.LastName = extractValue(last_name)
 	profile.City = extractValue(city)
