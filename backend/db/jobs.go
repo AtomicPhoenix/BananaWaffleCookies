@@ -87,3 +87,56 @@ func GetAllJobs() ([]Job, error) {
 	}
 	return jobs, nil
 }
+
+func GetJobs(searchQuery string) ([]Job, error) {
+	sql_query := `
+		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs
+		WHERE company_name ILIKE $1 
+		OR title ILIKE $1 
+		OR description ILIKE $1
+		ORDER BY created_at DESC;`
+
+	searchTerm := "%" + searchQuery + "%"
+	rows, err := DbConn.Query(context.Background(), sql_query, searchTerm)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var jobs []Job
+	for rows.Next() {
+		var j Job
+
+		var locationText, deadlineDate, description sql.NullString
+		var salary sql.NullInt64
+
+		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.CreatedAt, &j.UpdatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert nullable fields
+		if locationText.Valid {
+			j.LocationText = locationText.String
+		}
+		if salary.Valid {
+			j.Salary = int(salary.Int64)
+		}
+		if deadlineDate.Valid {
+			j.DeadlineDate = deadlineDate.String
+		}
+		if description.Valid {
+			j.Description = description.String
+		}
+
+		jobs = append(jobs, j)
+	}
+	if err := rows.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
+		return nil, err
+	}
+	return jobs, nil
+}
