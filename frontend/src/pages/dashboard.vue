@@ -107,7 +107,8 @@ const stats = ref({
 const handleSearch = async () => {
   try {
     const query = encodeURIComponent(searchQuery.value.trim())
-    const res = await fetch(`/api/jobs`, { method: 'GET' })
+    const url = query ? `/api/jobs?search=${query}` : `/api/jobs`
+    const res = await fetch(url, { method: 'GET' })
     const data = await res.json()
 
     searchResults.value = data
