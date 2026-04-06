@@ -21,12 +21,89 @@ CREATE TABLE IF NOT EXISTS profiles (
     city TEXT,
     state TEXT,
     country TEXT,
+    headline TEXT,
     linkedin_url TEXT,
     portfolio_url TEXT,
     summary TEXT,
-    completion_percent INT NOT NULL DEFAULT 0 CHECK (completion_percent BETWEEN 0 AND 100),
+
+    preferred_role TEXT,
+    preferred_salary_min INT,
+    preferred_salary_max INT,
+    preferred_remote BOOLEAN NOT NULL DEFAULT FALSE,
+    preferred_city TEXT,
+    preferred_state CHAR(2),
+
+    completion_percent INT NOT NULL DEFAULT 0
+        CHECK (completion_percent BETWEEN 0 AND 100),
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CHECK (preferred_salary_min IS NULL OR preferred_salary_min >= 0),
+    CHECK (preferred_salary_max IS NULL OR preferred_salary_max >= 0),
+    CHECK (
+        preferred_salary_min IS NULL OR
+        preferred_salary_max IS NULL OR
+        preferred_salary_max >= preferred_salary_min
+    ),
+    CHECK (
+        preferred_state IS NULL OR preferred_state ~ '^[A-Z]{2}$'
+    ),
+    CHECK (
+        preferred_city IS NULL OR preferred_state IS NOT NULL
+    )
+);
+
+-- PROFILE EXPERIENCES
+CREATE TABLE IF NOT EXISTS profile_experiences (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    experience_type TEXT NOT NULL CHECK (
+        experience_type IN ('employment', 'project')
+    ),
+    title TEXT NOT NULL,
+    organization TEXT,
+    location_text TEXT,
+    start_date DATE,
+    end_date DATE,
+    is_current BOOLEAN NOT NULL DEFAULT FALSE,
+    description TEXT,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date)
+);
+
+-- PROFILE EDUCATION
+CREATE TABLE IF NOT EXISTS profile_education (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    institution TEXT NOT NULL,
+    degree TEXT,
+    field_of_study TEXT,
+    start_date DATE,
+    end_date DATE,
+    is_current BOOLEAN NOT NULL DEFAULT FALSE,
+    honors TEXT,
+    gpa NUMERIC(3,2),
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
+    CHECK (gpa IS NULL OR (gpa >= 0 AND gpa <= 4.00))
+);
+
+-- PROFILE SKILLS
+CREATE TABLE IF NOT EXISTS profile_skills (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    skill_name TEXT NOT NULL,
+    category TEXT,
+    proficiency_label TEXT,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_profile_skill UNIQUE (user_id, skill_name)
 );
 
 -- JOBS
@@ -107,6 +184,27 @@ CREATE TABLE IF NOT EXISTS job_document_links (
 );
 
 -- INDEXES
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id
+    ON profiles(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_profile_experiences_user_id
+    ON profile_experiences(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_profile_experiences_user_sort
+    ON profile_experiences(user_id, sort_order);
+
+CREATE INDEX IF NOT EXISTS idx_profile_education_user_id
+    ON profile_education(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_profile_education_user_sort
+    ON profile_education(user_id, sort_order);
+
+CREATE INDEX IF NOT EXISTS idx_profile_skills_user_id
+    ON profile_skills(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_profile_skills_user_sort
+    ON profile_skills(user_id, sort_order);
+
 CREATE INDEX IF NOT EXISTS idx_jobs_user_id
     ON jobs(user_id);
 
