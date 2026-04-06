@@ -3,14 +3,13 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
-var DbConn *pgx.Conn
+var DbConn *pgxpool.Pool
 
 func get_db_connection_string() string {
 	db_user := os.Getenv("DB_USER")
@@ -29,7 +28,7 @@ func init() {
 		os.Exit(1)
 	}
 
-	DbConn, err = pgx.Connect(context.Background(), get_db_connection_string())
+	DbConn, err = pgxpool.New(context.Background(), get_db_connection_string())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
@@ -48,11 +47,7 @@ func init() {
 }
 
 func main() {
-	defer func() {
-		if err := DbConn.Close(context.Background()); err != nil {
-			log.Fatalf("Error in closing database: %s", err)
-		}
-	}()
+	defer DbConn.Close()
 }
 
 func checkTables() {
