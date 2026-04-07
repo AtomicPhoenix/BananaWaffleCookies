@@ -66,7 +66,7 @@
       </div>
 
       <!-- SUBMIT -->
-      <button type="submit" class="submit-job-button">Submit</button>
+      <button type="submit" class="submit-job-button" @click="router.back()">Submit</button>
 
       <!-- CANCEL -->
       <button type="button" class="cancel-job-button" @click="router.back()">Cancel</button>
