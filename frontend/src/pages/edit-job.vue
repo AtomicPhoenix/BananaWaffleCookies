@@ -1,6 +1,6 @@
 <template>
   <div class="job-page">
-    <h1>Add a Job Listing</h1>
+    <h1>Edit a Job Listing</h1>
 
     <form @submit.prevent="handleSubmit" class="job-form">
 
@@ -26,18 +26,6 @@
       <div class="form-group">
         <label>Location</label>
         <input v-model="form.location_text" type="text" class="status-bar" />
-      </div>
-
-      <!-- Posting URL -->
-      <div class="form-group">
-        <label>Job Posting Link</label>
-        <input v-model="form.posting_url" type="url" required class="status-bar" />
-      </div>
-
-      <!-- DATE APPLIED -->
-      <div class="form-group">
-        <label>Date Applied</label>
-        <input v-model="form.date_applied" type="date" class="status-bar" />
       </div>
 
       <!-- DEADLINE -->
@@ -75,13 +63,15 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
 /* ---------------- STATE ---------------- */
 const form = reactive({
+  id: route.params.job_id,
   company_name: '',
   title: '',
   location_text: '',
@@ -94,6 +84,34 @@ const form = reactive({
 
 const error = ref('')
 
+watch(() => route.params.job_id, (newId) => {
+  form.id = newId
+})
+
+
+/* ---------------- GET ---------------- */
+// Fetch job
+const fetchJob = async () => {
+  try {
+    let path = '/api/jobs/' + route.params.job_id
+    const res = await fetch(path, {
+      method: 'GET',
+      credentials: 'include' // important if using sessions/cookies
+    })
+    const data = await res.json()
+
+    // Convert to YYYY-MM-DD format
+    if (data.deadline_date) {
+      data.deadline_date = data.deadline_date.split('T')[0]
+    }
+
+    Object.assign(form, data) 
+  } catch (err) {
+    console.error('Failed to fetch job:', err)
+  }
+}
+
+
 /* ---------------- SUBMIT ---------------- */
 async function handleSubmit() {
   try {
@@ -105,8 +123,10 @@ async function handleSubmit() {
       return
     }
 
+    form.deadline_date = new Date(form.deadline_date).toISOString()
+
     const res = await fetch('/api/jobs', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -129,6 +149,10 @@ async function handleSubmit() {
     error.value = 'Error submitting form'
   }
 }
+
+onMounted(async () => {
+  await fetchJob()
+})
 </script>
 
 <style scoped src="@/assets/css/job-page.css"></style>
