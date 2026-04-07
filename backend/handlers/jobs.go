@@ -44,7 +44,11 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs (GET)
 func GetJobs(w http.ResponseWriter, r *http.Request) {
-	jobs, err := db.GetAllJobs()
+	// Grab search query from frontend (/api/jobs?search=QUERY)
+	searchQuery := r.URL.Query().Get("search")
+
+	jobs, err := db.GetJobs(searchQuery)
+
 	if err != nil {
 		http.Error(w, "Failed to get jobs", http.StatusBadRequest)
 		fmt.Fprintf(os.Stderr, "Failed to get jobs: %v\n", err)

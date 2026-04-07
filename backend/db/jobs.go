@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type Job struct {
@@ -43,9 +45,28 @@ func CreateJob(job Job) (int, error) {
 	return id, err
 }
 
-func GetAllJobs() ([]Job, error) {
-	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs ORDER BY created_at DESC;`
-	rows, err := DbConn.Query(context.Background(), sql_query)
+func GetJobs(searchQuery string) ([]Job, error) {
+	sqlQuery := `
+		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs `
+
+	var (
+		rows pgx.Rows
+		err  error
+	)
+
+	if searchQuery != "" {
+		sqlQuery += `
+			WHERE company_name ILIKE $1 
+			OR title ILIKE $1 
+			OR description ILIKE $1
+			ORDER BY created_at DESC;`
+		searchTerm := "%" + searchQuery + "%"
+		rows, err = DbConn.Query(context.Background(), sqlQuery, searchTerm)
+	} else {
+		sqlQuery += `ORDER BY created_at DESC;`
+		rows, err = DbConn.Query(context.Background(), sqlQuery)
+	}
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
 		return nil, err
