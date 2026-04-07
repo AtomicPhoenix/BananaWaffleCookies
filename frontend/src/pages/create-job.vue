@@ -68,6 +68,9 @@
       <!-- SUBMIT -->
       <button type="submit" class="submit-job-button">Submit</button>
 
+      <!-- CANCEL -->
+      <button type="button" class="cancel-job-button" @click="router.back()">Cancel</button>
+
       <!-- FEEDBACK -->
       <p v-if="error" class="error">{{ error }}</p>
     </form>
