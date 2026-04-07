@@ -112,7 +112,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     company_name TEXT NOT NULL,
     title TEXT NOT NULL,
-    location_text TEXT,
+    city TEXT,
+    state TEXT,
     posting_url TEXT,
     status TEXT NOT NULL CHECK (
         status IN ('interested', 'applied', 'interview', 'offer', 'rejected', 'archived')
