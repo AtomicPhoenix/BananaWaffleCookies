@@ -7,9 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var test_uid int
-
-func TestCreateUser(t *testing.T) {
+func createTestUser(t *testing.T) User {
 	email := "test_user@example.com"
 	password := "password123"
 
@@ -28,46 +26,60 @@ func TestCreateUser(t *testing.T) {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
 
-	test_uid = uid
+	user.Id = uid
+	return user
+}
+
+func deleteTestUser(t *testing.T, test_uid int) {
+	_, err := DbConn.Exec(context.Background(), "DELETE FROM users WHERE id=$1", test_uid)
+	if err != nil {
+		t.Fatalf("failed to delete test user: %v", err)
+	}
+}
+
+func TestCreateAndDeleteUser(t *testing.T) {
+	user := createTestUser(t)
+	deleteTestUser(t, user.Id)
 }
 
 func TestUpdateUserEmail(t *testing.T) {
+	user := createTestUser(t)
+	defer deleteTestUser(t, user.Id)
+
 	new_email := "test_user_updated@example.com"
-	err := UpdateUserEmail(test_uid, new_email)
+	err := UpdateUserEmail(user.Id, new_email)
 	if err != nil {
 		t.Fatalf("Failed to update user email: %v", err)
 	}
 
-	email, err := GetUserEmail(test_uid)
+	email, err := GetUserEmail(user.Id)
 	if email != new_email || err != nil {
 		t.Fatalf("Failed to update user email: %v", err)
 	}
 }
 
 func TestUpdateUserPassword(t *testing.T) {
+	user := createTestUser(t)
+	defer deleteTestUser(t, user.Id)
+
 	password := "password123"
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		t.Fatalf("Failed to hash new password: %v", err)
 	}
 
-	err = UpdateUserPassword(test_uid, string(hash))
+	err = UpdateUserPassword(user.Id, string(hash))
 	if err != nil {
 		t.Fatalf("Failed to update user password: %v", err)
 	}
-
 }
 
 func TestGetUser(t *testing.T) {
-	_, err := GetUserByID(test_uid)
+	user := createTestUser(t)
+	defer deleteTestUser(t, user.Id)
+
+	_, err := GetUserByID(user.Id)
 	if err != nil {
 		t.Fatalf("Failed to get user: %v", err)
-	}
-}
-
-func TestDeleteUser(t *testing.T) {
-	_, err := DbConn.Exec(context.Background(), "DELETE FROM users WHERE id=$1", test_uid)
-	if err != nil {
-		t.Fatalf("failed to delete test user: %v", err)
 	}
 }
