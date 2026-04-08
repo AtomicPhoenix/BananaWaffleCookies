@@ -8,7 +8,6 @@ import (
 
 // Helper function to generate auth token for protected paths
 func getAuthCookie(t *testing.T, uid int, email string) *http.Cookie {
-	initAuth()
 	claims := map[string]interface{}{
 		"id":    fmt.Sprintf("%v", uid),
 		"email": email,
