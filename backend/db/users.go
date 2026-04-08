@@ -24,6 +24,16 @@ func GetUser(email string) (User, error) {
 	return user, nil
 }
 
+func GetUserByID(uid int) (User, error) {
+	var user User
+	err := DbConn.QueryRow(context.Background(), "SELECT id, email, password_hash FROM users WHERE id=$1", uid).Scan(&user.Id, &user.Email, &user.Password_hash)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get user: %v\n", err)
+		return user, err
+	}
+	return user, nil
+}
+
 func RegisterUser(user User) (int, error) {
 	var uid int
 	fmt.Printf("Registering user %v\n", user)
