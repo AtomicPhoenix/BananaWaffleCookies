@@ -11,7 +11,7 @@ import (
 	"bananawafflecookies.com/m/v2/db"
 )
 
-func TestJobHandlers(t *testing.T) {
+func TestJobPOST(t *testing.T) {
 	test_user := createTestUser(t)
 	cookie := getAuthCookie(t, test_user.Id, "test@example.com")
 	t.Cleanup(func() {
@@ -34,17 +34,24 @@ func TestJobHandlers(t *testing.T) {
 	CreateJob(w, req)
 
 	if w.Result().StatusCode != http.StatusOK {
-		t.Fatalf("POST /api/jobs expected 200 OK, got %d", w.Result().StatusCode)
+		t.Fatalf("Unexpected status code for POST /api/jobs: Expected 200, got %d", w.Result().StatusCode)
 	}
+}
 
-	// --- GET /api/jobs ---
-	req = httptest.NewRequest("GET", "/api/jobs", nil)
+func TestJobsGET(t *testing.T) {
+	test_user := createTestUser(t)
+	cookie := getAuthCookie(t, test_user.Id, "test@example.com")
+	t.Cleanup(func() {
+		deleteTestUser(t, test_user.Id)
+	})
+
+	req := httptest.NewRequest("GET", "/api/jobs", nil)
 	req.AddCookie(cookie)
-	w = httptest.NewRecorder()
+	w := httptest.NewRecorder()
 	GetJobs(w, req)
 
 	if w.Result().StatusCode != http.StatusOK {
-		t.Fatalf("GET /api/jobs expected 200 OK, got %d", w.Result().StatusCode)
+		t.Fatalf("Unexpected status code for GET /api/jobs: Expected 200, got %d", w.Result().StatusCode)
 	}
 
 	var jobs []db.Job
