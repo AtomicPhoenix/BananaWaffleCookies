@@ -62,7 +62,7 @@ jobs:
 
       - name: Run DB schema
         run: |
-          psql postgres://postgres:postgres@localhost:5432/test_db -f backend/schemas/db_up.sql
+          psql postgres://postgres:postgres@localhost:5432/test_db -f schemas/db_up.sql
 
       - name: Build
         run: go -C backend/ build -v
