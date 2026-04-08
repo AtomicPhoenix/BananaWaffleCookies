@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"bananawafflecookies.com/m/v2/db"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -46,5 +47,5 @@ func TestMain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to initialize database: %v\n", err)
 	}
-	initAuth()
+	AuthToken = jwtauth.New("HS256", []byte("TEST_SECRET_KEY"), nil)
 }
