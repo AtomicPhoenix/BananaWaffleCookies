@@ -42,7 +42,11 @@ func RegisterUser(user User) (int, error) {
 		fmt.Fprintf(os.Stderr, "Failed to insert user into database: %v\n", err)
 		return uid, err
 	}
-	createProfile(uid)
+	err = createProfile(uid)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create user profile: %v\n", err)
+		return uid, err
+	}
 	return uid, nil
 }
 
