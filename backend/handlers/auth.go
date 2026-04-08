@@ -11,7 +11,6 @@ import (
 
 	"bananawafflecookies.com/m/v2/db"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,11 +22,7 @@ type Claim struct {
 	Email string
 }
 
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		os.Exit(1)
-	}
+func main() {
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 	AuthToken = jwtauth.New("HS256", []byte(JWT_SECRET_KEY), nil)
 
