@@ -19,14 +19,24 @@
     flex-direction: column;
     gap: 20px;
     background: #ffffff;
-    padding: 20px;
+    padding: 25px;
     border-radius: 10px;
     border: 1px solid #ccc;
+    max-width: 600px;
   }
   
   .section-title {
     font-weight: 600;
     margin-bottom: 10px;
+  }
+
+  .section {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .section:last-child {
+    border-bottom: none;
   }
   
   .form-group {
@@ -34,31 +44,52 @@
     flex-direction: column;
     margin-bottom: 10px;
   }
+
+  label {
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #000;
+  }
   
   input,
   textarea {
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border: 1px solid #000;
+    box-shadow: 0 0 4px rgba(0,0,0,0.2);
   }
   
   .checkbox-group {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 14px;
   }
   
   button {
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #000;
     background: #B8B8B8;
     color: #000;
     border-radius: 6px;
     cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
   }
   
   button:hover {
     background: #E3E3E3;
+  }
+  
+  button:active {
+    transform: scale(0.98);
   }
   
   .error {

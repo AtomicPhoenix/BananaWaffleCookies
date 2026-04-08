@@ -65,24 +65,26 @@ async function handleLogin() {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: form.email, password: form.password }),
-      credentials: 'include', // important! ensures cookies are saved
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password
+      }),
+      credentials: 'include',
     });
 
     if (res.ok) {
-      // Clear form
       form.email = ''
       form.password = ''
 
+      // better navigation in Vue
       window.location.href = '/'
     } else {
-      // Handle invalid login
       const data = await res.json()
-      alert(data.message || 'Login failed')
+      alert(data.message || 'Invalid email or password')
     }
   } catch (err) {
     console.error(err)
-    alert('Login error')
+    alert('Server error during login')
   }
 }
 </script>
