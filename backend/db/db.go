@@ -23,7 +23,7 @@ func get_db_connection_string() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", db_user, db_pass, db_addr, db_port, db_name)
 }
 
-func initDB() error {
+func InitDB() error {
 	fmt.Println("Initializing Database")
 	var err error
 	DbConn, err = pgxpool.New(context.Background(), get_db_connection_string())
@@ -36,7 +36,7 @@ func initDB() error {
 }
 
 func main() {
-	err := initDB()
+	err := InitDB()
 	if err != nil {
 		os.Exit(1)
 	}

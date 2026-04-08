@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestInitDB(t *testing.T) {
-	err := initDB()
+	err := InitDB()
 	if err != nil {
 		t.Errorf(`Failed to init database: %v`, err)
 	}
