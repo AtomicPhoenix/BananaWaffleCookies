@@ -38,11 +38,17 @@
         </div>
       </div>
     </div>
+
+    <!-- AI Chatbot Feature Box -->
+    <div class="gemini-box">
+      <Chatbox />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import Chatbox from './chatbox.vue'
 
 const selectedFile = ref(null)
 const uploadMessage = ref('')
