@@ -11,15 +11,9 @@ import (
 	"bananawafflecookies.com/m/v2/db"
 )
 
-func TestJobPOST(t *testing.T) {
-	test_user := createTestUser(t)
-	cookie := getAuthCookie(t, test_user.Id, "test@example.com")
-	t.Cleanup(func() {
-		deleteTestUser(t, test_user.Id)
-	})
-
+func createTestJob(t *testing.T, test_uid int, cookie *http.Cookie) {
 	test_job := db.Job{
-		UserID:       test_user.Id,
+		UserID:       test_uid,
 		CompanyName:  "Aperture Labs",
 		Title:        "Tester",
 		Status:       "applied",
@@ -38,12 +32,24 @@ func TestJobPOST(t *testing.T) {
 	}
 }
 
+func TestJobPOST(t *testing.T) {
+	test_user := createTestUser(t)
+	cookie := getAuthCookie(t, test_user.Id, "test@example.com")
+	t.Cleanup(func() {
+		deleteTestUser(t, test_user.Id)
+	})
+
+	createTestJob(t, test_user.Id, cookie)
+}
+
 func TestJobsGET(t *testing.T) {
 	test_user := createTestUser(t)
 	cookie := getAuthCookie(t, test_user.Id, "test@example.com")
 	t.Cleanup(func() {
 		deleteTestUser(t, test_user.Id)
 	})
+
+	createTestJob(t, test_user.Id, cookie)
 
 	req := httptest.NewRequest("GET", "/api/jobs", nil)
 	req.AddCookie(cookie)
