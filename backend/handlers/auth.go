@@ -177,7 +177,7 @@ func GrabToken(r *http.Request) (error, Claim) {
 	}
 
 	// Grab email
-	err = reqToken.Get("id", &email)
+	err = reqToken.Get("email", &email)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to decode email from auth token: %v\n", err)
 		return err, Claim{}
