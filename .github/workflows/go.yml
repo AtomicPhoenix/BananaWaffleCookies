@@ -67,5 +67,8 @@ jobs:
       - name: Build
         run: go -C backend/ build -v
 
-      - name: Test
-        run: go -C backend/ test ./db ./handlers -v
+      - name: Test DB
+        run: go -C backend/ test ./db -v
+
+      - name: Test Handlers
+        run: go -C backend/ test ./handlers -v
