@@ -60,44 +60,9 @@ jobs:
             sleep 2
           done
 
-      - name: Create tables (test schema)
+      - name: Run DB schema
         run: |
-          psql postgres://postgres:postgres@localhost:5432/test_db <<'EOF'
-          CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            email TEXT UNIQUE,
-            password_hash TEXT
-          );
-
-          CREATE TABLE IF NOT EXISTS profiles (
-            id SERIAL PRIMARY KEY,
-            user_id INT REFERENCES users(id),
-            first_name TEXT,
-            last_name TEXT,
-            phone TEXT,
-            city TEXT,
-            state TEXT,
-            country TEXT,
-            linkedin_url TEXT,
-            portfolio_url TEXT,
-            summary TEXT,
-            completion_percent INT DEFAULT 0
-          );
-
-          CREATE TABLE IF NOT EXISTS jobs (
-            id SERIAL PRIMARY KEY,
-            user_id INT,
-            company_name TEXT,
-            title TEXT,
-            location_text TEXT,
-            salary INT,
-            status TEXT,
-            deadline_date TIMESTAMP,
-            description TEXT,
-            created_at TIMESTAMP DEFAULT NOW(),
-            updated_at TIMESTAMP DEFAULT NOW()
-          );
-          EOF
+          psql postgres://postgres:postgres@localhost:5432/test_db -f backend/db/db_up.sql
 
       - name: Build
         run: go -C backend/ build -v
