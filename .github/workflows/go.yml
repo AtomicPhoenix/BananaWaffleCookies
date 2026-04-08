@@ -33,6 +33,6 @@ jobs:
     - name: Build
       run: go -C backend/ build -v
 
-    - name: Test
-      run: go -C backend/ test -v
+    - name: Test DB
+      run: go -C backend/ test ./db/ -v
 
