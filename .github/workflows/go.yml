@@ -68,4 +68,4 @@ jobs:
         run: go -C backend/ build -v
 
       - name: Test
-        run: go -C backend/ test ./db -v
+        run: go -C backend/ test ./db ./handlers -v
