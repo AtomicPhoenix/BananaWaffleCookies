@@ -105,13 +105,20 @@ async function handleSubmit() {
       return
     }
 
+    const payload = {
+      ...form,
+      deadline_date: form.deadline_date
+        ? new Date(form.deadline_date).toISOString()
+        : null
+    }
+
     const res = await fetch('/api/jobs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       credentials: 'include',
-      body: JSON.stringify(form)
+      body: JSON.stringify(payload)
     })
 
     if (!res.ok) {
