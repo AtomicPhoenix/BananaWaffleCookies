@@ -16,18 +16,38 @@
       >
         {{ msg.content }}
       </div>
+
+      <!-- LOADING BUBBLE -->
+      <div v-if="isLoading" class="message ai loading">
+        Thinking...
+      </div>
+
+      <!-- No Document Selected -->
+      <div v-if="!activeDocumentId" class="message ai system">
+        Please select a document from the library to begin.
+      </div>
     </div>
+
 
     <!-- INPUT -->
     <div class="chatbox-input">
       <input
         v-model="userInput"
         type="text"
-        placeholder="Ask for feedback on your documents..."
+        :placeholder="activeDocumentId 
+          ? 'Ask for feedback on your document...' 
+          : 'Please select a document first...'"
+        :disabled="!activeDocumentId || isLoading"
         @keyup.enter="sendMessage"
       />
-      <button @click="sendMessage">Send</button>
+      <button 
+        @click="sendMessage"
+        :disabled="!activeDocumentId || isLoading"
+      >
+      Send
+      </button>
     </div>
+
 
   </div>
 </template>
@@ -43,8 +63,16 @@ const messages = ref([
   { role: 'ai', content: 'Upload a resume and ask for feedback!' }
 ])
 
-// thought: pass selected docs as props, as of right now it reads all docs on the page
-const selectedDocumentIds = ref([])
+// selected documentID
+const activeDocumentId = ref(null)
+const activeDocumentName = ref('')
+
+function setActiveDocument(doc) {
+  activeDocumentId.value = doc.id
+  activeDocumentName.value = doc.title
+  isOpen.value = true
+}
+
 
 function closeChat() {
   isOpen.value = false
@@ -54,7 +82,14 @@ async function sendMessage() {
   const input = userInput.value.trim()
   if (!input || isLoading.value) return
 
-  // push user message immediately
+  if (!activeDocumentId.value) {
+    messages.value.push({
+      role: 'ai',
+      content: 'Please select a document to analyze first.'
+    })
+    return
+  }
+
   messages.value.push({
     role: 'user',
     content: input
@@ -66,19 +101,15 @@ async function sendMessage() {
   try {
     const res = await fetch('/api/ai/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: input,
-        documentIds: selectedDocumentIds.value, 
+        documentIds: [activeDocumentId.value],
         history: messages.value
       })
     })
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`)
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
     const data = await res.json()
 
@@ -88,7 +119,7 @@ async function sendMessage() {
     })
 
   } catch (err) {
-    console.error('Chat error:', err)
+    console.error(err)
 
     messages.value.push({
       role: 'ai',
@@ -98,5 +129,6 @@ async function sendMessage() {
     isLoading.value = false
   }
 }
+
 </script>
 <style scoped src="@/assets/css/chatbox.css"></style>

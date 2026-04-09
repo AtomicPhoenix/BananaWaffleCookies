@@ -102,3 +102,23 @@
   background: linear-gradient(to right, #ffa946,#fc5b2e);
   border-style: none;
 }
+
+.message.loading {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.message.system {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.chatbox-input input:disabled {
+  background: #f1f1f1;
+  cursor: not-allowed;
+}
+
+.chatbox-input button:disabled {
+  background: #ddd;
+  cursor: not-allowed;
+}
