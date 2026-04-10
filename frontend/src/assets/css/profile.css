@@ -2,78 +2,6 @@
 @import './header.css';
 @import './main.css';
 
-/* PAGE LAYOUT */
-.page-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 120px 20px 20px;
-}
-
-.page-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #000;
-}
-
-/* COMPLETION SECTION */
-.completion-section {
-  margin-bottom: 20px;
-}
-
-.completion-text {
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-/* PROGRESS BAR */
-.progress-bar {
-  width: 100%;
-  height: 12px;
-  background: #E3E3E3;
-  border-radius: 6px;
-}
-
-.progress-fill {
-  height: 12px;
-  background: #B8B8B8;
-  border-radius: 6px;
-}
-
-/* FORM CARD */
-.form-card {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-}
-
-/* FORM ELEMENTS */
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  margin-bottom: 4px;
-  font-size: 14px;
-  color: #000;
-}
-
-input,
-textarea {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-@import './footer.css';
-@import './header.css';
-@import './main.css';
-
 /* PAGE */
 .page-container {
   max-width: 900px;
@@ -85,6 +13,7 @@ textarea {
   font-size: 26px;
   font-weight: bold;
   margin-bottom: 20px;
+  color: #000;
 }
 
 /* COMPLETION */
@@ -124,11 +53,24 @@ textarea {
   gap: 25px;
 }
 
+.item-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafafa;
+}
+
 /* SECTIONS */
 .section {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.section:last-child {
+  border-bottom: none;
 }
 
 .section-title {
@@ -137,17 +79,32 @@ textarea {
   margin-bottom: 5px;
 }
 
-/* ROW (2 columns) */
+/* ROW */
 .form-row {
   display: flex;
   gap: 15px;
+  flex-wrap: wrap;
 }
 
-.form-row .form-group {
+.form-row input,
+.form-row select {
   flex: 1;
+  min-width: 150px;
 }
 
-/* INPUTS */
+.item-row,
+.edit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-row {
+  flex-wrap: wrap;
+}
+
+/* FORM ELEMENTS */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -156,6 +113,7 @@ textarea {
 label {
   font-size: 13px;
   margin-bottom: 4px;
+  color: #000;
 }
 
 input,
@@ -166,16 +124,51 @@ textarea {
   font-size: 14px;
 }
 
+select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
 /* BUTTON */
 button {
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid #000;
   background: #B8B8B8;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 button:hover {
   background: #E3E3E3;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sub-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* FEEDBACK */
+.success {
+  color: green;
+  font-size: 13px;
+}
+
+.error {
+  color: red;
+  font-size: 13px;
 }
