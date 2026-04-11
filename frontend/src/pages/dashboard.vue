@@ -102,6 +102,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
 
 /* ---------------- STATE ---------------- */
 const searchQuery = ref('')
