@@ -125,7 +125,12 @@ img {
 }
 
 .top { 
-    grid-column: 1; 
+    .right{
+        grid-column: 1;
+    }
+    .left{
+        grid-column: 2;
+    }
     grid-row: 1; 
     font-size: clamp(1rem, 1.5vw , 1.25rem);
     font-weight: 700;
@@ -139,7 +144,15 @@ img {
     }
     grid-row: 2; 
 }
-.bot { grid-column: 1; grid-row: 3; }
+.bot {
+     .right{
+        grid-column: 1;
+    }
+    .left{
+        grid-column: 2;
+    } 
+    grid-row: 3; 
+}
 
 .jdesc{
     font-size: clamp(1rem, 1.5vw , 1rem);

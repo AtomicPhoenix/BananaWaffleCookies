@@ -57,8 +57,13 @@
               {{ result.status }}
             </div>
             <div class="right top">
-              //Dropdown Menu for modify, archeieve, delete, etc. job
-              
+              <!-- Dropdown Menu for modify, archive, delete, etc. job -->
+              <BDropdown text="..." auto-close="outside" class="dropdown">
+                <BDropdownItem :to="`/jobs/${result.id}`">View</BDropdownItem>
+                <BDropdownItem :to="`/jobs/${result.id}/edit`">Modify</BDropdownItem>
+                <BDropdownItem>Archive</BDropdownItem>
+                <BDropdownItem>Delete</BDropdownItem>
+              </BDropdown>
             </div>
           </div>
         </div>
