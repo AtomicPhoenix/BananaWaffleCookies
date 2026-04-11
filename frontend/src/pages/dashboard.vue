@@ -25,6 +25,7 @@
           Applied: {{ stats.applied }}<br>
           Interview: {{ stats.interview }}<br>
           Offer: {{ stats.offer }}<br>
+          Accepted: {{ stats.accepted }}<br>
           Rejected: {{ stats.rejected }}<br>
         </p>
       </div>
@@ -53,7 +54,7 @@
             <div class="left mid">
               {{ result.deadline_date }}
             </div>
-            <div class="right mid">
+            <div class="listing-status-button right mid" :id="statusToCssId(result.status)">
               {{ result.status }}
             </div>
             <div class="right top">
@@ -87,7 +88,7 @@
 
           <div
             class="listing-status-button right mid"
-            :id="job.status.toLowerCase()"
+            :id="statusToCssId(job.status)"
           >
             {{ job.status }}
           </div>
@@ -113,6 +114,7 @@ const stats = ref({
   interested: 0,
   applied: 0,
   interview: 0,
+  offer: 0,
   accepted: 0,
   rejected: 0
 })
@@ -160,6 +162,7 @@ const computeStats = (jobs) => {
     applied: 0,
     interview: 0,
     offer: 0,
+    accepted: 0,
     rejected: 0
   }
 
@@ -177,6 +180,13 @@ const computeStats = (jobs) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return 'N/A'
   return new Date(dateStr).toLocaleDateString()
+}
+
+const statusToCssId = (status) => {
+  return String(status || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
 }
 
 /* ---------------- LIFECYCLE ---------------- */

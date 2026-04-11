@@ -173,19 +173,46 @@ img {
     border-style: solid;
 }
 
-#accepted {
-    background: #2A9D8F;
-    border-color: #1f7269;
+#interested {
+    text-transform: capitalize;
+    background: #8D99AE;
+    outline: none;
+}
+
+#applied {
+    text-transform: capitalize;
+    background: #FB8500;
+    outline: none;
 }
 
 #interview{
+    text-transform: capitalize;
     background: #5E60CE;
-    border-color: #3c3d82;
+    outline: none;
 }
 
-#applied{
-    background: #FB8500;
-    border-color: #8f4d03;
+#offer{
+    text-transform: capitalize;
+    background: #2A9D8F;
+    outline: none;
+}
+
+#accepted{
+    text-transform: capitalize;
+    background: #27AE60;
+    outline: none;
+}
+
+#rejected{
+    text-transform: capitalize;
+    background: #D7263D;
+    outline: none;
+}
+
+#archived {
+    text-transform: capitalize;
+    background: #6F6F73;
+    outline: none;
 }
 
 @media (max-width: 700px){
