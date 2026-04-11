@@ -103,10 +103,12 @@ img {
     gap: 10px;
     margin: 1rem 1rem 0rem;
     padding: 10px;
+    padding-top: 2.5rem;
     border-radius: 2px;
     border-color: #B8B8B8;
     border-style: solid;
     background: #E3E3E3;
+    position: relative;
 }
 .job-listing.left{
     background: #ccc;
@@ -156,6 +158,13 @@ img {
 
 .jdesc{
     font-size: clamp(1rem, 1.5vw , 1rem);
+}
+
+.job-actions{
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 2;
 }
 
 .listing-status-button{

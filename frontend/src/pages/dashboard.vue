@@ -57,7 +57,7 @@
             <div class="listing-status-button right mid" :id="statusToCssId(result.status)">
               {{ result.status }}
             </div>
-            <div class="right top">
+            <div class="job-actions">
               <!-- Dropdown Menu for modify, archive, delete, etc. job -->
               <BDropdown text="..." auto-close="outside" class="dropdown">
                 <BDropdownItem :to="`/jobs/${result.id}`">View</BDropdownItem>
