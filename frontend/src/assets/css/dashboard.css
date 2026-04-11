@@ -4,6 +4,20 @@
     margin: 2rem;
     padding-top: 50px;
 }
+
+.dashboard-header{
+    margin-bottom: 2rem;
+}
+
+.dashboard-title{
+    font-size: clamp(24px, 3vw, 48px);
+    font-weight: 700;
+}
+.dashboard-subtitle{
+    font-size: clamp(16px, 2vw, 32px);
+    font-weight: 500;
+    color: #555555;
+}
 /* Search Box */
 .search-box{
     margin-bottom: 2rem;
@@ -201,6 +215,15 @@ img {
     
     border-radius: 10px;
     border-style: solid;
+}
+
+.listing-status-select{
+    cursor: pointer;
+    width: 100%;
+    max-width: 170px;
+    justify-content: flex-start;
+    text-align: left;
+    padding-left: 0.75rem;
 }
 
 #interested {

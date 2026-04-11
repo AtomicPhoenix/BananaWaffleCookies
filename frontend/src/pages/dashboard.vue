@@ -1,6 +1,9 @@
 <template>
   <div class="dashboard">
-
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">My Job Dashboard</h1>
+      <h2 class="dashboard-subtitle">Welcome back, {{ userName }}!</h2>
+    </div>
     <!-- SEARCH -->
     <div class="search-box">
       <form @submit.prevent="handleSearch">
@@ -53,9 +56,20 @@
             </div>
             <div class="left mid">
               {{ result.deadline_date }}
+              <linebreak>|</linebreak>
+              {{ result.updated_at }}
             </div>
-            <div class="listing-status-button right mid" :id="statusToCssId(result.status)">
-              {{ result.status }}
+            <div class="right mid">
+              <select
+                class="listing-status-button listing-status-select"
+                :id="statusToCssId(result.status)"
+                :value="result.status"
+                @change="updateJobStatus(result, $event.target.value)"
+              >
+                <option v-for="status in statusOptions" :key="status" :value="status">
+                  {{ status }}
+                </option>
+              </select>
             </div>
             <div class="job-actions">
               <!-- Dropdown Menu for modify, archive, delete, etc. job -->
@@ -89,11 +103,7 @@
           <div class="left bot jdesc">
             Deadline: {{ formatDate(job.deadline_date) }}
           </div>
-
-          <div
-            class="listing-status-button right mid"
-            :id="statusToCssId(job.status)"
-          >
+          <div class="listing-status-button right mid" :id="statusToCssId(job.status)">
             {{ job.status }}
           </div>
         </div>
@@ -122,6 +132,8 @@ const stats = ref({
   accepted: 0,
   rejected: 0
 })
+
+const statusOptions = ['interested', 'applied', 'interview', 'offer', 'accepted', 'rejected', 'archived']
 
 /* ---------------- API CALLS ---------------- */
 
@@ -191,6 +203,44 @@ const statusToCssId = (status) => {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')
+}
+
+const updateJobStatus = async (job, newStatus) => {
+  if (!newStatus || newStatus === job.status) {
+    return
+  }
+
+  const previousStatus = job.status
+  job.status = newStatus
+
+  const matchingUserJob = userJobs.value.find((item) => item.id === job.id)
+  if (matchingUserJob) {
+    matchingUserJob.status = newStatus
+  }
+  computeStats(userJobs.value)
+
+  try {
+    const res = await fetch('/api/jobs', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ...job, status: newStatus })
+    })
+
+    if (!res.ok) {
+      throw new Error(`Status update failed with code ${res.status}`)
+    }
+  } catch (err) {
+    job.status = previousStatus
+    if (matchingUserJob) {
+      matchingUserJob.status = previousStatus
+    }
+    computeStats(userJobs.value)
+    window.alert('Unable to update status right now. Please try again.')
+    console.error('Failed to update status:', err)
+  }
 }
 
 /* ---------------- LIFECYCLE ---------------- */
