@@ -50,6 +50,16 @@
             <div class="left top">
               {{ result.title }} | {{ result.company_name }} | {{ result.location_text }}
             </div>
+            <div class="left mid">
+              {{ result.deadline_date }}
+            </div>
+            <div class="right mid">
+              {{ result.status }}
+            </div>
+            <div class="right top">
+              //Dropdown Menu for modify, archeieve, delete, etc. job
+              
+            </div>
           </div>
         </div>
         <!-- USER JOBS -->
