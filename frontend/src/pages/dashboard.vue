@@ -59,7 +59,11 @@
             </div>
             <div class="job-actions">
               <!-- Dropdown Menu for modify, archive, delete, etc. job -->
-              <BDropdown text="..." auto-close="outside" class="dropdown">
+              <BDropdown auto-close="outside" class="dropdown" no-caret toggle-class="job-menu-toggle">
+                <template #button-content>
+                  <span aria-hidden="true">☰</span>
+                  <span class="visually-hidden">Job actions</span>
+                </template>
                 <BDropdownItem :to="`/jobs/${result.id}`">View</BDropdownItem>
                 <BDropdownItem :to="`/jobs/${result.id}/edit`">Modify</BDropdownItem>
                 <BDropdownItem>Archive</BDropdownItem>
