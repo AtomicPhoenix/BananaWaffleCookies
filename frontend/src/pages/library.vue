@@ -58,7 +58,7 @@ import Chatbox from '@/pages/chatbox.vue'
 const chatboxRef = ref(null)
 
 function openChat(doc) {
-  chatboxRef.value.setActiveDocument(doc)
+  chatboxRef.value?.setActiveDocument?.(doc)
 }
 
 const selectedFile = ref(null)
