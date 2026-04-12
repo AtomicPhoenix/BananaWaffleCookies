@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/handlers"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 // CLI Arguments
@@ -18,16 +20,25 @@ type Config struct {
 
 var config Config
 
-func setup() {
+func init() {
 	// Parse CLI Arguments
 	config.dev = flag.Bool("dev", false, "run in development mode")
 	config.port = flag.Int("p", 8080, "port to run server on")
 	flag.Parse()
+
+	godotenv.Load("./.env")
+
+	// Initiailize AuthToken
+	handlers.InitAuth()
+
+	// Initialize DB
+	err := db.InitDB()
+	if err != nil {
+		log.Fatalf(`Failed to init database: %v`, err)
+	}
 }
 
 func main() {
-	setup()
-
 	router := chi.NewRouter()
 
 	// Public API Routes

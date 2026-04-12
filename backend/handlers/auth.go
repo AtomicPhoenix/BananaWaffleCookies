@@ -22,10 +22,9 @@ type Claim struct {
 	Email string
 }
 
-func main() {
+func InitAuth() {
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 	AuthToken = jwtauth.New("HS256", []byte(JWT_SECRET_KEY), nil)
-
 }
 
 type AuthRequest struct {
