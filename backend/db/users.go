@@ -50,16 +50,6 @@ func RegisterUser(user User) (int, error) {
 	return uid, nil
 }
 
-func LoginUser(user User) (bool, int) {
-	var uid int = -1
-	err := DbConn.QueryRow(context.Background(), "SELECT uid FROM users WHERE email=$1 AND password_hash=$2", user.Email, user.Password_hash).Scan(&uid)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to authenticate user: %v\n", err)
-		return false, -1
-	}
-	return true, uid
-}
-
 func UpdateUserPassword(uid int, new_password string) error {
 	password_bytes, err := bcrypt.GenerateFromPassword([]byte(new_password), 12)
 	if err != nil {
