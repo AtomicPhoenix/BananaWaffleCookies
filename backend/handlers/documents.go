@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Handler for /api/documents (POST)
 func UploadDocument(w http.ResponseWriter, r *http.Request) {
 	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
@@ -79,6 +80,7 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(doc)
 }
 
+// Handler for /api/documents/{id} (DELETE)
 func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
@@ -98,6 +100,7 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	err = db.DeleteDocument(tokenInfo.Uid, doc_id)
 }
 
+// Handler for /api/documents/{id} (PUT)
 func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
