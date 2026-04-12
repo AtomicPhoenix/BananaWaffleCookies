@@ -39,3 +39,15 @@ func DeleteDocument(user_id int, doc_id int) error {
 	}
 	return nil
 }
+
+func UpdateDocument(doc Document) error {
+	sql_query := `UPDATE documents
+		      SET title = $1, document_type = $2, is_archived = $3
+		      WHERE id = $4 AND user_id = $5`
+	_, err := DbConn.Exec(context.Background(), sql_query, doc.Title, doc.DocumentType, doc.IsArchived, doc.ID, doc.UserID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to update document in Database: %v\n", err)
+		return err
+	}
+	return nil
+}
