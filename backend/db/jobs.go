@@ -47,7 +47,7 @@ func CreateJob(job Job) (int, error) {
 
 func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 	sqlQuery := `
-		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs WHERE user_id = $1`
+		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs WHERE user_id = $1 `
 
 	var (
 		rows pgx.Rows
