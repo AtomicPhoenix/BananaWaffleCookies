@@ -24,7 +24,7 @@ func CreateDocument(doc Document) (int, error) {
 				RETURNING id`
 	err := DbConn.QueryRow(context.Background(), sql_query, doc.UserID, doc.Title, doc.DocumentType, doc.IsArchived).Scan(&id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert job into database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to insert document into database: %v\n", err)
 		return -1, err
 	}
 	return id, err
@@ -34,7 +34,7 @@ func DeleteDocument(user_id int, doc_id int) error {
 	sql_query := `DELETE FROM documents WHERE id = $1 AND user_id = $2`
 	_, err := DbConn.Exec(context.Background(), sql_query, doc_id, user_id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert job into database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to remove document from database: %v\n", err)
 		return err
 	}
 	return nil
