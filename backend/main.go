@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"os"
 
+	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/handlers"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 // CLI Arguments
@@ -20,11 +22,21 @@ type Config struct {
 
 var config Config
 
-func setup() {
+func init() {
 	// Parse CLI Arguments
 	config.dev = flag.Bool("dev", false, "run in development mode")
 	config.port = flag.Int("p", 8080, "port to run server on")
 	flag.Parse()
+
+	godotenv.Load("./.env")
+
+	// Initiailize AuthToken
+	handlers.InitAuth()
+
+	// Initialize DB
+	err := db.InitDB()
+	if err != nil {
+		log.Fatalf(`Failed to init database: %v`, err)
 
 	// Create data folder
 	err := os.MkdirAll("data", 0750)
@@ -34,12 +46,11 @@ func setup() {
 	err = os.MkdirAll("data/documents", 0750)
 	if err != nil && err != fs.ErrExist {
 		log.Fatalf("Failed to create data/documents directory: %s\n", err)
+
 	}
 }
 
 func main() {
-	setup()
-
 	router := chi.NewRouter()
 
 	// Public API Routes
