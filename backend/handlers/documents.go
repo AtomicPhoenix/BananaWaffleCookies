@@ -142,6 +142,14 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/documents/{id} (GET)
 func GetDocument(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to upload document", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to upload document; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
 	doc_id_raw := chi.URLParam(r, "id")
 
 	doc_id, err := strconv.Atoi(doc_id_raw)
@@ -151,7 +159,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doc, err := db.GetDocument(doc_id)
+	doc, err := db.GetDocument(doc_id, tokenInfo.Uid)
 
 	if err != nil {
 		http.Error(w, "Failed to get document", http.StatusBadRequest)
@@ -191,6 +199,14 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/documents/{id}/info (GET)
 func GetDocumentInfo(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to upload document", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to upload document; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
 	doc_id_raw := chi.URLParam(r, "id")
 
 	doc_id, err := strconv.Atoi(doc_id_raw)
@@ -200,7 +216,7 @@ func GetDocumentInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doc, err := db.GetDocument(doc_id)
+	doc, err := db.GetDocument(doc_id, tokenInfo.Uid)
 
 	if err != nil {
 		http.Error(w, "Failed to get document", http.StatusBadRequest)
