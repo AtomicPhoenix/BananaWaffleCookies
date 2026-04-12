@@ -37,16 +37,16 @@ func init() {
 	err := db.InitDB()
 	if err != nil {
 		log.Fatalf(`Failed to init database: %v`, err)
+	}
 
 	// Create data folder
-	err := os.MkdirAll("data", 0750)
+	err = os.MkdirAll("data", 0750)
 	if err != nil && err != fs.ErrExist {
 		log.Fatalf("Failed to create data directory: %s\n", err)
 	}
 	err = os.MkdirAll("data/documents", 0750)
 	if err != nil && err != fs.ErrExist {
 		log.Fatalf("Failed to create data/documents directory: %s\n", err)
-
 	}
 }
 
