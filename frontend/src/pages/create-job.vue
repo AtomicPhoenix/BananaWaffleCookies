@@ -66,7 +66,10 @@
       </div>
 
       <!-- SUBMIT -->
-      <button type="submit" class="submit-job-button">Submit</button>
+      <button type="submit" class="submit-job-button" @click="router.back()">Submit</button>
+
+      <!-- CANCEL -->
+      <button type="button" class="cancel-job-button" @click="router.back()">Cancel</button>
 
       <!-- FEEDBACK -->
       <p v-if="error" class="error">{{ error }}</p>
@@ -105,13 +108,20 @@ async function handleSubmit() {
       return
     }
 
+    const payload = {
+      ...form,
+      deadline_date: form.deadline_date
+        ? new Date(form.deadline_date).toISOString()
+        : null
+    }
+
     const res = await fetch('/api/jobs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       credentials: 'include',
-      body: JSON.stringify(form)
+      body: JSON.stringify(payload)
     })
 
     if (!res.ok) {

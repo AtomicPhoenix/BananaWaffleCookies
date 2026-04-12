@@ -33,7 +33,7 @@
       <div class="job-list">
 
         <div class="create-job">
-          <router-link class="create-job-button" to="/create-job">
+          <router-link class="create-job-button" to="/jobs/create">
             Add a New Job Listing
           </router-link>
         </div>

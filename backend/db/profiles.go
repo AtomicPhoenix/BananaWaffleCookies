@@ -25,13 +25,13 @@ type Profile struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
-func createProfile(uid int) bool {
+func createProfile(uid int) error {
 	_, err := DbConn.Exec(context.Background(), "INSERT INTO profiles (user_id) VALUES ($1)", uid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create profile: %v\n", err)
-		return false
+		return err
 	}
-	return true
+	return nil
 }
 
 func UpdateProfile(profile Profile) error {
