@@ -2,20 +2,26 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type Job struct {
-	user_id       int
-	company_name  string
-	title         string
-	location_text string
-	posting_url   string
-	status        string // in ('interested', 'applied', 'interview', 'offer', 'rejected', 'archived')
-	deadline_date time.Time
-	notes         string
+	ID           int       `json:"id"`
+	UserID       int       `json:"user_id"`
+	CompanyName  string    `json:"company_name"`
+	Title        string    `json:"title"`
+	LocationText string    `json:"location_text"`
+	Salary       int       `json:"salary"`
+	Status       string    `json:"status"`
+	DeadlineDate time.Time `json:"deadline_date"`
+	Description  string    `json:"description"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type Job_Activity struct {
@@ -26,24 +32,105 @@ type Job_Activity struct {
 	metadata      string
 }
 
-func GetJob(title string) int {
+func CreateJob(job Job) (int, error) {
 	var id int
-	err := DbConn.QueryRow(context.Background(), "SELECT id FROM jobs WHERE title=$1", title).Scan(&id)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get job: %v\n", err)
-	}
-	return id
-}
-
-func CreateJob(job Job) (bool, int) {
-	var id int
-	sql := `INSERT INTO jobs (user_id, company_name, title, location_text, posting_url, status, deadline_date, notes) 
+	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, description) 
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
 				RETURNING id`
-	err := DbConn.QueryRow(context.Background(), sql, job.user_id, job.company_name, job.title, job.location_text, job.posting_url, job.status, job.deadline_date, job.notes).Scan(&id)
+	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description).Scan(&id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to insert job into database: %v\n", err)
-		return false, -1
+		return -1, err
 	}
-	return true, id
+	return id, err
+}
+
+func GetJobs(searchQuery string) ([]Job, error) {
+	sqlQuery := `
+		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs `
+
+	var (
+		rows pgx.Rows
+		err  error
+	)
+
+	if searchQuery != "" {
+		sqlQuery += `
+			WHERE company_name ILIKE $1 
+			OR title ILIKE $1 
+			OR description ILIKE $1
+			ORDER BY created_at DESC;`
+		searchTerm := "%" + searchQuery + "%"
+		rows, err = DbConn.Query(context.Background(), sqlQuery, searchTerm)
+	} else {
+		sqlQuery += `ORDER BY created_at DESC;`
+		rows, err = DbConn.Query(context.Background(), sqlQuery)
+	}
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var jobs []Job
+	for rows.Next() {
+		var j Job
+
+		var locationText, description sql.NullString
+		var deadlineDate sql.NullTime
+		var salary sql.NullInt64
+
+		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.CreatedAt, &j.UpdatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert nullable fields
+		if locationText.Valid {
+			j.LocationText = locationText.String
+		}
+		if salary.Valid {
+			j.Salary = int(salary.Int64)
+		}
+		if deadlineDate.Valid {
+			j.DeadlineDate = deadlineDate.Time
+		}
+		if description.Valid {
+			j.Description = description.String
+		}
+
+		jobs = append(jobs, j)
+	}
+	if err := rows.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
+		return nil, err
+	}
+	return jobs, nil
+}
+
+func GetJob(job_id int) (Job, error) {
+	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs WHERE id = $1;`
+
+	var job Job
+	err := DbConn.QueryRow(context.Background(), sql_query, job_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.CreatedAt, &job.UpdatedAt)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get job with id %d from database: %v\n", job_id, err)
+		return Job{}, err
+	}
+	return job, nil
+}
+
+func UpdateJob(job Job) error {
+	sql_query := `UPDATE jobs 
+				SET company_name = $1, title = $2, location_text = $3, salary = $4, status = $5, deadline_date = $6, description = $7
+				WHERE id = $8`
+	_, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to update job: %v\n", err)
+		return err
+	}
+	return err
 }

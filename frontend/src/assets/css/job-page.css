@@ -47,19 +47,30 @@ h1 {
 
 .submit-job-button{
     background: linear-gradient(to right, #ffa946,#fc5b2e);
-    border-color: #B8B8B8;
     border-radius: 10px;
-    border-width: 3px;
-    margin: 3rem 1rem 2rem;
+    border: none;
+    margin: 3rem 1rem 1rem;
     padding: 0.75rem;
-    border-style: solid;
     font-size: clamp(1rem, 1vw , 2rem);
     text-decoration: none;
     color: #000000;
+    cursor: pointer;
+}
+
+.cancel-job-button{
+    background: linear-gradient(to right, #B8B8B8,#B8B8B8);
+    border-radius: 10px;
+    border: none;
+    margin: 0 1rem 1rem;
+    padding: 0.75rem;
+    font-size: clamp(1rem, 1vw , 2rem);
+    text-decoration: none;
+    color: #000000;
+    cursor: pointer;
 }
 
 @media (max-width: 700px){
     .job-form{
-        width: 100%;
+        width: 90%;
     }
 }

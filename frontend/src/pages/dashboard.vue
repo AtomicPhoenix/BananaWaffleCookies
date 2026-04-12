@@ -1,68 +1,171 @@
 <template>
-    <div class="dashboard">
-      <!-- Search Bar to Query Job Information -->
-      <div class="search-box">
-        <form action="backend.go" method="get">
-            <label class="search-label" for="job-search">Search Jobs  </label>
-            <input class="search-bar" type="search" id="site-search" name="query" placeholder="Enter Job Information Here">
-            <button class="search-unicode" type="submit">⌕</button>
-        </form>
+  <div class="dashboard">
+
+    <!-- SEARCH -->
+    <div class="search-box">
+      <form @submit.prevent="handleSearch">
+        <label class="search-label" for="job-search">Search Jobs</label>
+        <input
+          v-model="searchQuery"
+          class="search-bar"
+          type="search"
+          placeholder="Enter Job Information Here"
+        />
+        <button class="search-unicode" type="submit">⌕</button>
+      </form>
+    </div>
+
+    <div class="job-info">
+
+      <!-- OVERVIEW -->
+      <div class="overview">
+        <h1 class="overview-title">Overview</h1>
+        <p class="overview-items">
+          Interested: {{ stats.interested }}<br>
+          Applied: {{ stats.applied }}<br>
+          Interview: {{ stats.interview }}<br>
+          Offer: {{ stats.offer }}<br>
+          Rejected: {{ stats.rejected }}<br>
+        </p>
       </div>
-      <div class="job-info">
-        <!-- Pie Chart Overview of Job Information, Later Sprint Implementation -->
-        <div class="overview">
-            <h1 class="overview-title"> Overview </h1>
-            <p class="overview-items"> 
-                Interested: 34<br>
-                Applied: 13<br>
-                Interview Offered: 2<br>
-                Accepted: 1<br>
-                Rejected: 1<br>
-            </p>
-            <RouterLink to="/" class="pie-template">
-            <img src="/images/pie-template.png" alt="pie">
-            </RouterLink>
+
+      <!-- JOB LIST -->
+      <div class="job-list">
+
+        <div class="create-job">
+          <router-link class="create-job-button" to="/jobs/create">
+            Add a New Job Listing
+          </router-link>
         </div>
-        <!-- Job List -->
-        <div class="job-list">
-                <!-- Field to add jobs to listing-->
-                <div class="create-job">
-                  <router-link class="create-job-button" to="/create-job">
-                    Create New Job Application
-                  </router-link>
-                </div>
-                <!-- Needs to be created of internal database information, template for now -->
-                <div class="job-listing">
-                    <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
-                    <div class="left mid jdesc">[Last Modified: ] </div>
-                    <div class="left bot jdesc">[Deadline: ]</div>
+        
+        <!-- OPTIONAL: SEARCH RESULTS -->
+        <div v-if="searchResults.length">
+          <h2>Search Results</h2>
 
-                    <div class="listing-status-button right mid" id="accepted">Accepted </div>
-                </div>
-
-                <div class="job-listing">
-                    <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
-                    <div class="left mid jdesc">[Last Modified: ] </div>
-                    <div class="left bot jdesc">[Deadline: ]</div>
-
-                    <div class="listing-status-button right mid" id="interview">Interview </div>
-                </div>
-
-                <div class="job-listing">
-                    <div class="left top">[Job Title]   |   [Company]   |   [Location]</div>
-                    <div class="left mid jdesc">[Last Modified: ] </div>
-                    <div class="left bot jdesc">[Deadline: ]</div>
-
-                    <div class="listing-status-button right mid" id="applied">Applied </div>
-                </div>
+          <div
+            v-for="result in searchResults"
+            :key="result.id"
+            class="job-listing"
+          >
+            <div class="left top">
+              {{ result.title }} | {{ result.company_name }} | {{ result.location_text }}
+            </div>
+          </div>
         </div>
+        <!-- USER JOBS -->
+        <div
+          v-for="job in userJobs"
+          :key="job.id"
+          class="job-listing"
+        >
+          <div class="left top">
+            {{ job.title }} | {{ job.company_name }} | {{ job.location_text }}
+          </div>
+
+          <div class="left mid jdesc">
+            Last Modified: {{ formatDate(job.updated_at) }}
+          </div>
+
+          <div class="left bot jdesc">
+            Deadline: {{ formatDate(job.deadline_date) }}
+          </div>
+
+          <div
+            class="listing-status-button right mid"
+            :id="job.status.toLowerCase()"
+          >
+            {{ job.status }}
+          </div>
+        </div>
+
       </div>
     </div>
+  </div>
 </template>
-<style scoped src="@/assets/css/dashboard.css"></style>
-<script setup>
-import { ref } from 'vue'
 
-const username = ref('')
-const onSubmit = () => console.log(username.value)
+<style scoped src="@/assets/css/dashboard.css"></style>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+
+/* ---------------- STATE ---------------- */
+const searchQuery = ref('')
+const searchResults = ref([])
+const userJobs = ref([])
+
+const stats = ref({
+  interested: 0,
+  applied: 0,
+  interview: 0,
+  accepted: 0,
+  rejected: 0
+})
+
+/* ---------------- API CALLS ---------------- */
+
+// Search jobs (external or internal API)
+const handleSearch = async () => {
+  try {
+    const query = encodeURIComponent(searchQuery.value.trim())
+    const url = query ? `/api/jobs?search=${query}` : `/api/jobs`
+    const res = await fetch(url, { method: 'GET' })
+    const data = await res.json()
+
+    searchResults.value = data
+  } catch (err) {
+    console.error('Search failed:', err)
+  }
+}
+
+// Fetch logged-in user's jobs
+const fetchUserJobs = async () => {
+
+  try {
+    const res = await fetch('/api/user/jobs', {
+      //define GET right? not sure so not included
+      method: 'GET',
+      credentials: 'include' // important if using sessions/cookies
+    })
+    const data = await res.json()
+
+    userJobs.value = data
+
+    computeStats(data)
+  } catch (err) {
+    console.error('Failed to fetch user jobs:', err)
+  }
+}
+
+/* ---------------- HELPERS ---------------- */
+
+const computeStats = (jobs) => {
+  const counts = {
+    interested: 0,
+    applied: 0,
+    interview: 0,
+    offer: 0,
+    rejected: 0
+  }
+
+  jobs.forEach(job => {
+    const status = job.status.toLowerCase()
+
+    if (counts[status] !== undefined) {
+      counts[status]++
+    }
+  })
+
+  stats.value = counts
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  return new Date(dateStr).toLocaleDateString()
+}
+
+/* ---------------- LIFECYCLE ---------------- */
+
+onMounted(() => {
+  fetchUserJobs()
+})
 </script>

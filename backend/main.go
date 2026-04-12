@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/handlers"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 // CLI Arguments
@@ -18,48 +20,44 @@ type Config struct {
 
 var config Config
 
-func setup() {
+func init() {
 	// Parse CLI Arguments
 	config.dev = flag.Bool("dev", false, "run in development mode")
 	config.port = flag.Int("p", 8080, "port to run server on")
 	flag.Parse()
+
+	godotenv.Load("./.env")
+
+	// Initiailize AuthToken
+	handlers.InitAuth()
+
+	// Initialize DB
+	err := db.InitDB()
+	if err != nil {
+		log.Fatalf(`Failed to init database: %v`, err)
+	}
 }
 
 func main() {
-	setup()
-
 	router := chi.NewRouter()
 
-	// Public routes
-	router.Post("/signup", handlers.RegistrationHandler)
-	router.Post("/login", handlers.LoginHandler)
-	router.Post("/logout", handlers.LogoutHandler)
+	// Public API Routes
+	router.Post("/api/signup", handlers.RegistrationHandler)
+	router.Post("/api/login", handlers.LoginHandler)
+	router.Post("/api/logout", handlers.LogoutHandler)
 
-	// Protected routes
+	// Protected API routes
 	router.Group(func(r chi.Router) {
-		r.Use(AuthRedirect)
-
-		r.Get("/api/auth/check", func(w http.ResponseWriter, r *http.Request) {
-			cookie, err := r.Cookie("auth_token")
-			w.Header().Set("Content-Type", "application/json")
-			if err != nil || cookie.Value == "" {
-				w.Write([]byte(`{"authenticated": false}`))
-				return
-			}
-
-			w.Write([]byte(`{"authenticated": true}`))
-		})
-
-		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {})
+		r.Use(handlers.AuthMiddleware)
+		r.Get("/api/auth", handlers.GetAuth)
 		r.Put("/api/profile", handlers.UpdateProfile)
 		r.Get("/api/profile", handlers.GetProfile)
-
-		r.Get("/library", func(w http.ResponseWriter, r *http.Request) {})
-		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {})
-		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) {})
-		r.Put("/api/settings", func(w http.ResponseWriter, r *http.Request) {})
+		r.Get("/api/jobs", handlers.GetJobs)
+		r.Get("/api/jobs/{id}", handlers.GetJob)
+		r.Post("/api/jobs", handlers.CreateJob)
+		r.Put("/api/jobs", handlers.UpdateJob)
+		r.Put("/api/settings", handlers.UpdateSettings)
 		r.Get("/api/settings", handlers.GetSettings)
-		r.Get("/create-job", func(w http.ResponseWriter, r *http.Request) {})
 	})
 
 	// Serve frontend for Vue routes
@@ -75,24 +73,4 @@ func main() {
 
 	log.Printf("[INFO] Server running on %s\n", portStr)
 	log.Fatal(http.ListenAndServe(portStr, router))
-}
-
-func AuthRedirect(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("auth_token")
-		if err != nil || cookie.Value == "" {
-			// If not authenticated, redirect to /login
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		_, err = handlers.AuthToken.Decode(cookie.Value)
-		if err != nil {
-			// If not authenticated, redirect to /login
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }
