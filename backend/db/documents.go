@@ -51,3 +51,13 @@ func UpdateDocument(doc Document) error {
 	}
 	return nil
 }
+
+func GetDocument(doc_id int) (Document, error) {
+	var doc Document
+	err := DbConn.QueryRow(context.Background(), "SELECT id, user_id, title, document_type, is_archived, created_at, updated_at FROM documents WHERE id=$1", doc_id).Scan(&doc.ID, &doc.UserID, &doc.Title, &doc.DocumentType, &doc.IsArchived, &doc.CreatedAt, &doc.UpdatedAt)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to retrieve document from Database: %v\n", err)
+		return Document{}, err
+	}
+	return doc, nil
+}
