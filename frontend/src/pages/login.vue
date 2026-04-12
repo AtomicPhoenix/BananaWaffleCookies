@@ -62,29 +62,27 @@ const form = reactive({
 // Function that runs when the form is submitted //
 async function handleLogin() {
   try {
-    const res = await fetch('/api/login', {
+    const res = await fetch('/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: form.email,
-        password: form.password
-      }),
-      credentials: 'include',
+      body: JSON.stringify({ email: form.email, password: form.password }),
+      credentials: 'include', // important! ensures cookies are saved
     });
 
     if (res.ok) {
+      // Clear form
       form.email = ''
       form.password = ''
 
-      // better navigation in Vue
       window.location.href = '/'
     } else {
+      // Handle invalid login
       const data = await res.json()
-      alert(data.message || 'Invalid email or password')
+      alert(data.message || 'Login failed')
     }
   } catch (err) {
     console.error(err)
-    alert('Server error during login')
+    alert('Login error')
   }
 }
 </script>

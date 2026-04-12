@@ -4,10 +4,9 @@
 
     <!-- Completion Indicator -->
     <div class="completion-section">
-      <div class="completion-header">
-        <span>Profile Completion</span>
-        <span>{{ completionPercentage }}%</span>
-      </div>
+      <p class="completion-text">
+        Profile Completion: {{ completionPercentage }}%
+      </p>
 
       <div class="progress-bar">
         <div
@@ -19,79 +18,57 @@
 
     <!-- Profile Form -->
     <div class="form-card">
-
-      <!-- BASIC INFO -->
-      <div class="section">
-        <h3 class="section-title">Basic Information</h3>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>First Name</label>
-            <input v-model="form.first_name" />
-          </div>
-
-          <div class="form-group">
-            <label>Last Name</label>
-            <input v-model="form.last_name" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Phone</label>
-          <input v-model="form.phone" type="tel" />
-        </div>
+      <div class="form-group">
+        <label>First Name</label>
+        <input v-model="form.first_name" />
       </div>
 
-      <!-- LOCATION -->
-      <div class="section">
-        <h3 class="section-title">Location</h3>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>City</label>
-            <input v-model="form.city" />
-          </div>
-
-          <div class="form-group">
-            <label>State</label>
-            <input v-model="form.state" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Country</label>
-          <input v-model="form.country" />
-        </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input v-model="form.last_name" />
       </div>
 
-      <!-- LINKS -->
-      <div class="section">
-        <h3 class="section-title">Links</h3>
-
-        <div class="form-group">
-          <label>LinkedIn URL</label>
-          <input v-model="form.linkedin_url" />
-        </div>
-
-        <div class="form-group">
-          <label>Portfolio URL</label>
-          <input v-model="form.portfolio_url" />
-        </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input v-model="form.phone" type="tel" />
       </div>
 
-      <!-- SUMMARY -->
-      <div class="section">
-        <h3 class="section-title">Summary</h3>
 
-        <div class="form-group">
-          <textarea v-model="form.summary" rows="4"></textarea>
-        </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input v-model="form.city" type="text" />
+      </div>
+
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input v-model="form.state" type="text" />
+      </div>
+
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input v-model="form.country" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input v-model="form.linkedin_url" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input v-model="form.portfolio_url" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label>Summary</label>
+        <textarea v-model="form.summary"></textarea>
       </div>
 
       <button @click="saveProfile">
         Save Profile
       </button>
-
     </div>
   </div>
 </template>

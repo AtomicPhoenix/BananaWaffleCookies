@@ -7,13 +7,11 @@ import SettingsPage from "@/pages/settings.vue";
 import LoginPage from "@/pages/login.vue";
 import DashboardPage from "@/pages/dashboard.vue";
 import CreateJobPage from "@/pages/create-job.vue";
-import ViewJobPage from "@/pages/view-job.vue";
-import EditJobPage from "@/pages/edit-job.vue";
 import SignupPage from "@/pages/signup.vue";
 
-async function checkUserAuth(_) {
+async function authGuard(to, from) {
   try {
-    const response = await axios.get("/api/auth", {
+    const response = await axios.get("/api/auth/check", {
       withCredentials: true,
     });
     if (response.data.authenticated) {
@@ -22,7 +20,6 @@ async function checkUserAuth(_) {
       return { name: "login" }; // redirect to login
     }
   } catch (err) {
-    console.log(err);
     return { name: "login" }; // redirect if API fails
   }
 }
@@ -39,19 +36,19 @@ const router = createRouter({
       path: "/library",
       name: "library",
       component: LibraryPage,
-      beforeEnter: checkUserAuth,
+      beforeEnter: authGuard,
     },
     {
       path: "/profile",
       name: "profile",
       component: ProfilePage,
-      beforeEnter: checkUserAuth,
+      beforeEnter: authGuard,
     },
     {
       path: "/settings",
       name: "settings",
       component: SettingsPage,
-      beforeEnter: checkUserAuth,
+      beforeEnter: authGuard,
     },
     {
       path: "/login",
@@ -62,16 +59,13 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: DashboardPage,
-      beforeEnter: checkUserAuth,
+      beforeEnter: authGuard,
     },
     {
-      path: "/jobs",
-      children: [
-        { path: "create", name: "create-job", component: CreateJobPage },
-        { path: ":job_id", component: ViewJobPage },
-        { path: ":job_id/edit", name: "edit-job", component: EditJobPage },
-      ],
-      beforeEnter: checkUserAuth,
+      path: "/create-job",
+      name: "create-job",
+      component: CreateJobPage,
+      beforeEnter: authGuard,
     },
     {
       path: "/signup",

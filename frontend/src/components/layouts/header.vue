@@ -44,7 +44,7 @@ const menuRef = ref(null)
 
 const signOut = async () => {
   try {
-    await axios.post("/api/logout", { withCredentials: true });
+    await axios.post("/logout", { withCredentials: true });
     window.location.href = "/login";
   } catch (err) {
     console.error("Logout failed:", err);

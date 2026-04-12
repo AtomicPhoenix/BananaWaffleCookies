@@ -113,12 +113,13 @@ CREATE TABLE IF NOT EXISTS jobs (
     company_name TEXT NOT NULL,
     title TEXT NOT NULL,
     location_text TEXT,
-    salary INT,
+    posting_url TEXT,
     status TEXT NOT NULL CHECK (
         status IN ('interested', 'applied', 'interview', 'offer', 'rejected', 'archived')
     ),
     deadline_date DATE,
-    description TEXT,
+    last_activity_at TIMESTAMPTZ,
+    notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -210,6 +211,9 @@ CREATE INDEX IF NOT EXISTS idx_jobs_user_id
 
 CREATE INDEX IF NOT EXISTS idx_jobs_user_status
     ON jobs(user_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_jobs_last_activity_at
+    ON jobs(user_id, last_activity_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_documents_user_id
     ON documents(user_id);

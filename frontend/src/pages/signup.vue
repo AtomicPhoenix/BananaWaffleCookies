@@ -51,7 +51,6 @@
 <script setup>
 // Import reactive utility for form state //
 import { reactive } from 'vue'
-import { useRouter } from 'vue-router'
 
 // Reactive object to store form input values //
 const form = reactive({
@@ -59,12 +58,10 @@ const form = reactive({
   password: ''
 })
 
-const router = useRouter()
-
 // Function that runs when the form is submitted //
 async function handleSignup() {
   try {
-    const res = await fetch(`/api/signup`, {
+    const res = await fetch(`/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: form.email, password: form.password })
@@ -73,7 +70,6 @@ async function handleSignup() {
     if (res.ok) {
       form.email = ''
       form.password = ''
-      router.push('/login')
     }   
   } catch (err) {
     console.error(err)

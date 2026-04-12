@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 
 	"bananawafflecookies.com/m/v2/db"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,9 +22,14 @@ type Claim struct {
 	Email string
 }
 
-func InitAuth() {
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		os.Exit(1)
+	}
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 	AuthToken = jwtauth.New("HS256", []byte(JWT_SECRET_KEY), nil)
+
 }
 
 type AuthRequest struct {
@@ -171,43 +176,11 @@ func GrabToken(r *http.Request) (error, Claim) {
 	}
 
 	// Grab email
-	err = reqToken.Get("email", &email)
+	err = reqToken.Get("id", &email)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to decode email from auth token: %v\n", err)
 		return err, Claim{}
 	}
 
 	return nil, Claim{Uid: uid, Email: email}
-}
-
-func GetAuth(w http.ResponseWriter, r *http.Request) {
-	err, _ := GrabToken(r)
-
-	w.Header().Set("Content-Type", "application/json")
-
-	// GrabToken will error if it fails to find a valid authorization token
-	if err != nil {
-		w.Write([]byte(`{"authenticated": false}`))
-		return
-	}
-	w.Write([]byte(`{"authenticated": true}`))
-}
-
-func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err, claim := GrabToken(r)
-
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "unauthorized"}`))
-			return
-		}
-
-		// Update request context to store user info
-		ctx := context.WithValue(r.Context(), "user", claim)
-
-		// Continue to next handler
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
 }

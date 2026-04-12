@@ -70,110 +70,14 @@ textarea {
   border-radius: 6px;
 }
 
-@import './footer.css';
-@import './header.css';
-@import './main.css';
-
-/* PAGE */
-.page-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 120px 20px 40px;
-}
-
-.page-title {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-/* COMPLETION */
-.completion-section {
-  margin-bottom: 25px;
-}
-
-.completion-header {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 10px;
-  background: #E3E3E3;
-  border-radius: 5px;
-}
-
-.progress-fill {
-  height: 10px;
-  background: #B8B8B8;
-  border-radius: 5px;
-  transition: width 0.3s ease;
-}
-
-/* CARD */
-.form-card {
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-/* SECTIONS */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-/* ROW (2 columns) */
-.form-row {
-  display: flex;
-  gap: 15px;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-/* INPUTS */
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-input,
-textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
 /* BUTTON */
 button {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid #000;
   background: #B8B8B8;
+  color: #000;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
 }
 
 button:hover {
