@@ -59,8 +59,11 @@ func main() {
 		r.Put("/api/jobs", handlers.UpdateJob)
 		r.Put("/api/settings", handlers.UpdateSettings)
 		r.Get("/api/settings", handlers.GetSettings)
+		r.Get("/api/documents/{id}", handlers.GetDocument)
+		r.Get("/api/documents/{id}/info", handlers.GetDocumentInfo)
 		r.Post("/api/documents", handlers.UploadDocument)
 		r.Delete("/api/documents/{id}", handlers.DeleteDocument)
+		r.Put("/api/documents/{id}", handlers.UpdateDocument)
 	})
 
 	// Serve frontend for Vue routes
