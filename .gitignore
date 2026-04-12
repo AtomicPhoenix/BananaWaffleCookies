@@ -44,6 +44,9 @@ dist
 node_modules
 bananaWaffleCookies
 
+# Uploaded Data
+data/
+
 # Logs
 logs
 *.log
