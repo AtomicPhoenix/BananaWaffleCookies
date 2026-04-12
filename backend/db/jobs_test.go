@@ -53,6 +53,7 @@ func TestUpdateJob(t *testing.T) {
 		deleteTestUser(t, test_user.Id)
 	})
 
+	test_job.UserID = test_job.ID
 	test_job.CompanyName = "Aperture Labs"
 	test_job.Title = "Cave Johnson"
 	test_job.Status = "applied"
