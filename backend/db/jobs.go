@@ -126,8 +126,8 @@ func GetJob(job_id int) (Job, error) {
 func UpdateJob(job Job) error {
 	sql_query := `UPDATE jobs 
 				SET company_name = $1, title = $2, location_text = $3, salary = $4, status = $5, deadline_date = $6, description = $7
-				WHERE id = $8`
-	_, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID)
+				WHERE id = $8 AND user_id = $9 = $9`
+	_, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID, job.UserID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to update job: %v\n", err)
 		return err
