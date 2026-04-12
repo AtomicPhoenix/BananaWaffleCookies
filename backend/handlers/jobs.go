@@ -44,10 +44,18 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs (GET)
 func GetJobs(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to get job", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to get job; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
 	// Grab search query from frontend (/api/jobs?search=QUERY)
 	searchQuery := r.URL.Query().Get("search")
 
-	jobs, err := db.GetJobs(searchQuery)
+	jobs, err := db.GetJobs(tokenInfo.Uid, searchQuery)
 
 	if err != nil {
 		http.Error(w, "Failed to get jobs", http.StatusBadRequest)
@@ -64,6 +72,14 @@ func GetJobs(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs/{id} (GET)
 func GetJob(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to get job", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to get job; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
 	job_id_raw := chi.URLParam(r, "id")
 
 	job_id, err := strconv.Atoi(job_id_raw)
@@ -73,7 +89,7 @@ func GetJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := db.GetJob(job_id)
+	job, err := db.GetJob(job_id, tokenInfo.Uid)
 	if err != nil {
 		http.Error(w, "Failed to get job", http.StatusInternalServerError)
 		fmt.Fprintf(os.Stderr, "Failed to get job: %v\n", err)
