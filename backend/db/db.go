@@ -34,11 +34,3 @@ func InitDB() error {
 	fmt.Println("Successfully connected to database.")
 	return nil
 }
-
-func main() {
-	err := InitDB()
-	if err != nil {
-		os.Exit(1)
-	}
-	defer DbConn.Close()
-}
