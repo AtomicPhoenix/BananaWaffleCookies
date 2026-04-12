@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
+	"os"
 
 	"bananawafflecookies.com/m/v2/handlers"
 	"github.com/go-chi/chi/v5"
@@ -23,6 +25,16 @@ func setup() {
 	config.dev = flag.Bool("dev", false, "run in development mode")
 	config.port = flag.Int("p", 8080, "port to run server on")
 	flag.Parse()
+
+	// Create data folder
+	err := os.MkdirAll("data", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data directory: %s\n", err)
+	}
+	err = os.MkdirAll("data/documents", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data/documents directory: %s\n", err)
+	}
 }
 
 func main() {
