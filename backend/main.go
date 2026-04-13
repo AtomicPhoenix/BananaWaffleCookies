@@ -62,8 +62,18 @@ func main() {
 	router.Group(func(r chi.Router) {
 		r.Use(handlers.AuthMiddleware)
 		r.Get("/api/auth", handlers.GetAuth)
+
 		r.Put("/api/profile", handlers.UpdateProfile)
 		r.Get("/api/profile", handlers.GetProfile)
+		r.Post("/api/profile/education", handlers.AddProfileEducation)
+		r.Get("/api/profile/education", handlers.GetProfileEducation)
+		r.Delete("/api/profile/education/{id}", handlers.DeleteProfileEducation)
+		r.Post("/api/profile/experiences", handlers.AddProfileExperience)
+		r.Get("/api/profile/experiences", handlers.GetProfileExperiences)
+		r.Delete("/api/profile/experiences/{id}", handlers.DeleteProfileExperience)
+		r.Post("/api/profile/skills", handlers.AddProfileSkill)
+		r.Get("/api/profile/skills", handlers.GetProfileSkills)
+		r.Delete("/api/profile/skills/{id}", handlers.DeleteProfileSkill)
 		r.Get("/api/jobs", handlers.GetJobs)
 		r.Get("/api/jobs/{id}", handlers.GetJob)
 		r.Post("/api/jobs", handlers.CreateJob)
