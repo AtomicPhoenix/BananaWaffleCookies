@@ -10,6 +10,7 @@ import CreateJobPage from "@/pages/create-job.vue";
 import ViewJobPage from "@/pages/view-job.vue";
 import EditJobPage from "@/pages/edit-job.vue";
 import SignupPage from "@/pages/signup.vue";
+import Chatbox from "@/pages/chatbox.vue";
 
 async function checkUserAuth(_) {
   try {

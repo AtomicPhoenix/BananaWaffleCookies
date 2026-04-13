@@ -161,10 +161,6 @@ async function saveProfile() {
                              summary: form.summary })
     })
 
-    if (res.ok) {
-      form.email = ''
-      form.password = ''
-    }   
   } catch (err) {
     console.error(err)
   } 
