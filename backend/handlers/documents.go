@@ -227,3 +227,25 @@ func GetDocumentInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(doc)
 }
+
+// Handler for /api/documents (GET)
+func GetAllDocuments(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to get documents", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to get documents; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
+	docs, err := db.GetAllDocuments(tokenInfo.Uid)
+
+	if err != nil {
+		http.Error(w, "Failed to get documents", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to get documents: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(docs)
+}
