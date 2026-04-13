@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type Document struct {
@@ -60,4 +62,49 @@ func GetDocument(doc_id int, user_id int) (Document, error) {
 		return Document{}, err
 	}
 	return doc, nil
+}
+
+func GetAllDocuments(user_id int) ([]Document, error) {
+	sqlQuery := `SELECT id, user_id, title, document_type, is_archived, created_at, updated_at FROM documents 
+			WHERE user_id = $1 ORDER BY created_at DESC;`
+
+	var (
+		rows pgx.Rows
+		err  error
+	)
+
+	rows, err = DbConn.Query(context.Background(), sqlQuery, user_id)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get documents from database: %v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var docs []Document
+	for rows.Next() {
+		var d Document
+
+		err = rows.Scan(
+			&d.ID,
+			&d.UserID,
+			&d.Title,
+			&d.DocumentType,
+			&d.IsArchived,
+			&d.CreatedAt,
+			&d.UpdatedAt,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to scan document row: %v\n", err)
+			return nil, err
+		}
+
+		docs = append(docs, d)
+	}
+
+	if err := rows.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get documents from database: %v\n", err)
+		return nil, err
+	}
+	return docs, nil
 }
