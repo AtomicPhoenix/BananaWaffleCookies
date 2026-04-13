@@ -72,6 +72,7 @@ func main() {
 		r.Get("/api/settings", handlers.GetSettings)
 		r.Get("/api/documents/{id}", handlers.GetDocument)
 		r.Get("/api/documents/{id}/info", handlers.GetDocumentInfo)
+		r.Get("/api/documents", handlers.GetDocumentInfo)
 		r.Post("/api/documents", handlers.UploadDocument)
 		r.Delete("/api/documents/{id}", handlers.DeleteDocument)
 		r.Put("/api/documents/{id}", handlers.UpdateDocument)
