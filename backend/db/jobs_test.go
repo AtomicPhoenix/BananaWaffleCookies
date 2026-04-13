@@ -1,7 +1,6 @@
 package db
 
 import (
-	"context"
 	"testing"
 	"time"
 )
@@ -80,7 +79,7 @@ func TestDeleteJob(t *testing.T) {
 		deleteTestUser(t, test_user.Id)
 	})
 
-	_, err := DbConn.Exec(context.Background(), "DELETE FROM jobs WHERE id=$1", test_job.ID)
+	err := DeleteJob(test_job)
 	if err != nil {
 		t.Fatalf("Failed to delete test job: %v", err)
 	}
