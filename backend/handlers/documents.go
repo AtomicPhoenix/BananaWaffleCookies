@@ -98,6 +98,19 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = db.DeleteDocument(tokenInfo.Uid, doc_id)
+	if err != nil {
+		http.Error(w, "Failed to delete document", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to delete document: DB failed to delete document info: %v\n", err)
+		return
+	}
+
+	filePath := fmt.Sprintf("./data/documents/%d.pdf", doc_id)
+	if err := os.Remove(filePath); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to delete document file %s: %v\n", filePath, err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 // Handler for /api/documents/{id} (PUT)
