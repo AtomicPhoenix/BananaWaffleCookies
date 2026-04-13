@@ -103,9 +103,10 @@ async function uploadFile() {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
 
-    const res = await fetch('/api/documents/upload', {
+    const res = await fetch('/api/documents', {
       method: 'POST',
-      body: formData
+      body: formData,
+      credentials: 'include'
     })
 
     if (res.ok) {

@@ -47,28 +47,6 @@ describe('DocumentLibrary.vue', () => {
   })
 
   // ---------------------------- //
-  // FILE SELECTION               //
-  // ---------------------------- //
-
-/* not working :C
-  it('stores selected file on file input change', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => [] })
-
-    const wrapper = mount(DocumentLibrary)
-
-    const file = new File(['test'], 'test.pdf', { type: 'application/pdf' })
-
-    const input = wrapper.find('input[type="file"]')
-
-    await input.trigger('change', {
-      target: { files: [file] }
-    })
-
-    expect(wrapper.vm.selectedFile).toBe(file)
-  })
-*/
-
-  // ---------------------------- //
   // UPLOAD WITHOUT FILE          //
   // ---------------------------- //
 
