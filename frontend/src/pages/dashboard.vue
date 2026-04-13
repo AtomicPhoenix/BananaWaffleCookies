@@ -2,45 +2,81 @@
   <div class="dashboard">
     <div class="dashboard-header">
       <h1 class="dashboard-title">My Job Dashboard</h1>
-      <h2 class="dashboard-subtitle">Welcome back, [Name]!</h2>
+      <h2 class="dashboard-subtitle">{{ welcomeMessage }}</h2>
     </div>
     <!-- SEARCH -->
     <div class="search-box">
       <form @submit.prevent="handleSearch">
-        <label class="search-label" for="job-search">Search Jobs</label>
-        <input
-          v-model="searchQuery"
-          class="search-bar"
-          type="search"
-          placeholder="Enter Job Information Here"
-        />
-        <button class="search-unicode" type="submit">⌕</button>
-      </form>
-      <!--Filter By-->
-        <div class="filter-box">
-          Filter By: 
-          <select>
-            <option value="all">All</option>
-            <option value="status">Status</option>
-            <option value="date">Date</option>
-            <option value="salary">Salary</option>
-          </select>
+        <div class="search-controls">
+          <div class="search-field">
+            <label class="search-label" for="job-search">Search Jobs</label>
+            <input
+              id="job-search"
+              v-model="searchQuery"
+              class="search-bar"
+              type="search"
+              placeholder="Enter Job Information Here"
+            />
+            <button class="search-unicode" type="submit">⌕</button>
+          </div>
+
+          <div class="sort-box">
+            <label class="sort-label" for="job-sort">Sort By</label>
+            <select id="job-sort" v-model="sortBy" class="sort-select">
+              <option value="updated-desc">Newest Updated</option>
+              <option value="updated-asc">Oldest Updated</option>
+              <option value="deadline-asc">Nearest Deadline</option>
+              <option value="deadline-desc">Farthest Deadline</option>
+              <option value="title-asc">Job Title (A-Z)</option>
+              <option value="company-asc">Company Name (A-Z)</option>
+            </select>
+          </div>
         </div>
+      </form>
     </div>
 
     <div class="job-info">
+      <div class="dashboard-sidebar">
+        <div class="status-filter-box">
+          <h3 class="filters-title">Filters</h3>
 
-      <!-- OVERVIEW -->
-      <div class="overview">
-        <h1 class="overview-title">Overview</h1>
-        <p class="overview-items">
-          Interested: {{ stats.interested }}<br>
-          Applied: {{ stats.applied }}<br>
-          Interview: {{ stats.interview }}<br>
-          Offer: {{ stats.offer }}<br>
-          Accepted: {{ stats.accepted }}<br>
-          Rejected: {{ stats.rejected }}<br>
-        </p>
+          <p class="filter-section-label">Status</p>
+          <div class="filter-options">
+            <label v-for="status in statusOptions" :key="status" class="filter-option">
+              <input
+                v-model="selectedStatuses"
+                type="checkbox"
+                :value="status"
+              >
+              {{ status }}
+            </label>
+          </div>
+
+          <p class="filter-section-label">Salary Range</p>
+          <div class="filter-options">
+            <label v-for="range in salaryRangeOptions" :key="range.value" class="filter-option">
+              <input
+                v-model="selectedSalaryRanges"
+                type="checkbox"
+                :value="range.value"
+              >
+              {{ range.label }}
+            </label>
+          </div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="overview">
+          <h1 class="overview-title">Overview</h1>
+          <p class="overview-items">
+            Interested: {{ stats.interested }}<br>
+            Applied: {{ stats.applied }}<br>
+            Interview: {{ stats.interview }}<br>
+            Offer: {{ stats.offer }}<br>
+            Accepted: {{ stats.accepted }}<br>
+            Rejected: {{ stats.rejected }}<br>
+          </p>
+        </div>
       </div>
 
       <!-- JOB LIST -->
@@ -53,11 +89,11 @@
         </div>
         
         <!-- OPTIONAL: SEARCH RESULTS -->
-        <div v-if="searchResults.length">
+        <div v-if="sortedSearchResults.length">
           <h2>Search Results</h2>
 
           <div
-            v-for="result in searchResults"
+            v-for="result in sortedSearchResults"
             :key="result.id"
             class="job-listing"
           >
@@ -98,7 +134,7 @@
         </div>
         <!-- USER JOBS -->
         <div
-          v-for="job in userJobs"
+          v-for="job in sortedUserJobs"
           :key="job.id"
           class="job-listing"
         >
@@ -126,13 +162,22 @@
 <style scoped src="@/assets/css/dashboard.css"></style>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
 
 /* ---------------- STATE ---------------- */
 const searchQuery = ref('')
 const searchResults = ref([])
 const userJobs = ref([])
+const sortBy = ref('updated-desc')
+const selectedStatuses = ref([])
+const selectedSalaryRanges = ref([])
+const firstName = ref('')
+
+const welcomeMessage = computed(() => {
+  const name = String(firstName.value || '').trim()
+  return name ? `Welcome back, ${name}` : 'Welcome back'
+})
 
 const stats = ref({
   interested: 0,
@@ -144,6 +189,14 @@ const stats = ref({
 })
 
 const statusOptions = ['interested', 'applied', 'interview', 'offer', 'accepted', 'rejected', 'archived']
+const salaryRangeOptions = [
+  { value: 'under-50000', label: 'Under $50,000' },
+  { value: '50000-74999', label: '$50,000 - $74,999' },
+  { value: '75000-99999', label: '$75,000 - $99,999' },
+  { value: '100000-149999', label: '$100,000 - $149,999' },
+  { value: '150000-plus', label: '$150,000+' },
+  { value: 'unknown', label: 'Not provided' }
+]
 
 /* ---------------- API CALLS ---------------- */
 
@@ -165,11 +218,15 @@ const handleSearch = async () => {
 const fetchUserJobs = async () => {
 
   try {
-    const res = await fetch('/api/user/jobs', {
-      //define GET right? not sure so not included
+    const res = await fetch('/api/jobs', {
       method: 'GET',
       credentials: 'include' // important if using sessions/cookies
     })
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch jobs with code ${res.status}`)
+    }
+
     const data = await res.json()
 
     userJobs.value = data
@@ -177,6 +234,24 @@ const fetchUserJobs = async () => {
     computeStats(data)
   } catch (err) {
     console.error('Failed to fetch user jobs:', err)
+  }
+}
+
+const fetchUserProfile = async () => {
+  try {
+    const res = await fetch('/api/profile', {
+      method: 'GET',
+      credentials: 'include'
+    })
+
+    if (!res.ok) {
+      return
+    }
+
+    const profileData = await res.json()
+    firstName.value = profileData.first_name || ''
+  } catch (err) {
+    console.error('Failed to fetch profile:', err)
   }
 }
 
@@ -253,9 +328,87 @@ const updateJobStatus = async (job, newStatus) => {
   }
 }
 
+const toTimeValue = (value) => {
+  const timestamp = new Date(value).getTime()
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+const matchesStatusFilter = (job) => {
+  if (!selectedStatuses.value.length) {
+    return true
+  }
+
+  return selectedStatuses.value.includes(statusToCssId(job.status))
+}
+
+const salaryValue = (job) => {
+  const parsed = Number(job.salary)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const matchesSalaryFilter = (job) => {
+  if (!selectedSalaryRanges.value.length) {
+    return true
+  }
+
+  const salary = salaryValue(job)
+
+  return selectedSalaryRanges.value.some((range) => {
+    if (range === 'unknown') {
+      return salary === null
+    }
+
+    if (salary === null) {
+      return false
+    }
+
+    switch (range) {
+      case 'under-50000':
+        return salary < 50000
+      case '50000-74999':
+        return salary >= 50000 && salary <= 74999
+      case '75000-99999':
+        return salary >= 75000 && salary <= 99999
+      case '100000-149999':
+        return salary >= 100000 && salary <= 149999
+      case '150000-plus':
+        return salary >= 150000
+      default:
+        return false
+    }
+  })
+}
+
+const filteredJobs = (jobs) => jobs.filter(matchesStatusFilter).filter(matchesSalaryFilter)
+
+const sortedJobs = (jobs) => {
+  return [...jobs].sort((left, right) => {
+    switch (sortBy.value) {
+      case 'updated-asc':
+        return toTimeValue(left.updated_at) - toTimeValue(right.updated_at)
+      case 'updated-desc':
+        return toTimeValue(right.updated_at) - toTimeValue(left.updated_at)
+      case 'deadline-asc':
+        return toTimeValue(left.deadline_date) - toTimeValue(right.deadline_date)
+      case 'deadline-desc':
+        return toTimeValue(right.deadline_date) - toTimeValue(left.deadline_date)
+      case 'title-asc':
+        return String(left.title || '').localeCompare(String(right.title || ''))
+      case 'company-asc':
+        return String(left.company_name || '').localeCompare(String(right.company_name || ''))
+      default:
+        return 0
+    }
+  })
+}
+
+const sortedSearchResults = computed(() => sortedJobs(filteredJobs(searchResults.value)))
+const sortedUserJobs = computed(() => sortedJobs(filteredJobs(userJobs.value)))
+
 /* ---------------- LIFECYCLE ---------------- */
 
 onMounted(() => {
   fetchUserJobs()
+  fetchUserProfile()
 })
 </script>
