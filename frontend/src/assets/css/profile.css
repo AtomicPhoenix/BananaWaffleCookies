@@ -2,7 +2,7 @@
 @import './header.css';
 @import './main.css';
 
-/* PAGE */
+/* ================= PAGE ================= */
 .page-container {
   max-width: 900px;
   margin: 0 auto;
@@ -16,7 +16,7 @@
   color: #000;
 }
 
-/* COMPLETION */
+/* ================= COMPLETION ================= */
 .completion-section {
   margin-bottom: 25px;
 }
@@ -42,7 +42,7 @@
   transition: width 0.3s ease;
 }
 
-/* CARD */
+/* ================= CARD ================= */
 .form-card {
   background: #fff;
   padding: 25px;
@@ -53,14 +53,25 @@
   gap: 25px;
 }
 
+/* ================= ITEM CARD ================= */
 .item-card {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 12px;
   background: #fafafa;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  transition: all 0.2s ease;
 }
 
-/* SECTIONS */
+.item-card:hover {
+  background: #f5f5f5;
+}
+
+/* ================= SECTIONS ================= */
 .section {
   display: flex;
   flex-direction: column;
@@ -79,7 +90,7 @@
   margin-bottom: 5px;
 }
 
-/* ROW */
+/* ================= ROWS ================= */
 .form-row {
   display: flex;
   gap: 15px;
@@ -92,19 +103,32 @@
   min-width: 150px;
 }
 
-.item-row,
-.edit-row {
+.item-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
 }
 
-.edit-row {
-  flex-wrap: wrap;
+.item-row > div:first-child {
+  flex: 1;
 }
 
-/* FORM ELEMENTS */
+/* Edit mode */
+.edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.edit-row input,
+.edit-row select {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* ================= FORM ELEMENTS ================= */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -117,14 +141,9 @@ label {
 }
 
 input,
-textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
+textarea,
 select {
+  width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -132,37 +151,89 @@ select {
   background: white;
 }
 
-/* BUTTON */
+/* Focus UX */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #000;
+  box-shadow: 0 0 0 1px #000;
+}
+
+/* ================= BUTTONS ================= */
 button {
   padding: 10px 12px;
-  border: 1px solid #000;
-  background: #B8B8B8;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
+  border: 1px solid #000;
 }
 
+/* Hover + click */
 button:hover {
-  background: #E3E3E3;
+  opacity: 0.9;
 }
 
 button:active {
   transform: scale(0.98);
 }
 
+/* Disabled (future-proof for loading states) */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Primary (Save buttons) */
+.section > button {
+  align-self: flex-start;
+  background: #000;
+  color: #fff;
+}
+
+.section > button:hover {
+  background: #333;
+}
+
+/* Action buttons (edit, reorder) */
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
+.actions button {
+  padding: 6px 10px;
+  font-size: 12px;
+  background: #eee;
+  border-color: #ccc;
+}
+
+/* Reorder buttons */
+.actions button:nth-child(2),
+.actions button:nth-child(3) {
+  background: #eee;
+}
+
+/* Danger (delete) */
+.actions button:last-child {
+  background: #ffdddd;
+  border-color: #cc0000;
+}
+
+.actions button:last-child:hover {
+  background: #ffcccc;
+}
+
+/* ================= TEXT ================= */
 .sub-text {
   font-size: 12px;
   color: #666;
   margin-top: 2px;
 }
 
-/* FEEDBACK */
+/* ================= FEEDBACK ================= */
 .success {
   color: green;
   font-size: 13px;
@@ -171,4 +242,17 @@ button:active {
 .error {
   color: red;
   font-size: 13px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+  .item-row,
+  .edit-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
 }

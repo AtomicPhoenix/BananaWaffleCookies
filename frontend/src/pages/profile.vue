@@ -9,12 +9,14 @@
         <span>{{ completionPercentage }}%</span>
       </div>
       <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: completionPercentage + '%' }"></div>
+        <div
+          class="progress-fill"
+          :style="{ width: completionPercentage + '%' }"
+        ></div>
       </div>
     </div>
 
     <div class="form-card">
-
       <!-- ================= BASIC INFO ================= -->
       <div class="section">
         <h3 class="section-title">Basic Information</h3>
@@ -23,11 +25,15 @@
           <input v-model="form.first_name" placeholder="First Name" />
           <input v-model="form.last_name" placeholder="Last Name" />
         </div>
+
         <input v-model="form.phone" placeholder="Phone" />
 
         <button @click="saveBasic">Save Basic Info</button>
+
         <p v-if="messages.basic.success" class="success">Saved!</p>
-        <p v-if="messages.basic.error" class="error">{{ messages.basic.error }}</p>
+        <p v-if="messages.basic.error" class="error">
+          {{ messages.basic.error }}
+        </p>
       </div>
 
       <!-- ================= EDUCATION ================= -->
@@ -46,15 +52,23 @@
         </div>
 
         <button @click="addEducation">Save Education</button>
-        <p v-if="messages.education.success" class="success">Saved!</p>
-        <p v-if="messages.education.error" class="error">{{ messages.education.error }}</p>
 
-        <div v-for="edu in educationList" :key="edu.id" class="item-card">
+        <p v-if="messages.education.success" class="success">Saved!</p>
+        <p v-if="messages.education.error" class="error">
+          {{ messages.education.error }}
+        </p>
+
+        <div
+          v-for="edu in educationList"
+          :key="edu.id"
+          class="item-card"
+        >
           <div v-if="editId !== edu.id" class="item-row">
             <div>
               <strong>{{ edu.school }}</strong> — {{ edu.degree }}
               <p class="sub-text">{{ edu.field }}</p>
             </div>
+
             <div class="actions">
               <button @click="startEdit(edu)">Edit</button>
               <button @click="deleteEducation(edu.id)">Delete</button>
@@ -76,13 +90,69 @@
         </div>
       </div>
 
+      <!-- ================= EMPLOYMENT ================= -->
+      <div class="section">
+        <h3 class="section-title">Employment</h3>
+
+        <input v-model="newEmployment.company" placeholder="Company" />
+        <input v-model="newEmployment.role" placeholder="Role" />
+        <input v-model="newEmployment.start_date" type="date" />
+        <input v-model="newEmployment.end_date" type="date" />
+        <input
+          v-model="newEmployment.description"
+          placeholder="Description"
+        />
+
+        <button @click="addEmployment">Add Employment</button>
+
+        <p v-if="messages.employment.success" class="success">Saved!</p>
+        <p v-if="messages.employment.error" class="error">
+          {{ messages.employment.error }}
+        </p>
+
+        <div
+          v-for="(emp, index) in employmentList"
+          :key="emp.id"
+          class="item-card"
+        >
+          <div v-if="editEmploymentId !== emp.id" class="item-row">
+            <div>
+              <strong>{{ emp.company }}</strong> — {{ emp.role }}
+              <p class="sub-text">{{ emp.description }}</p>
+            </div>
+
+            <div class="actions">
+              <button @click="startEditEmployment(emp)">Edit</button>
+              <button @click="moveEmploymentUp(index)">↑</button>
+              <button @click="moveEmploymentDown(index)">↓</button>
+              <button @click="deleteEmployment(emp.id)">Delete</button>
+            </div>
+          </div>
+
+          <div v-else class="edit-row">
+            <input v-model="editEmployment.company" />
+            <input v-model="editEmployment.role" />
+            <input v-model="editEmployment.description" />
+
+            <div class="actions">
+              <button @click="updateEmployment(emp.id)">Save</button>
+              <button @click="cancelEditEmployment">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ================= SKILLS ================= -->
       <div class="section">
         <h3 class="section-title">Skills</h3>
 
         <div class="form-row">
           <input v-model="newSkill.name" placeholder="Skill" />
-          <input v-model="newSkill.category" placeholder="Category (optional)" />
+          <input
+            v-model="newSkill.category"
+            placeholder="Category (optional)"
+          />
+
           <select v-model="newSkill.proficiency">
             <option value="">Proficiency</option>
             <option>Beginner</option>
@@ -92,14 +162,23 @@
         </div>
 
         <button @click="addSkill">Save Skill</button>
-        <p v-if="messages.skills.success" class="success">Saved!</p>
-        <p v-if="messages.skills.error" class="error">{{ messages.skills.error }}</p>
 
-        <div v-for="(skill, index) in skillsList" :key="skill.id" class="item-card">
+        <p v-if="messages.skills.success" class="success">Saved!</p>
+        <p v-if="messages.skills.error" class="error">
+          {{ messages.skills.error }}
+        </p>
+
+        <div
+          v-for="(skill, index) in skillsList"
+          :key="skill.id"
+          class="item-card"
+        >
           <div v-if="editSkillId !== skill.id" class="item-row">
             <div>
               <strong>{{ skill.name }}</strong>
-              <p class="sub-text">{{ skill.category }} • {{ skill.proficiency }}</p>
+              <p class="sub-text">
+                {{ skill.category }} • {{ skill.proficiency }}
+              </p>
             </div>
 
             <div class="actions">
@@ -113,6 +192,7 @@
           <div v-else class="edit-row">
             <input v-model="editSkill.name" />
             <input v-model="editSkill.category" />
+
             <select v-model="editSkill.proficiency">
               <option value="">Proficiency</option>
               <option>Beginner</option>
@@ -128,12 +208,64 @@
         </div>
       </div>
 
+      <!-- ================= PROJECTS ================= -->
+      <div class="section">
+        <h3 class="section-title">Projects</h3>
+
+        <input v-model="newProject.title" placeholder="Title" />
+        <input v-model="newProject.description" placeholder="Description" />
+        <input v-model="newProject.link" placeholder="Link" />
+
+        <button @click="addProject">Add Project</button>
+
+        <p v-if="messages.projects.success" class="success">Saved!</p>
+        <p v-if="messages.projects.error" class="error">
+          {{ messages.projects.error }}
+        </p>
+
+        <div
+          v-for="(proj, index) in projectList"
+          :key="proj.id"
+          class="item-card"
+        >
+          <div v-if="editProjectId !== proj.id" class="item-row">
+            <div>
+              <strong>{{ proj.title }}</strong>
+              <p class="sub-text">{{ proj.description }}</p>
+            </div>
+
+            <div class="actions">
+              <button @click="startEditProject(proj)">Edit</button>
+              <button @click="moveProjectUp(index)">↑</button>
+              <button @click="moveProjectDown(index)">↓</button>
+              <button @click="deleteProject(proj.id)">Delete</button>
+            </div>
+          </div>
+
+          <div v-else class="edit-row">
+            <input v-model="editProject.title" />
+            <input v-model="editProject.description" />
+
+            <div class="actions">
+              <button @click="updateProject(proj.id)">Save</button>
+              <button @click="cancelEditProject">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ================= PREFERENCES ================= -->
       <div class="section">
         <h3 class="section-title">Preferences</h3>
 
-        <input v-model="preferences.target_roles" placeholder="Target Roles" />
-        <input v-model="preferences.location" placeholder="Preferred Location" />
+        <input
+          v-model="preferences.target_roles"
+          placeholder="Target Roles"
+        />
+        <input
+          v-model="preferences.location"
+          placeholder="Preferred Location"
+        />
 
         <select v-model="preferences.work_mode">
           <option value="">Work Mode</option>
@@ -142,13 +274,21 @@
           <option>On-site</option>
         </select>
 
-        <input v-model="preferences.salary" type="number" placeholder="Desired Salary" />
+        <input
+          v-model="preferences.salary"
+          type="number"
+          placeholder="Desired Salary"
+        />
 
         <button @click="savePreferences">Save Preferences</button>
-        <p v-if="messages.preferences.success" class="success">Saved!</p>
-        <p v-if="messages.preferences.error" class="error">{{ messages.preferences.error }}</p>
-      </div>
 
+        <p v-if="messages.preferences.success" class="success">
+          Saved!
+        </p>
+        <p v-if="messages.preferences.error" class="error">
+          {{ messages.preferences.error }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -156,31 +296,103 @@
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
 
-const form = reactive({ first_name: '', last_name: '', phone: '' })
-const preferences = reactive({ target_roles: '', location: '', work_mode: '', salary: '' })
+const form = reactive({
+  first_name: '',
+  last_name: '',
+  phone: ''
+})
+
+const preferences = reactive({
+  target_roles: '',
+  location: '',
+  work_mode: '',
+  salary: ''
+})
 
 const educationList = ref([])
 const skillsList = ref([])
+const employmentList = ref([])
+const projectList = ref([])
 
-const newEducation = reactive({ school: '', degree: '', field: '', start_date: '', end_date: '' })
-const newSkill = reactive({ name: '', category: '', proficiency: '' })
+const newEducation = reactive({
+  school: '',
+  degree: '',
+  field: '',
+  start_date: '',
+  end_date: ''
+})
+
+const newSkill = reactive({
+  name: '',
+  category: '',
+  proficiency: ''
+})
+
+const newEmployment = reactive({
+  company: '',
+  role: '',
+  start_date: '',
+  end_date: '',
+  description: ''
+})
+
+const newProject = reactive({
+  title: '',
+  description: '',
+  link: ''
+})
 
 const editId = ref(null)
-const editEducation = reactive({ school: '', degree: '', field: '', start_date: '', end_date: '' })
+const editEducation = reactive({
+  school: '',
+  degree: '',
+  field: '',
+  start_date: '',
+  end_date: ''
+})
 
 const editSkillId = ref(null)
-const editSkill = reactive({ name: '', category: '', proficiency: '' })
+const editSkill = reactive({
+  name: '',
+  category: '',
+  proficiency: ''
+})
+
+const editEmploymentId = ref(null)
+const editEmployment = reactive({
+  company: '',
+  role: '',
+  start_date: '',
+  end_date: '',
+  description: ''
+})
+
+const editProjectId = ref(null)
+const editProject = reactive({
+  title: '',
+  description: '',
+  link: ''
+})
 
 const messages = reactive({
   basic: { success: false, error: '' },
   education: { success: false, error: '' },
   skills: { success: false, error: '' },
+  employment: { success: false, error: '' },
+  projects: { success: false, error: '' },
   preferences: { success: false, error: '' }
 })
 
 const completionPercentage = computed(() => {
-  const total = [...Object.values(form), preferences.target_roles, preferences.location]
-  const filled = total.filter(v => v && v.toString().trim() !== '').length
+  const total = [
+    ...Object.values(form),
+    preferences.target_roles,
+    preferences.location
+  ]
+  const filled = total.filter(
+    v => v && v.toString().trim() !== ''
+  ).length
+
   return Math.round((filled / total.length) * 100)
 })
 
@@ -188,6 +400,8 @@ onMounted(() => {
   getProfile()
   getEducation()
   getSkills()
+  getEmployment()
+  getProjects()
 })
 
 async function getProfile() {
@@ -207,6 +421,67 @@ async function getEducation() {
 async function getSkills() {
   const res = await fetch('/api/profile/skills')
   if (res.ok) skillsList.value = await res.json()
+}
+
+async function saveSkillOrder() {
+  try {
+    await fetch('/api/profile/skills/reorder', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        skillsList.value.map((skill, index) => ({
+          id: skill.id,
+          position: index
+        }))
+      )
+    })
+  } catch (err) {
+    console.error('Failed to save skill order', err)
+  }
+}
+
+async function getEmployment() {
+  const res = await fetch('/api/profile/employment')
+  if (res.ok) employmentList.value = await res.json()
+}
+
+async function saveEmploymentOrder() {
+  try {
+    await fetch('/api/profile/employment/reorder', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        employmentList.value.map((emp, index) => ({
+          id: emp.id,
+          position: index
+        }))
+      )
+    })
+  } catch (err) {
+    console.error('Failed to save employment order', err)
+  }
+}
+
+async function getProjects() {
+  const res = await fetch('/api/profile/projects')
+  if (res.ok) projectList.value = await res.json()
+}
+
+async function saveProjectOrder() {
+  try {
+    await fetch('/api/profile/projects/reorder', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        projectList.value.map((proj, index) => ({
+          id: proj.id,
+          position: index
+        }))
+      )
+    })
+  } catch (err) {
+    console.error('Failed to save project order', err)
+  }
 }
 
 function reset(section) {
@@ -286,7 +561,7 @@ async function addEducation() {
 
     if (res.ok) {
       messages.education.success = true
-      Object.keys(newEducation).forEach(k => newEducation[k] = '')
+      Object.keys(newEducation).forEach(k => (newEducation[k] = ''))
       getEducation()
     } else {
       messages.education.error = 'Save failed'
@@ -306,7 +581,9 @@ function startEdit(edu) {
   Object.assign(editEducation, edu)
 }
 
-function cancelEdit() { editId.value = null }
+function cancelEdit() {
+  editId.value = null
+}
 
 async function updateEducation(id) {
   reset('education')
@@ -401,7 +678,7 @@ async function addSkill() {
 
     if (res.ok) {
       messages.skills.success = true
-      Object.keys(newSkill).forEach(k => newSkill[k] = '')
+      Object.keys(newSkill).forEach(k => (newSkill[k] = ''))
       getSkills()
     } else {
       messages.skills.error = 'Save failed'
@@ -416,21 +693,163 @@ async function deleteSkill(id) {
   getSkills()
 }
 
-function moveSkillUp(index) {
+async function moveSkillUp(index) {
   if (index === 0) return
   const temp = skillsList.value[index]
   skillsList.value[index] = skillsList.value[index - 1]
   skillsList.value[index - 1] = temp
+  await saveSkillOrder()
 }
 
-function moveSkillDown(index) {
+async function moveSkillDown(index) {
   if (index === skillsList.value.length - 1) return
   const temp = skillsList.value[index]
   skillsList.value[index] = skillsList.value[index + 1]
   skillsList.value[index + 1] = temp
+  await saveSkillOrder()
+}
+
+async function addEmployment() {
+  reset('employment')
+
+  if (!newEmployment.company || !newEmployment.role) {
+    messages.employment.error = 'Company and role required'
+    return
+  }
+
+  const res = await fetch('/api/profile/employment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newEmployment)
+  })
+
+  if (res.ok) {
+    messages.employment.success = true
+    Object.keys(newEmployment).forEach(k => (newEmployment[k] = ''))
+    getEmployment()
+  } else {
+    messages.employment.error = 'Save failed'
+  }
+}
+
+function startEditEmployment(emp) {
+  editEmploymentId.value = emp.id
+  Object.assign(editEmployment, emp)
+}
+
+function cancelEditEmployment() {
+  editEmploymentId.value = null
+}
+
+async function updateEmployment(id) {
+  reset('employment')
+
+  const res = await fetch(`/api/profile/employment/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(editEmployment)
+  })
+
+  if (res.ok) {
+    messages.employment.success = true
+    editEmploymentId.value = null
+    getEmployment()
+  } else {
+    messages.employment.error = 'Update failed'
+  }
+}
+
+async function deleteEmployment(id) {
+  await fetch(`/api/profile/employment/${id}`, { method: 'DELETE' })
+  getEmployment()
+}
+
+async function addProject() {
+  reset('projects')
+
+  if (!newProject.title) {
+    messages.projects.error = 'Title required'
+    return
+  }
+
+  const res = await fetch('/api/profile/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newProject)
+  })
+
+  if (res.ok) {
+    messages.projects.success = true
+    Object.keys(newProject).forEach(k => (newProject[k] = ''))
+    getProjects()
+  } else {
+    messages.projects.error = 'Save failed'
+  }
+}
+
+function startEditProject(p) {
+  editProjectId.value = p.id
+  Object.assign(editProject, p)
+}
+
+function cancelEditProject() {
+  editProjectId.value = null
+}
+
+async function updateProject(id) {
+  reset('projects')
+
+  const res = await fetch(`/api/profile/projects/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(editProject)
+  })
+
+  if (res.ok) {
+    messages.projects.success = true
+    editProjectId.value = null
+    getProjects()
+  } else {
+    messages.projects.error = 'Update failed'
+  }
+}
+
+async function deleteProject(id) {
+  await fetch(`/api/profile/projects/${id}`, { method: 'DELETE' })
+  getProjects()
+}
+
+async function moveEmploymentUp(index) {
+  if (index === 0) return
+  const temp = employmentList.value[index]
+  employmentList.value[index] = employmentList.value[index - 1]
+  employmentList.value[index - 1] = temp
+  await saveEmploymentOrder()
+}
+
+async function moveEmploymentDown(index) {
+  if (index === employmentList.value.length - 1) return
+  const temp = employmentList.value[index]
+  employmentList.value[index] = employmentList.value[index + 1]
+  employmentList.value[index + 1] = temp
+  await saveEmploymentOrder()
+}
+
+async function moveProjectUp(index) {
+  if (index === 0) return
+  const temp = projectList.value[index]
+  projectList.value[index] = projectList.value[index - 1]
+  projectList.value[index - 1] = temp
+  await saveProjectOrder()
+}
+
+async function moveProjectDown(index) {
+  if (index === projectList.value.length - 1) return
+  const temp = projectList.value[index]
+  projectList.value[index] = projectList.value[index + 1]
+  projectList.value[index + 1] = temp
+  await saveProjectOrder()
 }
 </script>
 
 <style scoped src="@/assets/css/profile.css"></style>
-
-
