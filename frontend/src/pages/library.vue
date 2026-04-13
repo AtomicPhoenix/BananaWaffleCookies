@@ -117,7 +117,7 @@ async function uploadFile() {
         id: data.id,
         title: data.title,
         type: data.document_type || 'File',
-        url: "/documents/{id}" + document.id
+        url: `/documents/${data.id}`
       })
 
       uploadMessage.value = 'File uploaded successfully!'
@@ -131,14 +131,21 @@ async function uploadFile() {
   }
 }
 
-// Open document
+// Open document, makes sure url is fully constructed
 function openDocument(doc) {
-  if (doc.url) {
-    window.open(doc.url, '_blank')
-  } else {
+  if (!doc?.url) {
     alert('No file URL available')
+    return
+  }
+
+  try {
+    const url = new URL(doc.url, window.location.origin)
+    window.open(url.href, '_blank', 'noopener,noreferrer')
+  } catch {
+    alert('Invalid URL')
   }
 }
+
 
 // Delete document (backend + UI)
 async function deleteDocument(id) {
