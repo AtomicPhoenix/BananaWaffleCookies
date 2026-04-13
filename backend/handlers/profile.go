@@ -64,6 +64,81 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(profile)
 }
 
+// Handler for /api/profile/education (POST)
+func AddProfileEducation(w http.ResponseWriter, r *http.Request) {
+	var edu db.ProfileEducation
+
+	if err := json.NewDecoder(r.Body).Decode(&edu); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	edu.UserID = tokenInfo.Uid
+
+	id, err := db.InsertProfileEducation(edu)
+	if err != nil {
+		http.Error(w, "Failed to insert education", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to insert education: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
+}
+
+// Handler for /api/profile/education (GET)
+func GetProfileEducation(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	edu, err := db.GetProfileEducation(tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to fetch education", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to fetch education: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(edu)
+}
+
+// Handler for /api/profile/education/{id} (DELETE)
+func DeleteProfileEducation(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		http.Error(w, "Missing experience id", http.StatusBadRequest)
+		return
+	}
+
+	var eduID int
+	fmt.Sscan(idParam, &eduID)
+
+	err = db.DeleteProfileEducation(tokenInfo.Uid, eduID)
+	if err != nil {
+		http.Error(w, "Failed to delete education", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to delete education: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Education deleted successfully "}`)
+}
+
 // Handler for /api/profile/experiences (POST)
 func AddProfileExperience(w http.ResponseWriter, r *http.Request) {
 	var exp db.ProfileExperiences
