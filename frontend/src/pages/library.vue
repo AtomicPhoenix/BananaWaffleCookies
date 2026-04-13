@@ -184,9 +184,10 @@ async function uploadFile() {
     formData.append('tags', JSON.stringify(selectedTags.value))
     formData.append('type', documentType.value)
 
-    const res = await fetch('/api/documents/upload', {
+    const res = await fetch('/api/documents', {
       method: 'POST',
-      body: formData
+      body: formData,
+      credentials: 'include'
     })
 
     if (res.ok) {
@@ -194,9 +195,9 @@ async function uploadFile() {
 
       documents.value.push({
         id: data.id,
-        title: data.name,
-        type: documentType.value,
-        url: data.url,
+        title: data.title || data.name,
+        type: data.document_type || documentType.value || 'File',
+        url: data.url || `/documents/${data.id}`,
         job_id: selectedJobId.value,
         tags: [...selectedTags.value]
       })
@@ -227,7 +228,8 @@ async function deleteDocument(id) {
 
   try {
     const res = await fetch(`/api/documents/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'include'
     })
 
     if (res.ok) {

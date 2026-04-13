@@ -3,11 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
+	"os"
 
+	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/handlers"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 // CLI Arguments
@@ -18,16 +22,35 @@ type Config struct {
 
 var config Config
 
-func setup() {
+func init() {
 	// Parse CLI Arguments
 	config.dev = flag.Bool("dev", false, "run in development mode")
 	config.port = flag.Int("p", 8080, "port to run server on")
 	flag.Parse()
+
+	godotenv.Load("./.env")
+
+	// Initiailize AuthToken
+	handlers.InitAuth()
+
+	// Initialize DB
+	err := db.InitDB()
+	if err != nil {
+		log.Fatalf(`Failed to init database: %v`, err)
+	}
+
+	// Create data folder
+	err = os.MkdirAll("data", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data directory: %s\n", err)
+	}
+	err = os.MkdirAll("data/documents", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data/documents directory: %s\n", err)
+	}
 }
 
 func main() {
-	setup()
-
 	router := chi.NewRouter()
 
 	// Public API Routes
@@ -41,10 +64,17 @@ func main() {
 		r.Get("/api/auth", handlers.GetAuth)
 		r.Put("/api/profile", handlers.UpdateProfile)
 		r.Get("/api/profile", handlers.GetProfile)
-    r.Get("/api/jobs", handlers.GetJobs)
+		r.Get("/api/jobs", handlers.GetJobs)
+		r.Get("/api/jobs/{id}", handlers.GetJob)
 		r.Post("/api/jobs", handlers.CreateJob)
+		r.Put("/api/jobs", handlers.UpdateJob)
 		r.Put("/api/settings", handlers.UpdateSettings)
 		r.Get("/api/settings", handlers.GetSettings)
+		r.Get("/api/documents/{id}", handlers.GetDocument)
+		r.Get("/api/documents/{id}/info", handlers.GetDocumentInfo)
+		r.Post("/api/documents", handlers.UploadDocument)
+		r.Delete("/api/documents/{id}", handlers.DeleteDocument)
+		r.Put("/api/documents/{id}", handlers.UpdateDocument)
 	})
 
 	// Serve frontend for Vue routes

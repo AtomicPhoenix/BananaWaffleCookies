@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS job_activities (
 CREATE TABLE IF NOT EXISTS documents (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
+    title TEXT NOT NULL,
     document_type TEXT NOT NULL CHECK (
         document_type IN ('resume', 'cover_letter', 'other')
     ),

@@ -5,24 +5,46 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_ADDR: localhost
+      DB_PORT: 5432
+      DB_NAME: test_db
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
 
-    - name: Format
-      run: |
+      - name: Format
+        run: |
           fmt_out=$(gofmt -l backend/)
           if [ -n "$fmt_out" ]; then
             echo "The following files are not formatted:"
@@ -30,9 +52,23 @@ jobs:
             exit 1
           fi
 
-    - name: Build
-      run: go -C backend/ build -v
+      - name: Wait for Postgres
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U postgres && break
+            echo "Waiting for postgres..."
+            sleep 2
+          done
 
-    - name: Test
-      run: go -C backend/ test -v
+      - name: Run DB schema
+        run: |
+          psql postgres://postgres:postgres@localhost:5432/test_db -f schemas/db_up.sql
 
+      - name: Build
+        run: go -C backend/ build -v
+
+      - name: Test DB
+        run: go -C backend/ test ./db -v
+
+      - name: Test Handlers
+        run: go -C backend/ test ./handlers -v
