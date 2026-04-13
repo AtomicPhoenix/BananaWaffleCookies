@@ -134,3 +134,17 @@ func UpdateJob(job Job) error {
 	}
 	return err
 }
+
+func DeleteJob(job Job) error {
+	tag, err := DbConn.Exec(context.Background(), "DELETE FROM jobs WHERE id=$1 AND user_id = $2", job.ID, job.UserID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to delete job: %v\n", err)
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		err = fmt.Errorf("No rows affected")
+		fmt.Fprintf(os.Stderr, "Failed to delete job: %v\n", err)
+		return err
+	}
+	return err
+}
