@@ -88,69 +88,45 @@
           </router-link>
         </div>
         
-        <!-- OPTIONAL: SEARCH RESULTS -->
-        <div v-if="sortedSearchResults.length">
-          <h2>Search Results</h2>
+        <h2 v-if="isSearchMode">Search Results: {{ searchQuery }}</h2>
 
-          <div
-            v-for="result in sortedSearchResults"
-            :key="result.id"
-            class="job-listing"
-          >
-            <div class="left top">
-              {{ result.title }} | {{ result.company_name }} | {{ result.location_text }}
-            </div>
-            <div class="left mid">
-              {{ result.deadline_date }}
-              <linebreak>|</linebreak>
-              {{ result.updated_at }}
-            </div>
-            <div class="right mid">
-              <select
-                class="listing-status-button listing-status-select"
-                :id="statusToCssId(result.status)"
-                :value="result.status"
-                @change="updateJobStatus(result, $event.target.value)"
-              >
-                <option v-for="status in statusOptions" :key="status" :value="status">
-                  {{ status }}
-                </option>
-              </select>
-            </div>
-            <div class="job-actions">
-              <!-- Dropdown Menu for modify, archive, delete, etc. job -->
-              <BDropdown auto-close="outside" class="dropdown" no-caret toggle-class="job-menu-toggle">
-                <template #button-content>
-                  <span aria-hidden="true">☰</span>
-                  <span class="visually-hidden">Job actions</span>
-                </template>
-                <BDropdownItem :to="`/jobs/${result.id}`">View</BDropdownItem>
-                <BDropdownItem :to="`/jobs/${result.id}/edit`">Modify</BDropdownItem>
-                <BDropdownItem>Archive</BDropdownItem>
-                <BDropdownItem>Delete</BDropdownItem>
-              </BDropdown>
-            </div>
-          </div>
-        </div>
-        <!-- USER JOBS -->
         <div
-          v-for="job in sortedUserJobs"
+          v-for="job in displayedJobs"
           :key="job.id"
           class="job-listing"
         >
           <div class="left top">
             {{ job.title }} | {{ job.company_name }} | {{ job.location_text }}
           </div>
-
           <div class="left mid jdesc">
-            Last Modified: {{ formatDate(job.updated_at) }}
-          </div>
-
-          <div class="left bot jdesc">
             Deadline: {{ formatDate(job.deadline_date) }}
           </div>
-          <div class="listing-status-button right mid" :id="statusToCssId(job.status)">
-            {{ job.status }}
+          <div class="left bot jdesc">
+            Last Modified: {{ formatDate(job.updated_at) }}
+          </div>
+          <div class="right mid">
+            <select
+              class="listing-status-button listing-status-select"
+              :id="statusToCssId(job.status)"
+              :value="job.status"
+              @change="updateJobStatus(job, $event.target.value)"
+            >
+              <option v-for="status in statusOptions" :key="status" :value="status">
+                {{ status }}
+              </option>
+            </select>
+          </div>
+          <div class="job-actions">
+            <BDropdown auto-close="outside" class="dropdown" no-caret toggle-class="job-menu-toggle">
+              <template #button-content>
+                <span aria-hidden="true">☰</span>
+                <span class="visually-hidden">Job actions</span>
+              </template>
+              <BDropdownItem :to="`/jobs/${job.id}`">View</BDropdownItem>
+              <BDropdownItem :to="`/jobs/${job.id}/edit`">Modify</BDropdownItem>
+              <BDropdownItem>Archive</BDropdownItem>
+              <BDropdownItem>Delete</BDropdownItem>
+            </BDropdown>
           </div>
         </div>
 
@@ -404,6 +380,10 @@ const sortedJobs = (jobs) => {
 
 const sortedSearchResults = computed(() => sortedJobs(filteredJobs(searchResults.value)))
 const sortedUserJobs = computed(() => sortedJobs(filteredJobs(userJobs.value)))
+const isSearchMode = computed(() => searchQuery.value.trim().length > 0)
+const displayedJobs = computed(() => {
+  return isSearchMode.value ? sortedSearchResults.value : sortedUserJobs.value
+})
 
 /* ---------------- LIFECYCLE ---------------- */
 

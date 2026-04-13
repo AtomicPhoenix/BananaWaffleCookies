@@ -190,8 +190,7 @@ img {
 /* Job List Box */
 
 .create-job{
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin: 0 0 0.75rem;
 }
 
 .create-job-button{
@@ -211,6 +210,9 @@ img {
     width:70%;
     display:flex;
     flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem 1rem 1rem;
+    box-sizing: border-box;
     background: #D9D9D9;
     border-radius: 1rem;
 }
@@ -220,7 +222,8 @@ img {
     grid-template-columns: 70% 30%;
     grid-template-rows: repeat(3, 2rem); 
     gap: 10px;
-    margin: 1rem 1rem 0rem;
+    margin: 0;
+    width: 100%;
     padding: 10px;
     padding-top: 2.5rem;
     border-radius: 2px;
@@ -305,6 +308,11 @@ img {
 .job-actions :deep(.job-menu-toggle:focus-visible){
     background: #F3F3F3;
     border-color: #9D9D9D;
+}
+
+.job-list > h2{
+    margin: 0 0 0.25rem;
+    font-size: clamp(1rem, 1.3vw, 1.4rem);
 }
 
 .listing-status-button{
