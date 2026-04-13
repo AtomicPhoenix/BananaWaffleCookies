@@ -20,6 +20,9 @@
     font-size: clamp(.5rem, 1.5vw , 1.5rem);
 }
 
+.search-filter{
+    margin: 0.5rem;
+}
 .search-bar{
     height: 60px;
     width: 65%;

@@ -5,14 +5,30 @@
     <div class="search-box">
       <form @submit.prevent="handleSearch">
         <label class="search-label" for="job-search">Search Jobs</label>
+
+        <!-- FILTER DROPDOWN -->
+        <select v-model="searchField" class="search-filter">
+          <option value="all">All</option>
+          <option value="title">Job Title</option>
+          <option value="company_name">Company</option>
+          <option value="location_text">Location</option>
+          <option value="status">Status</option>
+        </select>
+
         <input
           v-model="searchQuery"
           class="search-bar"
           type="search"
           placeholder="Enter Job Information Here"
         />
+
         <button class="search-unicode" type="submit">⌕</button>
       </form>
+
+      <!-- OPTIONAL: SHOW ACTIVE SEARCH -->
+      <p v-if="searchResults.length">
+        Showing results for "{{ searchQuery }}" in {{ searchField }}
+      </p>
     </div>
 
     <div class="job-info">
@@ -38,7 +54,7 @@
           </router-link>
         </div>
         
-        <!-- OPTIONAL: SEARCH RESULTS -->
+        <!-- SEARCH RESULTS -->
         <div v-if="searchResults.length">
           <h2>Search Results</h2>
 
@@ -52,6 +68,7 @@
             </div>
           </div>
         </div>
+
         <!-- USER JOBS -->
         <div
           v-for="job in userJobs"
@@ -90,6 +107,7 @@ import { ref, onMounted } from 'vue'
 
 /* ---------------- STATE ---------------- */
 const searchQuery = ref('')
+const searchField = ref('all') // for field filtering
 const searchResults = ref([])
 const userJobs = ref([])
 
@@ -97,17 +115,26 @@ const stats = ref({
   interested: 0,
   applied: 0,
   interview: 0,
-  accepted: 0,
+  offer: 0,
   rejected: 0
 })
 
 /* ---------------- API CALLS ---------------- */
 
-// Search jobs (external or internal API)
+// Search jobs with filter
 const handleSearch = async () => {
   try {
     const query = encodeURIComponent(searchQuery.value.trim())
-    const url = query ? `/api/jobs?search=${query}` : `/api/jobs`
+    const field = searchField.value
+
+    // prevent empty search spam
+    if (!query) {
+      searchResults.value = []
+      return
+    }
+
+    let url = `/api/jobs?search=${query}&field=${field}`
+
     const res = await fetch(url, { method: 'GET' })
     const data = await res.json()
 
@@ -119,17 +146,14 @@ const handleSearch = async () => {
 
 // Fetch logged-in user's jobs
 const fetchUserJobs = async () => {
-
   try {
     const res = await fetch('/api/user/jobs', {
-      //define GET right? not sure so not included
       method: 'GET',
-      credentials: 'include' // important if using sessions/cookies
+      credentials: 'include'
     })
     const data = await res.json()
 
     userJobs.value = data
-
     computeStats(data)
   } catch (err) {
     console.error('Failed to fetch user jobs:', err)
@@ -149,7 +173,6 @@ const computeStats = (jobs) => {
 
   jobs.forEach(job => {
     const status = job.status.toLowerCase()
-
     if (counts[status] !== undefined) {
       counts[status]++
     }
