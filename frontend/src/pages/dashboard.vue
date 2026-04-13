@@ -124,8 +124,8 @@
               </template>
               <BDropdownItem :to="`/jobs/${job.id}`">View</BDropdownItem>
               <BDropdownItem :to="`/jobs/${job.id}/edit`">Modify</BDropdownItem>
-              <BDropdownItem>Archive</BDropdownItem>
-              <BDropdownItem>Delete</BDropdownItem>
+              <BDropdownItem @click="archiveJob(job.id)">Archive</BDropdownItem>
+              <BDropdownItem @click="deleteJob(job.id)">Delete</BDropdownItem>
             </BDropdown>
           </div>
         </div>
@@ -301,6 +301,36 @@ const updateJobStatus = async (job, newStatus) => {
     computeStats(userJobs.value)
     window.alert('Unable to update status right now. Please try again.')
     console.error('Failed to update status:', err)
+  }
+}
+
+const deleteJob = async (job) => {
+  try {
+    const res = await fetch('/api/jobs/${job.id}', {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    if (!res.ok) {
+      return
+    }
+  } catch (err) {
+    window.alert('Unable to delete job, please try again later.')
+  }
+}
+
+const archiveJob = async (job) => {
+  try {
+    const res = await fetch('/api/jobs/${job.id}', {
+      method: 'POST',
+      credentials: 'include',
+    })
+
+    if (!res.ok) {
+      return
+    }
+  } catch (err) {
+    window.alert('Unable to archive job, please try again later.')
   }
 }
 
