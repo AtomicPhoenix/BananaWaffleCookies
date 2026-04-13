@@ -37,7 +37,7 @@ func TestRetrieveJob(t *testing.T) {
 		deleteTestUser(t, test_user.Id)
 	})
 
-	retrieved_job, err := GetJob(test_job.ID)
+	retrieved_job, err := GetJob(test_job.ID, test_user.Id)
 	if err != nil {
 		t.Fatalf("Failed to retrieve job: %v", err)
 	}
@@ -53,6 +53,7 @@ func TestUpdateJob(t *testing.T) {
 		deleteTestUser(t, test_user.Id)
 	})
 
+	test_job.UserID = test_job.ID
 	test_job.CompanyName = "Aperture Labs"
 	test_job.Title = "Cave Johnson"
 	test_job.Status = "applied"
@@ -64,7 +65,7 @@ func TestUpdateJob(t *testing.T) {
 		t.Fatalf("Failed to update test user: %v", err)
 	}
 
-	retrieved_job, err := GetJob(test_job.ID)
+	retrieved_job, err := GetJob(test_job.ID, test_job.UserID)
 	if err != nil {
 		t.Fatalf("Failed to retrieve updated job: %v", err)
 	}

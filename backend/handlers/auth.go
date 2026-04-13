@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -24,6 +25,9 @@ type Claim struct {
 
 func InitAuth() {
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
+	if JWT_SECRET_KEY == "" {
+		log.Fatal("Environmental Variable JWT_SECRET_KEY is not set")
+	}
 	AuthToken = jwtauth.New("HS256", []byte(JWT_SECRET_KEY), nil)
 }
 
