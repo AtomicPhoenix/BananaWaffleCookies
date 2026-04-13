@@ -64,6 +64,81 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(profile)
 }
 
+// Handler for /api/profile/experiences (POST)
+func AddProfileExperience(w http.ResponseWriter, r *http.Request) {
+	var exp db.ProfileExperiences
+
+	if err := json.NewDecoder(r.Body).Decode(&exp); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	exp.UserID = tokenInfo.Uid
+
+	id, err := db.InsertProfileExperience(exp)
+	if err != nil {
+		http.Error(w, "Failed to insert experience", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to insert experience: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
+}
+
+// Handler for /api/profile/experiences (GET)
+func GetProfileExperiences(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	exps, err := db.GetProfileExperiences(tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to fetch experiences", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to fetch experiences: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(exps)
+}
+
+// Handler for /api/profile/experiences/{id} (DELETE)
+func DeleteProfileExperience(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		http.Error(w, "Missing experience id", http.StatusBadRequest)
+		return
+	}
+
+	var expID int
+	fmt.Sscan(idParam, &expID)
+
+	err = db.DeleteProfileExperience(tokenInfo.Uid, expID)
+	if err != nil {
+		http.Error(w, "Failed to delete experience", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to delete experience: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Experience deleted successfully "}`)
+}
+
 // Handler for /api/profile/skills (POST)
 func AddProfileSkill(w http.ResponseWriter, r *http.Request) {
 	var skill db.ProfileSkills
