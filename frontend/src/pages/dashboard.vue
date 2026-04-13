@@ -164,7 +164,7 @@ const stats = ref({
   rejected: 0
 })
 
-const statusOptions = ['interested', 'applied', 'interview', 'offer', 'accepted', 'rejected', 'archived']
+const statusOptions = ['interested', 'applied', 'interview', 'offer', 'rejected', 'archived']
 const salaryRangeOptions = [
   { value: 'under-50000', label: 'Under $50,000' },
   { value: '50000-74999', label: '$50,000 - $74,999' },
