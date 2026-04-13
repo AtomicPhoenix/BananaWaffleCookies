@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import {createBootstrap} from 'bootstrap-vue-next/plugins/createBootstrap'
 import '@/assets/css/main.css'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(router).use(createBootstrap()).mount('#app')

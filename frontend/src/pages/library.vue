@@ -1,5 +1,9 @@
 <template>
   <div class="page-container">
+    <div v-if="activeDocumentName" class="active-doc">
+      Analyzing: {{ activeDocumentName }}
+    </div>
+
     <h2 class="page-title">Document Library</h2>
 
     <!-- Upload Section -->
@@ -96,17 +100,30 @@
         <!-- ACTIONS -->
         <div class="doc-actions">
           <button @click="openDocument(doc)">Open</button>
+          <button @click="openChat(doc)">Chat</button>
           <button @click="deleteDocument(doc.id)" class="delete-btn">
             Delete
           </button>
         </div>
       </div>
     </div>
+
+    <!-- AI Chatbot Feature Box -->
+    <div class="gemini-box">
+      <Chatbox ref="chatboxRef" />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import Chatbox from '@/pages/chatbox.vue'
+
+const chatboxRef = ref(null)
+
+function openChat(doc) {
+  chatboxRef.value?.setActiveDocument?.(doc)
+}
 
 /* STATE */
 const selectedFile = ref(null)
