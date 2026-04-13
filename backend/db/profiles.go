@@ -25,32 +25,9 @@ type Profile struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
-/*
-*
-CREATE TABLE IF NOT EXISTS profile_education (
-
-	id BIGSERIAL PRIMARY KEY,
-	user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-	institution TEXT NOT NULL,
-	degree TEXT,
-	field_of_study TEXT,
-	start_date DATE,
-	end_date DATE,
-	is_current BOOLEAN NOT NULL DEFAULT FALSE,
-	honors TEXT,
-	gpa NUMERIC(3,2),
-	sort_order INT NOT NULL DEFAULT 0,
-	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-	CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
-	CHECK (gpa IS NULL OR (gpa >= 0 AND gpa <= 4.00))
-
-);
-*/
-
 type ProfileEducation struct {
-	ID           int64     `json:"id"`
-	UserID       int64     `json:"user_id"`
+	ID           int       `json:"id"`
+	UserID       int       `json:"user_id"`
 	Institution  string    `json:"institution"`
 	Degree       string    `json:"degree,omitempty"`
 	FieldOfStudy string    `json:"field_of_study,omitempty"`
@@ -65,8 +42,8 @@ type ProfileEducation struct {
 }
 
 type ProfileExperiences struct {
-	ID             int64     `json:"id"`
-	UserID         int64     `json:"user_id"`
+	ID             int       `json:"id"`
+	UserID         int       `json:"user_id"`
 	ExperienceType string    `json:"experience_type"`
 	Title          string    `json:"title"`
 	Organization   string    `json:"organization,omitempty"`
@@ -81,8 +58,8 @@ type ProfileExperiences struct {
 }
 
 type ProfileSkills struct {
-	ID               int64     `json:"id"`
-	UserID           int64     `json:"user_id"`
+	ID               int       `json:"id"`
+	UserID           int       `json:"user_id"`
 	SkillName        string    `json:"skill_name"`
 	Category         string    `json:"category,omitempty"`
 	ProficiencyLabel string    `json:"proficiency_label,omitempty"`
@@ -183,4 +160,247 @@ func (profile *Profile) SetCompletionPercent() {
 	}
 
 	profile.CompletionPercent = int(float32(filledFields/numFields) * 100)
+}
+
+func InsertProfileEducation(e ProfileEducation) (int, error) {
+	var id int
+	query := `
+		INSERT INTO profile_education 
+		(user_id, institution, degree, field_of_study, start_date, end_date, is_current, honors, gpa, sort_order)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		RETURNING id`
+
+	err := DbConn.QueryRow(
+		context.Background(),
+		query,
+		e.UserID,
+		e.Institution,
+		e.Degree,
+		e.FieldOfStudy,
+		e.StartDate,
+		e.EndDate,
+		e.IsCurrent,
+		e.Honors,
+		e.Gpa,
+		e.SortOrder,
+	).Scan(&id)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to insert education into profile: %v", err)
+		return 0, err
+	}
+	return id, nil
+}
+
+func GetProfileEducation(userID int) ([]ProfileEducation, error) {
+	rows, err := DbConn.Query(context.Background(), `
+		SELECT id, user_id, institution, degree, field_of_study,
+		       start_date, end_date, is_current, honors, gpa,
+		       sort_order, created_at, updated_at
+		FROM profile_education
+		WHERE user_id = $1
+		ORDER BY sort_order ASC, id ASC
+	`, userID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to grab education from profile: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []ProfileEducation
+	for rows.Next() {
+		var e ProfileEducation
+		err := rows.Scan(
+			&e.ID,
+			&e.UserID,
+			&e.Institution,
+			&e.Degree,
+			&e.FieldOfStudy,
+			&e.StartDate,
+			&e.EndDate,
+			&e.IsCurrent,
+			&e.Honors,
+			&e.Gpa,
+			&e.SortOrder,
+			&e.CreatedAt,
+			&e.UpdatedAt,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to grab education from profile: %v", err)
+			return nil, err
+		}
+		list = append(list, e)
+	}
+	return list, nil
+}
+
+func DeleteProfileEducation(userID, educationID int) error {
+	tag, err := DbConn.Exec(context.Background(), `
+		DELETE FROM profile_education
+		WHERE id = $1 AND user_id = $2
+	`, educationID, userID)
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("No rows affected in profile education deletion")
+	}
+
+	return err
+}
+
+func InsertProfileExperience(exp ProfileExperiences) (int, error) {
+	var id int
+	query := `
+		INSERT INTO profile_experiences
+		(user_id, experience_type, title, organization, location_text,
+		 start_date, end_date, is_current, description, sort_order)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		RETURNING id`
+
+	err := DbConn.QueryRow(
+		context.Background(),
+		query,
+		exp.UserID,
+		exp.ExperienceType,
+		exp.Title,
+		exp.Organization,
+		exp.LocationText,
+		exp.StartDate,
+		exp.EndDate,
+		exp.IsCurrent,
+		exp.Description,
+		exp.SortOrder,
+	).Scan(&id)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to insert experience into profile: %v", err)
+		return 0, err
+	}
+	return id, nil
+}
+
+func GetProfileExperiences(userID int) ([]ProfileExperiences, error) {
+	rows, err := DbConn.Query(context.Background(), `
+		SELECT id, user_id, experience_type, title, organization, location_text,
+		       start_date, end_date, is_current, description,
+		       sort_order, created_at, updated_at
+		FROM profile_experiences
+		WHERE user_id = $1
+		ORDER BY sort_order ASC, start_date DESC
+	`, userID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to grab experience from profile: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []ProfileExperiences
+	for rows.Next() {
+		var e ProfileExperiences
+		err := rows.Scan(
+			&e.ID,
+			&e.UserID,
+			&e.ExperienceType,
+			&e.Title,
+			&e.Organization,
+			&e.LocationText,
+			&e.StartDate,
+			&e.EndDate,
+			&e.IsCurrent,
+			&e.Description,
+			&e.SortOrder,
+			&e.CreatedAt,
+			&e.UpdatedAt,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to grab experience from profile: %v", err)
+			return nil, err
+		}
+		list = append(list, e)
+	}
+	return list, nil
+}
+
+func DeleteProfileExperience(userID, expID int) error {
+	tag, err := DbConn.Exec(context.Background(), `
+		DELETE FROM profile_experiences
+		WHERE id = $1 AND user_id = $2
+	`, expID, userID)
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("No rows affected in profile experience deletion")
+	}
+
+	return err
+}
+
+func InsertProfileSkill(skill ProfileSkills) (int, error) {
+	var id int
+	query := `
+		INSERT INTO profile_skills (user_id, skill_name, category, proficiency_label, sort_order)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id`
+
+	err := DbConn.QueryRow(
+		context.Background(),
+		query,
+		skill.UserID,
+		skill.SkillName,
+		skill.Category,
+		skill.ProficiencyLabel,
+		skill.SortOrder,
+	).Scan(&id)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to insert skill into profile: %v", err)
+		return 0, err
+	}
+	return id, nil
+}
+
+func GetProfileSkills(userID int) ([]ProfileSkills, error) {
+	rows, err := DbConn.Query(context.Background(), `
+		SELECT id, user_id, skill_name, category, proficiency_label, sort_order, created_at, updated_at
+		FROM profile_skills
+		WHERE user_id = $1
+		ORDER BY sort_order ASC, id ASC
+	`, userID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to grab skill from profile: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var skills []ProfileSkills
+	for rows.Next() {
+		var s ProfileSkills
+		err := rows.Scan(
+			&s.ID,
+			&s.UserID,
+			&s.SkillName,
+			&s.Category,
+			&s.ProficiencyLabel,
+			&s.SortOrder,
+			&s.CreatedAt,
+			&s.UpdatedAt,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to grab skill from profile: %v", err)
+			return nil, err
+		}
+		skills = append(skills, s)
+	}
+	return skills, nil
+}
+
+func DeleteProfileSkill(userID, skillID int) error {
+	tag, err := DbConn.Exec(context.Background(), `
+		DELETE FROM profile_skills
+		WHERE id = $1 AND user_id = $2
+	`, skillID, userID)
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("No rows affected in profile skill deletion")
+	}
+
+	return err
 }
