@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
+	"os"
 
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/handlers"
@@ -36,6 +38,16 @@ func init() {
 	if err != nil {
 		log.Fatalf(`Failed to init database: %v`, err)
 	}
+
+	// Create data folder
+	err = os.MkdirAll("data", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data directory: %s\n", err)
+	}
+	err = os.MkdirAll("data/documents", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data/documents directory: %s\n", err)
+	}
 }
 
 func main() {
@@ -58,6 +70,11 @@ func main() {
 		r.Put("/api/jobs", handlers.UpdateJob)
 		r.Put("/api/settings", handlers.UpdateSettings)
 		r.Get("/api/settings", handlers.GetSettings)
+		r.Get("/api/documents/{id}", handlers.GetDocument)
+		r.Get("/api/documents/{id}/info", handlers.GetDocumentInfo)
+		r.Post("/api/documents", handlers.UploadDocument)
+		r.Delete("/api/documents/{id}", handlers.DeleteDocument)
+		r.Put("/api/documents/{id}", handlers.UpdateDocument)
 	})
 
 	// Serve frontend for Vue routes
