@@ -25,6 +25,72 @@ type Profile struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
+/*
+*
+CREATE TABLE IF NOT EXISTS profile_education (
+
+	id BIGSERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	institution TEXT NOT NULL,
+	degree TEXT,
+	field_of_study TEXT,
+	start_date DATE,
+	end_date DATE,
+	is_current BOOLEAN NOT NULL DEFAULT FALSE,
+	honors TEXT,
+	gpa NUMERIC(3,2),
+	sort_order INT NOT NULL DEFAULT 0,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
+	CHECK (gpa IS NULL OR (gpa >= 0 AND gpa <= 4.00))
+
+);
+*/
+
+type ProfileEducation struct {
+	ID           int64     `json:"id"`
+	UserID       int64     `json:"user_id"`
+	Institution  string    `json:"institution"`
+	Degree       string    `json:"degree,omitempty"`
+	FieldOfStudy string    `json:"field_of_study,omitempty"`
+	StartDate    time.Time `json:"start_date"`
+	EndDate      time.Time `json:"end_date"`
+	IsCurrent    bool      `json:"is_current"`
+	Honors       string    `json:"honors,omitempty"`
+	Gpa          float64   `json:"gpa,omitempty"`
+	SortOrder    int       `json:"sort_order"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type ProfileExperiences struct {
+	ID             int64     `json:"id"`
+	UserID         int64     `json:"user_id"`
+	ExperienceType string    `json:"experience_type"`
+	Title          string    `json:"title"`
+	Organization   string    `json:"organization,omitempty"`
+	LocationText   string    `json:"location_text,omitempty"`
+	StartDate      time.Time `json:"start_date"`
+	EndDate        time.Time `json:"end_date"`
+	IsCurrent      bool      `json:"is_current"`
+	Description    string    `json:"description,omitempty"`
+	SortOrder      int       `json:"sort_order"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type ProfileSkills struct {
+	ID               int64     `json:"id"`
+	UserID           int64     `json:"user_id"`
+	SkillName        string    `json:"skill_name"`
+	Category         string    `json:"category,omitempty"`
+	ProficiencyLabel string    `json:"proficiency_label,omitempty"`
+	SortOrder        int       `json:"sort_order"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
 func createProfile(uid int) error {
 	_, err := DbConn.Exec(context.Background(), "INSERT INTO profiles (user_id) VALUES ($1)", uid)
 	if err != nil {
