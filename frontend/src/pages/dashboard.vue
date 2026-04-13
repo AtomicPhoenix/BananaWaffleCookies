@@ -2,7 +2,7 @@
   <div class="dashboard">
     <div class="dashboard-header">
       <h1 class="dashboard-title">My Job Dashboard</h1>
-      <h2 class="dashboard-subtitle">Welcome back, {{ userName }}!</h2>
+      <h2 class="dashboard-subtitle">Welcome back, [Name]!</h2>
     </div>
     <!-- SEARCH -->
     <div class="search-box">
@@ -16,6 +16,16 @@
         />
         <button class="search-unicode" type="submit">⌕</button>
       </form>
+      <!--Filter By-->
+        <div class="filter-box">
+          Filter By: 
+          <select>
+            <option value="all">All</option>
+            <option value="status">Status</option>
+            <option value="date">Date</option>
+            <option value="salary">Salary</option>
+          </select>
+        </div>
     </div>
 
     <div class="job-info">
