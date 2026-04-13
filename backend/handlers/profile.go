@@ -63,3 +63,78 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(profile)
 }
+
+// Handler for /api/profile/skills (POST)
+func AddProfileSkill(w http.ResponseWriter, r *http.Request) {
+	var skill db.ProfileSkills
+
+	if err := json.NewDecoder(r.Body).Decode(&skill); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	skill.UserID = tokenInfo.Uid
+
+	id, err := db.InsertProfileSkill(skill)
+	if err != nil {
+		http.Error(w, "Failed to insert skill", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to insert skill: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
+}
+
+// Handler for /api/profile/skills (GET)
+func GetProfileSkills(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	skills, err := db.GetProfileSkills(tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to fetch skills", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to fetch skills: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(skills)
+}
+
+// Handler for /api/profile/skills/{id} (DELETE)
+func DeleteProfileSkill(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		http.Error(w, "Missing id", http.StatusBadRequest)
+		return
+	}
+
+	var skillID int
+	fmt.Sscan(idParam, &skillID)
+
+	err = db.DeleteProfileSkill(tokenInfo.Uid, skillID)
+	if err != nil {
+		http.Error(w, "Failed to delete skill", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to delete skill: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Skill deleted successfully "}`)
+}
