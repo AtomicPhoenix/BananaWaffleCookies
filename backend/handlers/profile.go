@@ -139,6 +139,35 @@ func DeleteProfileEducation(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"message":"Education deleted successfully "}`)
 }
 
+// Handler for /api/profile/education/reorder
+func ReorderProfileEducation(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	reordering := struct {
+		ID       int `json:"id"`
+		Position int `json:"position"`
+	}{}
+
+	if err = json.NewDecoder(r.Body).Decode(&reordering); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err = db.ReorderProfileEducation(tokenInfo.Uid, reordering.ID, reordering.Position)
+	if err != nil {
+		http.Error(w, "Failed to reorder Education", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to reorder Education: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Education reordered successfully "}`)
+}
+
 // Handler for /api/profile/experiences (POST)
 func AddProfileExperience(w http.ResponseWriter, r *http.Request) {
 	var exp db.ProfileExperiences
@@ -214,6 +243,35 @@ func DeleteProfileExperience(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"message":"Experience deleted successfully "}`)
 }
 
+// Handler for /api/profile/experiences/reorder
+func ReorderProfileExperiences(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	reordering := struct {
+		ID       int `json:"id"`
+		Position int `json:"position"`
+	}{}
+
+	if err = json.NewDecoder(r.Body).Decode(&reordering); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err = db.ReorderProfileExperience(tokenInfo.Uid, reordering.ID, reordering.Position)
+	if err != nil {
+		http.Error(w, "Failed to reorder Experience", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to reorder Experience: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Experience reordered successfully "}`)
+}
+
 // Handler for /api/profile/skills (POST)
 func AddProfileSkill(w http.ResponseWriter, r *http.Request) {
 	var skill db.ProfileSkills
@@ -287,4 +345,33 @@ func DeleteProfileSkill(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"message":"Skill deleted successfully "}`)
+}
+
+// Handler for /api/profile/skills/reorder
+func ReorderProfileSkill(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	reordering := struct {
+		ID       int `json:"id"`
+		Position int `json:"position"`
+	}{}
+
+	if err = json.NewDecoder(r.Body).Decode(&reordering); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err = db.ReorderProfileSkill(tokenInfo.Uid, reordering.ID, reordering.Position)
+	if err != nil {
+		http.Error(w, "Failed to reorder skill", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to reorder skill: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Skill reordered successfully "}`)
 }
