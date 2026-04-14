@@ -255,7 +255,7 @@ const computeStats = (jobs) => {
   jobs.forEach(job => {
     const status = job.status.toLowerCase()
 
-    if (counts[status] !== undefined) {
+    if (counts[status] !== undefined && !job.is_archived) {
       counts[status]++
     }
   })
@@ -343,6 +343,7 @@ const archiveJob = async (job) => {
   } catch (err) {
     window.alert('Unable to archive job, please try again later.')
   }
+  location.reload();
 }
 
 const unArchiveJob = async (job) => {
