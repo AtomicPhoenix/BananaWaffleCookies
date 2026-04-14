@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     preferred_role TEXT,
     preferred_salary_min INT,
     preferred_salary_max INT,
+    preferred_city TEXT,
+    preferred_state TEXT,
     work_mode TEXT, --added for frontend, was city&state+remote boolean
 
     completion_percent INT NOT NULL DEFAULT 0
