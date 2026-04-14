@@ -307,38 +307,38 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- JOB ACTIVITIES (optional but very useful for timeline demos)
-INSERT INTO job_activities (job_id, activity_type, activity_at, description, metadata)
+INSERT INTO job_activities (job_id, activity_type, activity_at, description)
 VALUES
-    (1, 'created', NOW() - INTERVAL '20 days', 'Job saved to tracker.', NULL),
-    (1, 'updated', NOW() - INTERVAL '15 days', 'Updated notes and target resume.', NULL),
+    (1, 'created', NOW() - INTERVAL '20 days', 'Job saved to tracker.'),
+    (1, 'updated', NOW() - INTERVAL '15 days', 'Updated notes and target resume.'),
 
-    (2, 'created', NOW() - INTERVAL '12 days', 'Job saved to tracker.', NULL),
-    (2, 'applied', NOW() - INTERVAL '10 days', 'Applied through referral portal.', NULL),
+    (2, 'created', NOW() - INTERVAL '12 days', 'Job saved to tracker.'),
+    (2, 'applied', NOW() - INTERVAL '10 days', 'Applied through referral portal.'),
 
-    (3, 'created', NOW() - INTERVAL '14 days', 'Job saved to tracker.', NULL),
-    (3, 'applied', NOW() - INTERVAL '11 days', 'Submitted application.', NULL),
-    (3, 'status_changed', NOW() - INTERVAL '7 days', 'Status changed to interview.', '{"new_status":"interview"}'),
+    (3, 'created', NOW() - INTERVAL '14 days', 'Job saved to tracker.'),
+    (3, 'applied', NOW() - INTERVAL '11 days', 'Submitted application.'),
+    (3, 'status_changed', NOW() - INTERVAL '7 days', 'Status changed to interview.'),
 
-    (4, 'created', NOW() - INTERVAL '16 days', 'Job saved to tracker.', NULL),
-    (4, 'applied', NOW() - INTERVAL '13 days', 'Applied on company website.', NULL),
-    (4, 'status_changed', NOW() - INTERVAL '5 days', 'Status changed to offer.', '{"new_status":"offer"}'),
-    (4, 'outcome', NOW() - INTERVAL '2 days', 'Received verbal offer.', NULL),
+    (4, 'created', NOW() - INTERVAL '16 days', 'Job saved to tracker.'),
+    (4, 'applied', NOW() - INTERVAL '13 days', 'Applied on company website.'),
+    (4, 'status_changed', NOW() - INTERVAL '5 days', 'Status changed to offer.'),
+    (4, 'outcome', NOW() - INTERVAL '2 days', 'Received verbal offer.'),
 
-    (5, 'created', NOW() - INTERVAL '18 days', 'Job saved to tracker.', NULL),
-    (5, 'applied', NOW() - INTERVAL '15 days', 'Application submitted.', NULL),
-    (5, 'status_changed', NOW() - INTERVAL '6 days', 'Status changed to rejected.', '{"new_status":"rejected"}'),
-    (5, 'outcome', NOW() - INTERVAL '6 days', 'Rejected after final round.', NULL),
+    (5, 'created', NOW() - INTERVAL '18 days', 'Job saved to tracker.'),
+    (5, 'applied', NOW() - INTERVAL '15 days', 'Application submitted.'),
+    (5, 'status_changed', NOW() - INTERVAL '6 days', 'Status changed to rejected.'),
+    (5, 'outcome', NOW() - INTERVAL '6 days', 'Rejected after final round.'),
 
-    (6, 'created', NOW() - INTERVAL '40 days', 'Job saved to tracker.', NULL),
-    (6, 'status_changed', NOW() - INTERVAL '30 days', 'Status changed to archived.', '{"new_status":"archived"}'),
+    (6, 'created', NOW() - INTERVAL '40 days', 'Job saved to tracker.'),
+    (6, 'status_changed', NOW() - INTERVAL '30 days', 'Status changed to archived.'),
 
-    (7, 'created', NOW() - INTERVAL '8 days', 'Job saved to tracker.', NULL),
-    (7, 'applied', NOW() - INTERVAL '6 days', 'Applied through company portal.', NULL),
-    (7, 'follow_up_created', NOW() - INTERVAL '2 days', 'Created follow-up reminder.', NULL),
+    (7, 'created', NOW() - INTERVAL '8 days', 'Job saved to tracker.'),
+    (7, 'applied', NOW() - INTERVAL '6 days', 'Applied through company portal.'),
+    (7, 'follow_up_created', NOW() - INTERVAL '2 days', 'Created follow-up reminder.'),
 
-    (8, 'created', NOW() - INTERVAL '5 days', 'Job saved to tracker.', NULL),
-    (8, 'applied', NOW() - INTERVAL '4 days', 'Applied on careers page.', NULL),
-    (8, 'interview_scheduled', NOW() - INTERVAL '1 day', 'Behavioral interview scheduled.', NULL);
+    (8, 'created', NOW() - INTERVAL '5 days', 'Job saved to tracker.'),
+    (8, 'applied', NOW() - INTERVAL '4 days', 'Applied on careers page.'),
+    (8, 'interview_scheduled', NOW() - INTERVAL '1 day', 'Behavioral interview scheduled.');
 
 -- INTERVIEWS
 INSERT INTO interviews (
