@@ -267,7 +267,7 @@ VALUES
         'Remote',
         'https://example.com/github-backend',
         110000,
-        'archived',
+        'applied',
         '2026-03-30',
         NOW() - INTERVAL '30 days',
         'Archived because role no longer aligns with current goals.',
