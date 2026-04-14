@@ -139,9 +139,9 @@ INSERT INTO profile_skills (
     sort_order
 )
 VALUES
-    (1, 'Go', 'Programming', 'Intermediate', 1),
-    (1, 'PostgreSQL', 'Database', 'Intermediate', 2),
-    (1, 'Python', 'Programming', 'Intermediate', 3),
+    (1, 'Improvisation Under Pressure', 'Soft Skills', 'Expert', 1),
+    (1, 'Systems Troubleshooting', 'Technical', 'Intermediate', 2),
+    (1, 'Quality Assurance', 'Food & Beverage', 'Advanced', 3),
     (1, 'Linux', 'Systems', 'Intermediate', 4)
 ON CONFLICT (user_id, skill_name) DO NOTHING;
 
@@ -156,9 +156,9 @@ INSERT INTO profile_projects (
 VALUES
     (
         1,
-        'Job Application Tracker',
-        'Full-stack application for tracking jobs, interviews, follow-ups, and documents.',
-        'https://github.com/example/job-tracker',
+        'Beverage Consumption Optimization Model',
+        'Designed and executed a personal optimization strategy to maximize efficiency and enjoyment of consumption.',
+        'https://example.com/beer-optimization',
         1
     ),
     (
