@@ -393,3 +393,85 @@ VALUES
         FALSE,
         NULL
     );
+
+-- SECOND USER
+INSERT INTO users (id, email, password_hash)
+VALUES
+    (2, 'tlim@bwc.com', '$2a$12$rtHaGD5uJwlqtybSQO34fueIf/Fn64wgP.8ZkZmYTHYZorpa0z5mC')
+ON CONFLICT (id) DO NOTHING;
+
+--PROFILE 2
+INSERT INTO profiles (
+    user_id,
+    first_name,
+    last_name,
+    phone,
+    city,
+    state,
+    country,
+    headline,
+    linkedin_url,
+    portfolio_url,
+    summary,
+    preferred_role,
+    preferred_salary_min,
+    preferred_salary_max,
+    preferred_city,
+    preferred_state,
+    completion_percent
+)
+VALUES
+    (
+        2,
+        'Teik C.',
+        'Lim',
+        '555-201-0000',
+        'Newark',
+        'NJ',
+        'USA',
+        'University President & Engineering Leader',
+        'https://linkedin.com/in/teikclim',
+        NULL,
+        'Experienced academic leader with a background in engineering, research, and institutional management.',
+        'Executive Leadership',
+        150000,
+        300000,
+        'Newark',
+        'NJ',
+        90
+    )
+ON CONFLICT (user_id) DO NOTHING;
+
+--JOB 2
+INSERT INTO jobs (
+    id,
+    user_id,
+    company_name,
+    title,
+    location_text,
+    posting_url,
+    salary,
+    status,
+    deadline_date,
+    last_activity_at,
+    notes,
+    description,
+    is_archived
+)
+VALUES
+    (
+        100,
+        2,
+        'National Science Foundation',
+        'Senior Advisor for Engineering Programs',
+        'Washington, DC',
+        'https://example.com/nsf-advisor',
+        180000,
+        'applied',
+        '2026-05-15',
+        NOW() - INTERVAL '2 days',
+        'Submitted application through academic network.',
+        'Senior advisory role overseeing engineering research initiatives.',
+        FALSE
+    )
+ON CONFLICT (id) DO NOTHING;
