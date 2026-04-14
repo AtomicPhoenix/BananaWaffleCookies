@@ -19,6 +19,11 @@
         <div class="edit-button-view" v-if="isOwner && job.id">
           <button @click="edit" class="edit-job-button">Edit</button>
         </div>
+
+
+        <div class="generate-resume-button" v-if="isOwner && job.id">
+          <button @click="generateResume" class="generate-resume-button">Edit</button>
+        </div>
       </div>
 
       <!-- FEEDBACK -->
@@ -67,11 +72,26 @@ const getUser = async () => {
       credentials: 'include' // important if using sessions/cookies
     })
     let data = await res.json()
-    user_id.value = data.id
+    user_id.value = data.user_id
   } catch (err) {
     console.error('Failed to fetch user id:', err) 
   }
 }
+
+// Get resume draft
+const generateResume = async () => {
+  try {
+    let path = '/api/jobs/' + route.params.job_id + '/resume'
+    const res = await fetch(path, {
+      method: 'GET',
+      credentials: 'include' // important if using sessions/cookies
+    })
+    job.value = await res.json()
+  } catch (err) {
+    console.error('Failed to generate job resume:', err)
+  }
+}
+
 
 watch(() => route.params.job_id, (newId) => {
   form.id = newId
