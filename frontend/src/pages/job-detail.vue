@@ -143,6 +143,22 @@
         </div>
       </div>
 
+      <!-- ================= COVER LETTER GENERATION ================= -->
+      <div class="section">
+        <h3 class="section-title">AI Cover Letter Generator</h3>
+      
+        <button @click="generateCoverLetter" :disabled="isGeneratingCoverLetter">
+          {{ isGeneratingCoverLetter ? 'Generating...' : 'Generate Cover Letter' }}
+        </button>
+      
+        <div v-if="coverLetterResponse" class="item-card">
+          <h4>Generated Cover Letter</h4>
+          <pre class="sub-text" style="white-space: pre-wrap;">
+      {{ coverLetterResponse }}
+          </pre>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -163,6 +179,8 @@ const job = reactive({
 
 const resumeResponse = ref('')
 const isGeneratingResume = ref(false)
+const coverLetterResponse = ref('')
+const isGeneratingCoverLetter = ref(false)
 
 const interviews = ref([])
 const followUps = ref([])
@@ -215,6 +233,34 @@ const generateResume = async () => {
     resumeResponse.value = 'Error generating resume.'
   } finally {
     isGeneratingResume.value = false
+  }
+}
+
+// Get cover letter draft
+const generateCoverLetter = async () => {
+  isGeneratingCoverLetter.value = true
+  coverLetterResponse.value = ''
+
+  try {
+    const path = `/api/jobs/${route.params.job_id}/cover-letter`
+
+    const res = await fetch(path, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    const data = await res.json()
+
+    if (data?.success) {
+      coverLetterResponse.value = data.response
+    } else {
+      coverLetterResponse.value = 'Failed to generate cover letter.'
+    }
+  } catch (err) {
+    console.error('Failed to generate cover letter:', err)
+    coverLetterResponse.value = 'Error generating cover letter.'
+  } finally {
+    isGeneratingCoverLetter.value = false
   }
 }
 

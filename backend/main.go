@@ -95,6 +95,7 @@ func main() {
 				r.Post("/archive", handlers.ArchiveJob)
 				r.Post("/unarchive", handlers.UnarchiveJob)
 				r.Post("/resume", handlers.GetResumeDraft)
+				r.Post("/cover-letter", handlers.GetCoverLetterDraft)
 				r.Get("/activities", handlers.GetJobActivities)
 			})
 		})

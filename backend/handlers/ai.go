@@ -60,3 +60,54 @@ func GetResumeDraft(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(respJson)
 }
+
+// Handler for /api/jobs/{id}/cover-letter (GET)
+func GetCoverLetterDraft(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to generate cover letter", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to grab auth token information: %v\n", err)
+		return
+	}
+
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Failed to get job", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to convert job id into integer: %v\n", err)
+		return
+	}
+
+	job, err := db.GetJob(jobID, tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to generate cover letter", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to fetch job: %v\n", err)
+		return
+	}
+
+	profile, err := db.GetProfile(tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Internal server error when generating cover letter", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to get profile: %v\n", err)
+		return
+	}
+
+	response, err := ai.GenerateCoverLetter(job, profile)
+	if err != nil {
+		http.Error(w, "Internal server error when generating cover letter", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to generate cover letter: %v\n", err)
+		return
+	}
+
+	respJson := struct {
+		Success  bool   `json:"success"`
+		Response string `json:"response"`
+	}{
+		Success:  true,
+		Response: response,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(respJson)
+}
