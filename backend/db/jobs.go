@@ -127,10 +127,16 @@ func UpdateJob(job Job) error {
 	sql_query := `UPDATE jobs 
 				SET company_name = $1, title = $2, location_text = $3, salary = $4, status = $5, deadline_date = $6, description = $7
 				WHERE id = $8 AND user_id = $9`
-	_, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID, job.UserID)
+	result, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID, job.UserID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to update job: %v\n", err)
 		return err
 	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in update operation (job doesn't exist or is not owned by user)")
+	}
+
 	return err
 }

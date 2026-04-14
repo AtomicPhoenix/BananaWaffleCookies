@@ -120,7 +120,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     deadline_date DATE,
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- JOB ACTIVITIES

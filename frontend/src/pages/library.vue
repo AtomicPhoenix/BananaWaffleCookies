@@ -10,6 +10,55 @@
     <div class="upload-card">
       <h3 class="section-title">Upload Documents</h3>
 
+      <!-- JOB SELECT -->
+      <div class="form-group">
+        <label>Select Job</label>
+        <select v-model="selectedJobId">
+          <option disabled value="">Select a job</option>
+          <option
+            v-for="job in jobs"
+            :key="job.id"
+            :value="job.id"
+          >
+            {{ job.title }} - {{ job.company_name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- DOCUMENT TYPE -->
+      <div class="form-group">
+        <label>Document Type</label>
+        <select v-model="documentType">
+          <option value="resume">Resume</option>
+          <option value="cover_letter">Cover Letter</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- TAG INPUT -->
+      <div class="form-group">
+        <label>Tags (Job Context)</label>
+
+        <div class="tag-input-row">
+          <input
+            v-model="tagInput"
+            placeholder="e.g. frontend, internship"
+          />
+          <button @click="addTag">Add</button>
+        </div>
+
+        <div class="tag-list">
+          <span
+            v-for="tag in selectedTags"
+            :key="tag"
+            class="tag"
+          >
+            {{ tag }}
+          </span>
+        </div>
+      </div>
+
+      <!-- FILE INPUT -->
       <input type="file" @change="handleFileUpload" />
 
       <button @click="uploadFile">
@@ -32,8 +81,23 @@
         </div>
 
         <h4>{{ doc.title }}</h4>
-        <p class="doc-sub">{{ doc.type }}</p>
 
+        <p class="doc-sub">
+          {{ doc.type }} • Job ID: {{ doc.job_id || 'N/A' }}
+        </p>
+
+        <!-- TAGS -->
+        <div class="doc-tags" v-if="doc.tags && doc.tags.length">
+          <span
+            v-for="tag in doc.tags"
+            :key="tag"
+            class="tag"
+          >
+            {{ tag }}
+          </span>
+        </div>
+
+        <!-- ACTIONS -->
         <div class="doc-actions">
           <button @click="openDocument(doc)">Open</button>
           <button @click="openChat(doc)">Chat</button>
@@ -57,42 +121,75 @@ import Chatbox from '@/pages/chatbox.vue'
 
 const chatboxRef = ref(null)
 
+const activeDocumentName = ref('')
+
 function openChat(doc) {
   chatboxRef.value?.setActiveDocument?.(doc)
 }
 
+/* STATE */
 const selectedFile = ref(null)
 const uploadMessage = ref('')
 const error = ref('')
 
 const documents = ref([])
+const jobs = ref([])
 
-// Load documents from backend (PERSISTENCE)
+const selectedJobId = ref('')
+const selectedTags = ref([])
+const tagInput = ref('')
+const documentType = ref('resume')
+
+/* FETCH DATA */
 onMounted(() => {
   fetchDocuments()
+  fetchJobs()
 })
 
 async function fetchDocuments() {
   try {
     const res = await fetch('/api/documents')
     if (res.ok) {
-      const data = await res.json()
-      documents.value = data
+      documents.value = await res.json()
     }
   } catch (err) {
     console.error(err)
   }
 }
 
-// Handle file selection
+async function fetchJobs() {
+  try {
+    const res = await fetch('/api/jobs')
+    if (res.ok) {
+      jobs.value = await res.json()
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/* TAG LOGIC */
+function addTag() {
+  if (tagInput.value.trim()) {
+    selectedTags.value.push(tagInput.value.trim())
+    tagInput.value = ''
+  }
+}
+
+/* FILE HANDLING */
 function handleFileUpload(e) {
   selectedFile.value = e.target.files[0]
 }
 
-// Upload file to backend
+/* UPLOAD */
 async function uploadFile() {
   if (!selectedFile.value) {
     error.value = 'Please select a file'
+    return
+  }
+
+  if (!selectedJobId.value) {
+    error.value = 'Please select a job'
     return
   }
 
@@ -102,6 +199,9 @@ async function uploadFile() {
   try {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
+    formData.append('job_id', selectedJobId.value)
+    formData.append('tags', JSON.stringify(selectedTags.value))
+    formData.append('type', documentType.value)
 
     const res = await fetch('/api/documents', {
       method: 'POST',
@@ -112,16 +212,18 @@ async function uploadFile() {
     if (res.ok) {
       const data = await res.json()
 
-      // backend response
       documents.value.push({
         id: data.id,
-        title: data.title,
-        type: data.document_type || 'File',
-        url: "/documents/{id}" + document.id
+        title: data.title || data.name,
+        type: data.document_type || documentType.value || 'File',
+        url: data.url || `/documents/${data.id}`,
+        job_id: selectedJobId.value,
+        tags: [...selectedTags.value]
       })
 
       uploadMessage.value = 'File uploaded successfully!'
       selectedFile.value = null
+      selectedTags.value = []
     } else {
       error.value = 'Upload failed'
     }
@@ -131,7 +233,7 @@ async function uploadFile() {
   }
 }
 
-// Open document
+/* ACTIONS */
 function openDocument(doc) {
   if (doc.url) {
     window.open(doc.url, '_blank')
@@ -140,7 +242,6 @@ function openDocument(doc) {
   }
 }
 
-// Delete document (backend + UI)
 async function deleteDocument(id) {
   if (!confirm('Are you sure you want to delete this document?')) return
 

@@ -12,6 +12,8 @@ import EditJobPage from "@/pages/edit-job.vue";
 import SignupPage from "@/pages/signup.vue";
 import Chatbox from "@/pages/chatbox.vue";
 
+import JobDetail from "@/pages/job-detail.vue";
+
 async function checkUserAuth(_) {
   try {
     const response = await axios.get("/api/auth", {
@@ -70,6 +72,7 @@ const router = createRouter({
       children: [
         { path: "create", name: "create-job", component: CreateJobPage },
         { path: ":job_id", component: ViewJobPage },
+        { path: ":job_id/detail", name: "job-detail", component: JobDetail },
         { path: ":job_id/edit", name: "edit-job", component: EditJobPage },
       ],
       beforeEnter: checkUserAuth,

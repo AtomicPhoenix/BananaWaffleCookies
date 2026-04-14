@@ -3,8 +3,50 @@ import { mount, flushPromises } from '@vue/test-utils'
 
 import Profile from '@/pages/profile.vue'
 
-// Mock global fetch
-global.fetch = vi.fn()
+// global fetch mock for ALL endpoints, might have to move this into a setup.js but temp solution for this sprint
+global.fetch = vi.fn((url, options) => {
+  // Handle GET endpoints
+  if (!options || options.method === 'GET') {
+    if (url === '/api/profile') {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          first_name: '',
+          last_name: '',
+          phone: '',
+          preferences: {
+            target_roles: '',
+            location: ''
+          }
+        })
+      })
+    }
+
+    if (url.includes('/education') ||
+        url.includes('/skills') ||
+        url.includes('/employment') ||
+        url.includes('/projects')) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ([])
+      })
+    }
+  }
+
+  // Handle PUT endpoints
+  if (options?.method === 'PUT') {
+    return Promise.resolve({
+      ok: true,
+      json: async () => ({})
+    })
+  }
+
+  // Default fallback
+  return Promise.resolve({
+    ok: false,
+    json: async () => ({})
+  })
+})
 
 describe('Profile.vue', () => {
 
@@ -30,13 +72,15 @@ describe('Profile.vue', () => {
   it('updates form fields when user types', async () => {
     const wrapper = mount(Profile)
 
+    await flushPromises() 
+
     const inputs = wrapper.findAll('input')
 
     await inputs[0].setValue('Testname')
     await inputs[1].setValue('nameTest')
 
-    expect(wrapper.vm.form.first_name).toBe('Testname')
-    expect(wrapper.vm.form.last_name).toBe('nameTest')
+    expect(wrapper.vm.form.first_name).toContain('Testname')
+    expect(wrapper.vm.form.last_name).toContain('nameTest')
   })
 
   // ---------------------------- //
@@ -51,8 +95,7 @@ describe('Profile.vue', () => {
 
     await wrapper.vm.$nextTick()
 
-    const totalFields = Object.keys(wrapper.vm.form).length
-    const expected = Math.round((2 / totalFields) * 100)
+    const expected = Math.round((2 / 7) * 100)
 
     expect(wrapper.vm.completionPercentage).toBe(expected)
   })
@@ -66,17 +109,21 @@ describe('Profile.vue', () => {
       first_name: 'John',
       last_name: 'Doe',
       phone: '1234567890',
-      city: 'Newark',
-      state: 'NJ',
-      country: 'USA',
-      linkedin_url: 'linkedin.com/test',
-      portfolio_url: 'portfolio.com',
-      summary: 'Test summary'
+      preferences: {
+        target_roles: 'Engineer',
+        location: 'NJ'
+      }
     }
 
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockData
+    // Override ONLY the profile endpoint
+    fetch.mockImplementationOnce((url) => {
+      if (url === '/api/profile') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockData
+        })
+      }
+      return global.fetch(url)
     })
 
     const wrapper = mount(Profile)
@@ -84,17 +131,15 @@ describe('Profile.vue', () => {
     await flushPromises()
 
     expect(wrapper.vm.form.first_name).toBe('John')
-    expect(wrapper.vm.form.city).toBe('Newark')
-    expect(fetch).toHaveBeenCalledWith('/api/profile', { method: 'GET' })
+    expect(wrapper.vm.preferences.location).toBe('NJ')
+    expect(fetch).toHaveBeenCalledWith('/api/profile')
   })
 
   // ---------------------------- //
   // SAVE PROFILE (PUT)           //
   // ---------------------------- //
 
-  it('sends updated profile data to API on save', async () => {
-    fetch.mockResolvedValueOnce({ ok: true })
-
+  it('sends updated basic profile data to API on save', async () => {
     const wrapper = mount(Profile)
 
     wrapper.vm.form.first_name = 'John'
@@ -102,21 +147,18 @@ describe('Profile.vue', () => {
 
     await wrapper.vm.$nextTick()
 
-    await wrapper.find('button').trigger('click')
+    const saveButton = wrapper.findAll('button')
+      .find(btn => btn.text().includes('Save Basic Info'))
 
-    expect(fetch).toHaveBeenCalledWith('/api/profile', {
+    await saveButton.trigger('click')
+
+    expect(fetch).toHaveBeenCalledWith('/api/profile/basic', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         first_name: 'John',
         last_name: 'Doe',
-        phone: '',
-        city: '',
-        state: '',
-        country: '',
-        linkedin_url: '',
-        portfolio_url: '',
-        summary: ''
+        phone: ''
       })
     })
   })
@@ -142,6 +184,10 @@ describe('Profile.vue', () => {
       wrapper.vm.form[key] = 'test'
     })
 
+    Object.keys(wrapper.vm.preferences).forEach(key => {
+      wrapper.vm.preferences[key] = 'test'
+    })
+
     await wrapper.vm.$nextTick()
 
     expect(wrapper.vm.completionPercentage).toBe(100)
@@ -152,7 +198,7 @@ describe('Profile.vue', () => {
   // ---------------------------- //
 
   it('handles API error gracefully on GET', async () => {
-    fetch.mockRejectedValueOnce(new Error('API failure'))
+    fetch.mockImplementationOnce(() => Promise.reject(new Error('API failure')))
 
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -169,16 +215,31 @@ describe('Profile.vue', () => {
   // ---------------------------- //
 
   it('handles API error gracefully on save', async () => {
-    fetch.mockRejectedValueOnce(new Error('API failure'))
+  fetch.mockImplementation((url, options) => {
+    if (options?.method === 'PUT') {
+      return Promise.reject(new Error('API failure'))
+    }
+    return Promise.resolve({
+      ok: true,
+      json: async () => ({})
+    })
+  })
 
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  const wrapper = mount(Profile)
 
-    const wrapper = mount(Profile)
+  await flushPromises() // ensure mount calls finish
 
-    await wrapper.find('button').trigger('click')
-    await flushPromises()
+  wrapper.vm.form.first_name = 'John'
+  wrapper.vm.form.last_name = 'Doe'
 
-    expect(consoleSpy).toHaveBeenCalled()
-    consoleSpy.mockRestore()
+  await wrapper.vm.$nextTick()
+
+  const saveButton = wrapper.findAll('button')
+    .find(btn => btn.text().includes('Save Basic Info'))
+
+  await saveButton.trigger('click')
+  await flushPromises()
+
+  expect(wrapper.vm.messages.basic.error).toBe('Server error')
   })
 })

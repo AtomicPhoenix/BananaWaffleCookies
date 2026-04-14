@@ -36,7 +36,6 @@ func GetUserByID(uid int) (User, error) {
 
 func RegisterUser(user User) (int, error) {
 	var uid int
-	fmt.Printf("Registering user %v\n", user)
 	err := DbConn.QueryRow(context.Background(), "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id", user.Email, user.Password_hash).Scan(&uid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to insert user into database: %v\n", err)
