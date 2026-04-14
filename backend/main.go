@@ -66,6 +66,8 @@ func main() {
 		r.Get("/api/profile", handlers.GetProfile)
 		r.Get("/api/jobs", handlers.GetJobs)
 		r.Get("/api/jobs/{id}", handlers.GetJob)
+		r.Post("/api/jobs/{id}/archive", handlers.ArchiveJob)
+		r.Post("/api/jobs/{id}/unarchive", handlers.UnarchiveJob)
 		r.Post("/api/jobs", handlers.CreateJob)
 		r.Put("/api/jobs", handlers.UpdateJob)
 		r.Put("/api/settings", handlers.UpdateSettings)
