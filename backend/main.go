@@ -1,6 +1,6 @@
 package main
 
-import (
+	import (
 	"flag"
 	"fmt"
 	"io/fs"
@@ -81,12 +81,12 @@ func main() {
 		r.Delete("/api/profile/skills/{id}", handlers.DeleteProfileSkill)
 		r.Put("/api/profile/skills/reorder", handlers.ReorderProfileSkill)
 		r.Route("/api/jobs", func(r chi.Router) {
-			r.Get("", handlers.GetJobs)
-			r.Post("", handlers.CreateJob)
-			r.Put("", handlers.UpdateJob)
+			r.Get("/", handlers.GetJobs)
+			r.Post("/", handlers.CreateJob)
+			r.Put("/", handlers.UpdateJob)
 			r.Route("/{id}", func(r chi.Router) {
-				r.Get("", handlers.GetJob)
-				r.Delete("", handlers.DeleteJob)
+				r.Get("/", handlers.GetJob)
+				r.Delete("/", handlers.DeleteJob)
 				r.Post("/archive", handlers.ArchiveJob)
 				r.Post("/unarchive", handlers.UnarchiveJob)
 				r.Get("/activities", handlers.GetJobActivities)
