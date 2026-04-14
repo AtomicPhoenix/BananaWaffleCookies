@@ -64,12 +64,12 @@ const messages = ref([
 ])
 
 // selected documentID
-const activeDocumentId = ref(null)
-const activeDocumentName = ref('')
+const activeJobId = ref(null)
+const activeJobName = ref('')
 
-function setActiveDocument(doc) {
-  activeDocumentId.value = doc.id
-  activeDocumentName.value = doc.title
+function setActiveJob(doc) {
+  activeJobId.value = job.id
+  activeJobName.value = job.title
   isOpen.value = true
 }
 
@@ -99,7 +99,7 @@ async function sendMessage() {
   isLoading.value = true
 
   try {
-    const res = await fetch('/api/ai/chat', {
+    const res = await fetch(`/api/jobs/${job.id}/resume`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -131,7 +131,7 @@ async function sendMessage() {
 }
 
 defineExpose({
-  setActiveDocument
+  setActiveJob
 })
 
 </script>
