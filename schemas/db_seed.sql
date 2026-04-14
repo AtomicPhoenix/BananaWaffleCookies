@@ -317,20 +317,20 @@ VALUES
 
     (3, 'created', NOW() - INTERVAL '14 days', 'Job saved to tracker.'),
     (3, 'applied', NOW() - INTERVAL '11 days', 'Submitted application.'),
-    (3, 'status_changed', NOW() - INTERVAL '7 days', 'Status changed to interview.', '{"new_status":"interview"}'),
+    (3, 'status_changed', NOW() - INTERVAL '7 days', 'Status changed to interview.'),
 
     (4, 'created', NOW() - INTERVAL '16 days', 'Job saved to tracker.'),
     (4, 'applied', NOW() - INTERVAL '13 days', 'Applied on company website.'),
-    (4, 'status_changed', NOW() - INTERVAL '5 days', 'Status changed to offer.', '{"new_status":"offer"}'),
+    (4, 'status_changed', NOW() - INTERVAL '5 days', 'Status changed to offer.'),
     (4, 'outcome', NOW() - INTERVAL '2 days', 'Received verbal offer.'),
 
     (5, 'created', NOW() - INTERVAL '18 days', 'Job saved to tracker.'),
     (5, 'applied', NOW() - INTERVAL '15 days', 'Application submitted.'),
-    (5, 'status_changed', NOW() - INTERVAL '6 days', 'Status changed to rejected.', '{"new_status":"rejected"}'),
+    (5, 'status_changed', NOW() - INTERVAL '6 days', 'Status changed to rejected.'),
     (5, 'outcome', NOW() - INTERVAL '6 days', 'Rejected after final round.'),
 
     (6, 'created', NOW() - INTERVAL '40 days', 'Job saved to tracker.'),
-    (6, 'status_changed', NOW() - INTERVAL '30 days', 'Status changed to archived.', '{"new_status":"archived"}'),
+    (6, 'status_changed', NOW() - INTERVAL '30 days', 'Status changed to archived.'),
 
     (7, 'created', NOW() - INTERVAL '8 days', 'Job saved to tracker.'),
     (7, 'applied', NOW() - INTERVAL '6 days', 'Applied through company portal.'),
