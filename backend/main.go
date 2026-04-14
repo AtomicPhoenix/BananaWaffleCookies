@@ -99,7 +99,13 @@ func main() {
 				r.Post("/resume", handlers.GetResumeDraft)
 				r.Post("/cover-letter", handlers.GetCoverLetterDraft)
 				r.Get("/activities", handlers.GetJobActivities)
+				r.Route("/interviews", func(r chi.Router) {
+					r.Get("/", handlers.GetInterviews)
+					r.Post("/", handlers.CreateInterview)
+					r.Delete("/{interview_id}", handlers.DeleteInterview)
+				})
 			})
+
 		})
 		r.Put("/api/settings", handlers.UpdateSettings)
 		r.Get("/api/settings", handlers.GetSettings)

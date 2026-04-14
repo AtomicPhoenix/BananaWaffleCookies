@@ -43,7 +43,6 @@
             </div>
 
             <div class="actions">
-              <button @click="startEditInterview(i)">Edit</button>
               <button @click="deleteInterview(i.id)">Delete</button>
             </div>
           </div>
@@ -291,7 +290,6 @@ async function getJob(id) {
     const data = await res.json()
 
     Object.assign(job, data)
-    interviews.value = data.interviews || []
     followUps.value = data.followUps || []
     Object.assign(outcome, data.outcome || {})
 
@@ -310,6 +308,37 @@ async function getJob(id) {
 }
 
 // ================= INTERVIEWS =================
+async function getInterviews(jobId) {
+  try {
+    const res = await fetch(`/api/jobs/${jobId}/interviews`, {
+      credentials: 'include'
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+
+      // map backend → frontend shape
+      interviews.value = data.map(i => ({
+        id: i.id,
+        round: i.round_type,
+        datetime: i.scheduled_at,
+        notes: i.notes
+      }))
+
+      // rebuild timeline entries
+      interviews.value.forEach(i => {
+        job.timeline.push({
+          type: 'interview',
+          date: i.datetime,
+          note: i.round
+        })
+      })
+    }
+  } catch (err) {
+    console.error('Failed to fetch interviews', err)
+  }
+}
+
 async function addInterview() {
   reset('interview')
 
@@ -322,17 +351,30 @@ async function addInterview() {
     const res = await fetch(`/api/jobs/${job.id}/interviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newInterview)
+      credentials: 'include',
+      body: JSON.stringify({
+        round_type: newInterview.round,
+        scheduled_at: new Date(newInterview.datetime).toISOString(),
+        notes: newInterview.notes
+      })
     })
 
     if (res.ok) {
-      const saved = await res.json()
-      interviews.value.push(saved)
+      const data = await res.json()
+
+      const newItem = {
+        id: data.id,
+        round: newInterview.round,
+        datetime: newInterview.datetime,
+        notes: newInterview.notes
+      }
+
+      interviews.value.push(newItem)
 
       job.timeline.push({
         type: 'interview',
-        date: saved.datetime,
-        note: saved.round
+        date: newItem.datetime,
+        note: newItem.round
       })
 
       Object.keys(newInterview).forEach(k => (newInterview[k] = ''))
@@ -347,11 +389,15 @@ async function addInterview() {
 
 async function deleteInterview(id) {
   try {
-    await fetch(`/api/jobs/${job.id}/interviews/${id}`, {
-      method: 'DELETE'
+    const res = await fetch(`/api/jobs/${job.id}/interviews/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
     })
 
+    if (!res.ok) return
+
     const old = interviews.value.find(i => i.id === id)
+
     interviews.value = interviews.value.filter(i => i.id !== id)
 
     job.timeline = job.timeline.filter(
