@@ -36,7 +36,7 @@ type Job_Activity struct {
 func CreateJob(job Job) (int, error) {
 	var id int
 	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 				RETURNING id`
 	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, false).Scan(&id)
 	if err != nil {
