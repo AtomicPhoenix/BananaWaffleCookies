@@ -1,5 +1,5 @@
 # Run this build target regardless of if file exists or not
-.PHONY: bananaWaffleCookies
+.PHONY: bananaWaffleCookies test
 
 # Default 
 all: bananaWaffleCookies
@@ -29,3 +29,9 @@ clean: check_clean
 	# Remove potentially stale executables & build artifacts
 	rm -f bananaWaffleCookies 
 	rm -rf frontend/dist
+
+# Run tests
+test:
+	npm --prefix frontend/ test run
+	go -C backend/ test -v ./db/
+	go -C backend/ test -v ./handlers/
