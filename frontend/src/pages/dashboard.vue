@@ -63,6 +63,13 @@
               {{ range.label }}
             </label>
           </div>
+          <p class="filter-section-label">Other</p>
+            <div class="filter-options">
+              <label class="filter-option">
+                  <input type="checkbox" v-model="showArchived">
+                  Show Archived Jobs
+                </label>
+            </div>
         </div>
 
         <!-- OVERVIEW -->
@@ -166,7 +173,7 @@ const stats = ref({
   rejected: 0
 })
 
-const statusOptions = ['interested', 'applied', 'interview', 'offer', 'rejected', 'archived']
+const statusOptions = ['interested', 'applied', 'interview', 'offer', 'rejected']
 const salaryRangeOptions = [
   { value: 'under-50000', label: 'Under $50,000' },
   { value: '50000-74999', label: '$50,000 - $74,999' },
@@ -332,7 +339,6 @@ const archiveJob = async (job) => {
     if (!res.ok) {
       return
     }
-    job.status="archived"
 
   } catch (err) {
     window.alert('Unable to archive job, please try again later.')
@@ -352,6 +358,7 @@ const unArchiveJob = async (job) => {
   } catch (err) {
     window.alert('Unable to archive job, please try again later.')
   }
+  location.reload();
 }
 
 const toTimeValue = (value) => {
@@ -360,16 +367,12 @@ const toTimeValue = (value) => {
 }
 
 const matchesStatusFilter = (job) => {
-  const status = statusToCssId(job.status)
-
-  // No filters selected → exclude archived by default
   if (!selectedStatuses.value.length) {
-    return status !== 'archived'
+    return true
   }
-
-  // Filters selected → only show selected statuses (including archived if chosen)
-  return selectedStatuses.value.includes(status)
+  return selectedStatuses.value.includes(statusToCssId(job.status))
 }
+
 
 
 
@@ -412,9 +415,14 @@ const matchesSalaryFilter = (job) => {
   })
 }
 
+const excludeArchivedUnlessEnabled = (job) => {
+  if (showArchived.value) return true
+  return !job.is_archived
+}
+
 const filteredJobs = (jobs) =>
   jobs
-    .filter(job => (!job.is_archived || showArchived))
+    .filter(excludeArchivedUnlessEnabled)
     .filter(matchesStatusFilter)
     .filter(matchesSalaryFilter)
 
