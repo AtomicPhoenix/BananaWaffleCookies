@@ -72,7 +72,7 @@ jobs:
             -f schemas/db_up.sql
 
       - name: Build
-      run: go -C backend/ build -v
+        run: go -C backend/ build -v
 
       - name: Test DB
         run: go -C backend/ test ./db -v
