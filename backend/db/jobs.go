@@ -313,3 +313,29 @@ func GetJobActivities(jobID int) ([]JobActivity, error) {
 
 	return activities, nil
 }
+
+func IsJobOwner(jobID int, userID int) (bool, error) {
+	query := `
+		SELECT is_owner (
+			SELECT 1
+			FROM jobs
+			WHERE id = $1 AND user_id = $2
+		);
+	`
+
+	var is_owner bool
+
+	err := DbConn.QueryRow(
+		context.Background(),
+		query,
+		jobID,
+		userID,
+	).Scan(&is_owner)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to verify job ownership: %v\n", err)
+		return false, err
+	}
+
+	return is_owner, nil
+}
