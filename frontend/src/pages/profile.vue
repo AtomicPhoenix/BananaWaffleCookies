@@ -305,7 +305,7 @@ const form = reactive({
 const preferences = reactive({
   preferred_role: '',
   location: '',
-  work_mode: '',
+  work_mode: '',//changed
   salary: ''
 })
 
