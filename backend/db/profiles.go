@@ -247,6 +247,24 @@ func DeleteProfileEducation(userID, educationID int) error {
 	return err
 }
 
+func ReorderProfileEducation(userID int, eduID int, sortOrder int) error {
+	var sql string = `UPDATE profile_education 
+				SET sort_order = $1
+				WHERE id = $2 AND user_id = $3`
+	tag, err := DbConn.Exec(context.Background(), sql, sortOrder, eduID, userID)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to reoder profile education: %v", err)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("No rows affected in profile education reordering")
+	}
+
+	return err
+}
+
 func InsertProfileExperience(exp ProfileExperiences) (int, error) {
 	var id int
 	query := `
@@ -333,6 +351,24 @@ func DeleteProfileExperience(userID, expID int) error {
 	return err
 }
 
+func ReorderProfileExperience(userID int, expID int, sortOrder int) error {
+	var sql string = `UPDATE profile_experiences
+				SET sort_order = $1
+				WHERE id = $2 AND user_id = $3`
+	tag, err := DbConn.Exec(context.Background(), sql, sortOrder, expID, userID)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to reoder profile skill: %v", err)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("No rows affected in profile skill reordering")
+	}
+
+	return err
+}
+
 func InsertProfileSkill(skill ProfileSkills) (int, error) {
 	var id int
 	query := `
@@ -398,8 +434,31 @@ func DeleteProfileSkill(userID, skillID int) error {
 		WHERE id = $1 AND user_id = $2
 	`, skillID, userID)
 
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to delete skill from profile: %v", err)
+		return err
+	}
+
 	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("No rows affected in profile skill deletion")
+	}
+
+	return err
+}
+
+func ReorderProfileSkill(userID int, skillID int, sortOrder int) error {
+	var sql string = `UPDATE profile_skills
+				SET sort_order = $1
+				WHERE id = $2 AND user_id = $3`
+	tag, err := DbConn.Exec(context.Background(), sql, sortOrder, skillID, userID)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to reoder profile skill: %v", err)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("No rows affected in profile skill reordering")
 	}
 
 	return err
