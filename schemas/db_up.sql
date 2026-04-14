@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS job_activities (
     )
     ),
     activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    description TEXT,
+    description TEXT
 );
 
 -- INTERVIEWS
