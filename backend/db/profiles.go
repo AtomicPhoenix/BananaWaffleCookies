@@ -9,20 +9,28 @@ import (
 )
 
 type Profile struct {
-	Id                int       `json:"id"`
-	UserID            int       `json:"user_id"`
-	FirstName         string    `json:"first_name"`
-	LastName          string    `json:"last_name"`
-	Phone             string    `json:"phone"`
-	City              string    `json:"city"`
-	State             string    `json:"state"`
-	Country           string    `json:"country"`
-	LinkedinURL       string    `json:"linkedin_url"`
-	PortfolioURL      string    `json:"portfolio_url"`
-	Summary           string    `json:"summary"`
-	CompletionPercent int       `json:"completion_percent"`
-	CreatedAt         time.Time `json:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at"`
+	ID                 int       `json:"id"`
+	UserID             int       `json:"user_id"`
+	FirstName          string    `json:"first_name,omitempty"`
+	LastName           string    `json:"last_name,omitempty"`
+	Phone              string    `json:"phone,omitempty"`
+	Location           string    `json:"location,omitempty"`
+	City               string    `json:"city,omitempty"`
+	State              string    `json:"state,omitempty"`
+	Country            string    `json:"country,omitempty"`
+	Headline           string    `json:"headline,omitempty"`
+	LinkedinURL        string    `json:"linkedin_url,omitempty"`
+	PortfolioURL       string    `json:"portfolio_url,omitempty"`
+	Summary            string    `json:"summary,omitempty"`
+	PreferredCity      string    `json:"preferred_city,omitempty"`
+	PreferredState     string    `json:"preferred_state,omitempty"`
+	PreferredRole      string    `json:"preferred_role,omitempty"`
+	PreferredSalaryMin int       `json:"preferred_salary_min,omitempty"`
+	PreferredSalaryMax int       `json:"preferred_salary_max,omitempty"`
+	WorkMode           string    `json:"work_mode,omitempty"`
+	CompletionPercent  int       `json:"completion_percent"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
 }
 
 func createProfile(uid int) error {
@@ -55,7 +63,7 @@ func GetProfile(uid int) (Profile, error) {
 		return Profile{}, err
 	}
 
-	profile.Id = uid
+	profile.UserID = uid
 	profile.FirstName = extractValue(first_name)
 	profile.LastName = extractValue(last_name)
 	profile.City = extractValue(city)
