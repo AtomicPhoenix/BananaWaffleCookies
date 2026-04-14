@@ -134,23 +134,25 @@ func UpdateJob(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs/{id}/archive (POST)
 func ArchiveJob(w http.ResponseWriter, r *http.Request) {
-	var job db.Job
-
-	err := json.NewDecoder(r.Body).Decode(&job)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to archive job; Failed to grab decode request: %v\n", err)
-		return
-	}
-
 	var tokenInfo Claim
-	err, tokenInfo = GrabToken(r)
+	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to archive job", http.StatusBadRequest)
 		fmt.Fprintf(os.Stderr, "Failed to archive job; Failed to grab auth token information: %v\n", err)
 		return
 	}
 
+	job_id_raw := chi.URLParam(r, "id")
+
+	job_id, err := strconv.Atoi(job_id_raw)
+	if err != nil {
+		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		return
+	}
+
+	var job db.Job
+	job.ID = job_id
 	job.UserID = tokenInfo.Uid
 	err = db.ArchiveJob(job)
 	if err != nil {
@@ -165,23 +167,25 @@ func ArchiveJob(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs/{id}/unarchive (POST)
 func UnarchiveJob(w http.ResponseWriter, r *http.Request) {
-	var job db.Job
-
-	err := json.NewDecoder(r.Body).Decode(&job)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to unarchive job; Failed to grab decode request: %v\n", err)
-		return
-	}
-
 	var tokenInfo Claim
-	err, tokenInfo = GrabToken(r)
+	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to unarchive job", http.StatusBadRequest)
 		fmt.Fprintf(os.Stderr, "Failed to unarchive job; Failed to grab auth token information: %v\n", err)
 		return
 	}
 
+	job_id_raw := chi.URLParam(r, "id")
+
+	job_id, err := strconv.Atoi(job_id_raw)
+	if err != nil {
+		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		return
+	}
+
+	var job db.Job
+	job.ID = job_id
 	job.UserID = tokenInfo.Uid
 	err = db.UnarchiveJob(job)
 	if err != nil {
