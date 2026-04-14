@@ -160,7 +160,6 @@ CREATE TABLE IF NOT EXISTS job_activities (
     ),
     activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     description TEXT,
-    metadata JSONB
 );
 
 -- INTERVIEWS
