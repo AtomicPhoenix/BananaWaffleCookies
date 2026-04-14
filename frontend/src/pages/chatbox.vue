@@ -23,8 +23,8 @@
       </div>
 
       <!-- No Document Selected -->
-      <div v-if="!activeDocumentId" class="message ai system">
-        Please select a document from the library to begin.
+      <div v-if="!activeJobId" class="message ai system">
+        Please select a job from the library to begin.
       </div>
     </div>
 
@@ -34,10 +34,10 @@
       <input
         v-model="userInput"
         type="text"
-        :placeholder="activeDocumentId 
+        :placeholder="activeJobId 
           ? 'Ask for feedback on your document...' 
           : 'Please select a document first...'"
-        :disabled="!activeDocumentId || isLoading"
+        :disabled="!activeJobId || isLoading"
         @keyup.enter="sendMessage"
       />
       <button 
