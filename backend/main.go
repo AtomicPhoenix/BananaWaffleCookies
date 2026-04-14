@@ -70,6 +70,8 @@ func main() {
 
 		r.Put("/api/profile", handlers.UpdateProfile)
 		r.Get("/api/profile", handlers.GetProfile)
+		r.Put("/api/profile/preferences", handlers.UpdateProfilePreferences)
+		r.Get("/api/profile/preferences", handlers.GetProfilePreferences)
 		r.Post("/api/profile/education", handlers.AddProfileEducation)
 		r.Get("/api/profile/education", handlers.GetProfileEducation)
 		r.Delete("/api/profile/education/{id}", handlers.DeleteProfileEducation)
