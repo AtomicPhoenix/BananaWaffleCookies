@@ -150,6 +150,7 @@ const sortBy = ref('updated-desc')
 const selectedStatuses = ref([])
 const selectedSalaryRanges = ref([])
 const firstName = ref('')
+const showArchived = ref(false)
 
 const welcomeMessage = computed(() => {
   const name = String(firstName.value || '').trim()
@@ -331,6 +332,8 @@ const archiveJob = async (job) => {
     if (!res.ok) {
       return
     }
+    job.status="archived"
+
   } catch (err) {
     window.alert('Unable to archive job, please try again later.')
   }
@@ -357,12 +360,19 @@ const toTimeValue = (value) => {
 }
 
 const matchesStatusFilter = (job) => {
+  const status = statusToCssId(job.status)
+
+  // No filters selected → exclude archived by default
   if (!selectedStatuses.value.length) {
-    return true
+    return status !== 'archived'
   }
 
-  return selectedStatuses.value.includes(statusToCssId(job.status))
+  // Filters selected → only show selected statuses (including archived if chosen)
+  return selectedStatuses.value.includes(status)
 }
+
+
+
 
 const salaryValue = (job) => {
   const parsed = Number(job.salary)
@@ -402,7 +412,11 @@ const matchesSalaryFilter = (job) => {
   })
 }
 
-const filteredJobs = (jobs) => jobs.filter(matchesStatusFilter).filter(matchesSalaryFilter).filter(job => String(job.status || '').toLowerCase() !== 'archived')
+const filteredJobs = (jobs) =>
+  jobs
+    .filter(job => (!job.is_archived || showArchived))
+    .filter(matchesStatusFilter)
+    .filter(matchesSalaryFilter)
 
 const sortedJobs = (jobs) => {
   return [...jobs].sort((left, right) => {
