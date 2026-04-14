@@ -33,6 +33,7 @@ jobs:
       DB_PORT: 5432
       DB_NAME: test_db
 
+    steps:
       - name: Wait for Postgres
         run: |
           for i in {1..10}; do
