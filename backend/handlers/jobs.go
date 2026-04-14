@@ -230,3 +230,41 @@ func DeleteJob(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"message":"Job successfully deleted."}`)
 }
+
+// Handler for /api/jobs/{id}/activities (GET)
+func GetJobActivities(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		fmt.Fprintf(os.Stderr, "Auth error: %v\n", err)
+		return
+	}
+
+	jobIDRaw := chi.URLParam(r, "id")
+
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		return
+	}
+
+	isJobOwner, err := db.IsJobOwner(tokenInfo.Uid, jobID)
+	if err != nil || !isJobOwner {
+		http.Error(w, "Failed to verify ownership of job", http.StatusUnauthorized)
+		return
+	}
+
+	activities, err := db.GetJobActivities(jobID)
+	if err != nil {
+		http.Error(w, "Failed to get job activities", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to get job activities: %v\n", err)
+		return
+	}
+
+	if activities == nil {
+		activities = []db.JobActivity{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(activities)
+}
