@@ -24,7 +24,6 @@ INSERT INTO profiles (
     preferred_role,
     preferred_salary_min,
     preferred_salary_max,
-    preferred_remote,
     preferred_city,
     preferred_state,
     completion_percent
@@ -45,7 +44,6 @@ VALUES
         'Software Engineer',
         70000,
         100000,
-        TRUE,
         'Quahog',
         'RI',
         85
@@ -74,7 +72,7 @@ VALUES
         'Quahog, RI',
         '2018-01-01',
         '2018-01-02',
-        NULL,
+        FALSE,
         'Responsible for ensuring safety standards while occasionally causing large-scale workplace incidents.',
         1
     ),
