@@ -58,9 +58,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS profile_experiences (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    experience_type TEXT NOT NULL CHECK (
-        experience_type IN ('employment') --used to hold project, new table now
-    ),
+    experience_type TEXT NOT NULL DEFAULT '',
     title TEXT NOT NULL,
     organization TEXT,
     location_text TEXT,

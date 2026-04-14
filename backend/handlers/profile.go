@@ -72,6 +72,7 @@ func AddProfileEducation(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&edu); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		fmt.Printf("Invalid education request body: %v\nError: %v", edu, err)
 		return
 	}
 
@@ -204,6 +205,7 @@ func AddProfileExperience(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&exp); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		fmt.Printf("Invalid exp request body: %v\nError: %v", exp, err)
 		return
 	}
 
@@ -336,6 +338,7 @@ func AddProfileSkill(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&skill); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		fmt.Printf("Invalid skill request body: %v\nError: %v", skill, err)
 		return
 	}
 

@@ -561,11 +561,24 @@ async function addEducation() {
     return
   }
 
+
+    const payload = {
+  ...newEducation,
+  start_date: newEducation.start_date
+    ? new Date(newEducation.start_date).toISOString()
+    : null,
+  end_date: newEducation.end_date
+    ? new Date(newEducation.end_date).toISOString()
+    : null,
+}
+
+
+
   try {
     const res = await fetch('/api/profile/education', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newEducation)
+      body: JSON.stringify(payload)
     })
 
     if (res.ok) {
@@ -678,11 +691,19 @@ async function addSkill() {
     return
   }
 
+
+    const payload = {
+      ...newSkill,
+      start_date: newSkill.start_date
+        ? new Date(newSkill.end_date).toISOString()
+        : null
+    }
+
   try {
     const res = await fetch('/api/profile/skills', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newSkill)
+      body: JSON.stringify(payload)
     })
 
     if (res.ok) {
@@ -726,10 +747,20 @@ async function addExperiences() {
     return
   }
 
+    const payload = {
+  ...newExperiences,
+  start_date: newExperiences.start_date
+    ? new Date(newExperiences.start_date).toISOString()
+    : null,
+  end_date: newExperiences.end_date
+    ? new Date(newExperiences.end_date).toISOString()
+    : null,
+}
+
   const res = await fetch('/api/profile/experiences', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newExperiences)
+    body: JSON.stringify(payload)
   })
 
   if (res.ok) {
