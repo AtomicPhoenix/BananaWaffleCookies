@@ -124,9 +124,9 @@
               </template>
               <BDropdownItem :to="`/jobs/${job.id}`">View</BDropdownItem>
               <BDropdownItem :to="`/jobs/${job.id}/edit`">Modify</BDropdownItem>
-              <BDropdownItem @click="archiveJob(job.id)">Archive</BDropdownItem>
-              <BDropdownItem @click="unArchiveJob(job.id)">Restore</BDropdownItem>
-              <BDropdownItem @click="deleteJob(job.id)">Delete</BDropdownItem>
+              <BDropdownItem @click="archiveJob(job)">Archive</BDropdownItem>
+              <BDropdownItem @click="unArchiveJob(job)">Restore</BDropdownItem>
+              <BDropdownItem @click="deleteJob(job)">Delete</BDropdownItem>
             </BDropdown>
           </div>
         </div>
