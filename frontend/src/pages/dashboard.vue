@@ -125,6 +125,7 @@
               <BDropdownItem :to="`/jobs/${job.id}`">View</BDropdownItem>
               <BDropdownItem :to="`/jobs/${job.id}/edit`">Modify</BDropdownItem>
               <BDropdownItem @click="archiveJob(job.id)">Archive</BDropdownItem>
+              <BDropdownItem @click="unArchiveJob(job.id)">Restore</BDropdownItem>
               <BDropdownItem @click="deleteJob(job.id)">Delete</BDropdownItem>
             </BDropdown>
           </div>
@@ -322,6 +323,21 @@ const deleteJob = async (job) => {
 const archiveJob = async (job) => {
   try {
     const res = await fetch(`/api/jobs/${job.id}/archive`, {
+      method: 'PUT',
+      credentials: 'include',
+    })
+
+    if (!res.ok) {
+      return
+    }
+  } catch (err) {
+    window.alert('Unable to archive job, please try again later.')
+  }
+}
+
+const unArchiveJob = async (job) => {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/unarchive`, {
       method: 'PUT',
       credentials: 'include',
     })
