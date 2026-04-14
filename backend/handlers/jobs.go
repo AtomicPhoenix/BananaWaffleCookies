@@ -248,7 +248,7 @@ func GetJobActivities(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isJobOwner, err := db.IsJobOwner(tokenInfo.Uid, jobID)
+	isJobOwner, err := db.IsJobOwner(jobID, tokenInfo.Uid)
 	if err != nil || !isJobOwner {
 		http.Error(w, "Failed to verify ownership of job", http.StatusUnauthorized)
 		return

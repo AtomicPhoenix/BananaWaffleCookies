@@ -5,19 +5,17 @@
     <div class="form-card">
       <!-- ================= TIMELINE ================= -->
       <div class="section">
-        <h3 class="section-title">Activity Timeline</h3>
-
-        <div
-          v-for="(event, index) in sortedTimeline"
-          :key="index"
-          class="item-card"
-        >
-          <strong>{{ event.type.toUpperCase() }}</strong>
-          <p class="sub-text">{{ formatDate(event.date) }}</p>
-          <p>{{ event.note }}</p>
-        </div>
+        <h3 class="section-title">Timeline</h3>
+          <div
+            v-for="(event, index) in sortedActivities"
+            :key="event.id"
+            class="item-card"
+          >
+            <strong>{{ formatActivityType(event.activity_type) }}</strong>
+            <p class="sub-text">{{ formatDate(event.activity_at) }}</p>
+            <p>{{ event.description }}</p>
+          </div>
       </div>
-
       <!-- ================= INTERVIEWS ================= -->
       <div class="section">
         <h3 class="section-title">Interviews</h3>
@@ -185,6 +183,8 @@ const isGeneratingCoverLetter = ref(false)
 
 const interviews = ref([])
 const followUps = ref([])
+const activities = ref([])
+
 
 const newInterview = reactive({ round: '', datetime: '', notes: '' })
 const newFollow = reactive({
@@ -278,9 +278,42 @@ function formatDate(date) {
   return new Date(date).toLocaleString()
 }
 
-const sortedTimeline = computed(() =>
-  [...job.timeline].sort((a, b) => new Date(b.date) - new Date(a.date))
+const sortedActivities = computed(() =>
+  [...activities.value].sort(
+    (a, b) => new Date(b.activity_at) - new Date(a.activity_at)
+  )
 )
+
+// ================= Modified History =================
+
+const getActivities = async () => {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/activities`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed with status ${res.status}`)
+    }
+
+    const data = await res.json()
+
+    activities.value = data || []
+
+  } catch (err) {
+    console.error('Failed to fetch activities:', err)
+    activities.value = []
+  }
+}
+
+function formatActivityType(type) {
+  return type
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
+
 
 // ================= FETCH =================
 import { watch } from 'vue'
@@ -315,6 +348,7 @@ async function getJob(id) {
         note: 'Application submitted'
       })
     }
+    await getActivities()
     await getFollowUps(id)
   }
 }
@@ -397,6 +431,7 @@ async function addInterview() {
   } catch {
     messages.interview.error = 'Server error'
   }
+
 }
 
 async function deleteInterview(id) {
@@ -418,6 +453,7 @@ async function deleteInterview(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 function startEditInterview(i) {
@@ -458,6 +494,7 @@ async function updateInterview(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 // ================= FOLLOW UPS =================
@@ -510,6 +547,7 @@ async function addFollowUp() {
   } catch {
     messages.follow.error = 'Server error'
   }
+
 }
 
 async function deleteFollowUp(id) {
@@ -527,6 +565,7 @@ async function deleteFollowUp(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 function startEditFollow(f) {
@@ -574,6 +613,7 @@ async function updateFollowUp(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 async function toggleDone(f) {
