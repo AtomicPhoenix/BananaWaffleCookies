@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     linkedin_url TEXT,
     portfolio_url TEXT,
     summary TEXT,
-
+    preferred_state TEXT,
     preferred_role TEXT,
     preferred_salary_min INT,
     preferred_salary_max INT,
