@@ -61,11 +61,18 @@ jobs:
           done
 
       - name: Run DB schema
+        env:
+          PGPASSWORD: postgres
         run: |
-          psql postgres://postgres:postgres@localhost:5432/test_db -f schemas/db_up.sql
+          psql \
+            -h localhost \
+            -U postgres \
+            -d test_db \
+            -v ON_ERROR_STOP=1 \
+            -f schemas/db_up.sql
 
       - name: Build
-        run: go -C backend/ build -v
+      run: go -C backend/ build -v
 
       - name: Test DB
         run: go -C backend/ test ./db -v
