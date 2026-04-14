@@ -21,7 +21,9 @@
       <!-- ================= Last Modified ================= -->
       <div class="section">
         <h3 class="section-title">Last Modified</h3>
-        <p class="sub-text" :value="timestamp">{{ getTimestamp() }}</p>
+        <p class="sub-text">
+          {{ timestamp ? formatDate(timestamp) : 'No activity yet' }}
+        </p>
       </div>
 
       <!-- ================= INTERVIEWS ================= -->
@@ -190,9 +192,7 @@ const isGeneratingCoverLetter = ref(false)
 
 const interviews = ref([])
 const followUps = ref([])
-const timestamp = ref([
-  {}
-]) 
+const timestamp = ref([null]) 
 
 const newInterview = reactive({ round: '', datetime: '', notes: '' })
 const newFollow = reactive({ task: '', date: '' })
@@ -286,20 +286,36 @@ const getTimestamp = async () => {
   try {
     const res = await fetch(`/api/jobs/${job.id}/activities`, {
       method: 'GET',
-      credentials: 'include' // important if using sessions/cookies
+      credentials: 'include'
     })
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch jobs with code ${res.status}`)
+      throw new Error(`Failed with status ${res.status}`)
     }
 
     const data = await res.json()
-    Object.assign(form, data)
+
+    if (!Array.isArray(data) || data.length === 0) {
+      timestamp.value = null
+      return
+    }
+
+    // find most recent activity
+    const latest = data.reduce((latest, current) => {
+      return new Date(current.activity_at) > new Date(latest.activity_at)
+        ? current
+        : latest
+    })
+
+    timestamp.value = latest.activity_at
 
   } catch (err) {
-    console.error('Failed to fetch user jobs:', err)
+    console.error('Failed to fetch timestamp:', err)
+    timestamp.value = null
   }
 }
+
+
 
 // ================= FETCH =================
 import { watch } from 'vue'
@@ -335,6 +351,8 @@ async function getJob(id) {
         note: 'Application submitted'
       })
     }
+
+    await getTimestamp()
   }
 }
 
