@@ -140,3 +140,29 @@ func UpdateJob(job Job) error {
 
 	return err
 }
+
+func ArchiveJob(job Job) error {
+	return setArchive(job, true)
+}
+
+func UnarchiveJob(job Job) error {
+	return setArchive(job, false)
+}
+
+func setArchive(job Job, is_archived bool) error {
+	sql_query := `UPDATE jobs 
+				SET is_archived = $1
+				WHERE id = $2 AND user_id = $3`
+	result, err := DbConn.Exec(context.Background(), sql_query, is_archived, job.Description, job.ID, job.UserID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to arhive job: %v\n", err)
+		return err
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in archive operation (job doesn't exist or is not owned by user)")
+	}
+
+	return err
+}
