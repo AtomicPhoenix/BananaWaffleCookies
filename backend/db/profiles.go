@@ -43,12 +43,54 @@ func createProfile(uid int) error {
 }
 
 func UpdateProfile(profile Profile) error {
-	var sql string = `UPDATE profiles
-				SET first_name = $1, last_name = $2, phone = $3, city = $4, state = $5, country = $6, linkedin_url = $7, portfolio_url = $8, summary = $9, completion_percent = $10
-				WHERE user_id = $11`
-	_, err := DbConn.Exec(context.Background(), sql, profile.FirstName, profile.LastName, profile.Phone, profile.City, profile.State, profile.Country, profile.LinkedinURL, profile.PortfolioURL, profile.Summary, profile.CompletionPercent, profile.UserID)
+	query := `UPDATE profiles SET
+		first_name = $1,
+		last_name = $2,
+		phone = $3,
+		location = $4,
+		city = $5,
+		state = $6,
+		country = $7,
+		headline = $8,
+		linkedin_url = $9,
+		portfolio_url = $10,
+		summary = $11,
+		preferred_city = $12,
+		preferred_state = $13,
+		preferred_role = $14,
+		preferred_salary_min = $15,
+		preferred_salary_max = $16,
+		work_mode = $17,
+		completion_percent = $18,
+		updated_at = NOW()
+	WHERE user_id = $19`
+
+	_, err := DbConn.Exec(
+		context.Background(),
+		query,
+		profile.FirstName,
+		profile.LastName,
+		profile.Phone,
+		profile.Location,
+		profile.City,
+		profile.State,
+		profile.Country,
+		profile.Headline,
+		profile.LinkedinURL,
+		profile.PortfolioURL,
+		profile.Summary,
+		profile.PreferredCity,
+		profile.PreferredState,
+		profile.PreferredRole,
+		profile.PreferredSalaryMin,
+		profile.PreferredSalaryMax,
+		profile.WorkMode,
+		profile.CompletionPercent,
+		profile.UserID,
+	)
+
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert user into database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to update profile: %v\n", err)
 		return err
 	}
 	return nil
@@ -56,23 +98,83 @@ func UpdateProfile(profile Profile) error {
 
 func GetProfile(uid int) (Profile, error) {
 	var profile Profile
-	var first_name, last_name, phone, city, state, country, linkedin_url, portfolio, summary sql.NullString
-	err := DbConn.QueryRow(context.Background(), `SELECT first_name, last_name, phone, city, state, country, linkedin_url, portfolio_url, summary, completion_percent FROM profiles WHERE user_id = $1`, uid).Scan(&first_name, &last_name, &phone, &city, &state, &country, &linkedin_url, &portfolio, &summary, &profile.CompletionPercent)
+
+	var firstName, lastName, phone, location, city, state, country sql.NullString
+	var headline, linkedinURL, portfolioURL, summary sql.NullString
+	var preferredCity, preferredState, preferredRole, workMode sql.NullString
+	var preferredSalaryMin, preferredSalaryMax sql.NullInt64
+
+	err := DbConn.QueryRow(context.Background(), `
+		SELECT
+			first_name,
+			last_name,
+			phone,
+			location,
+			city,
+			state,
+			country,
+			headline,
+			linkedin_url,
+			portfolio_url,
+			summary,
+			preferred_city,
+			preferred_state,
+			preferred_role,
+			preferred_salary_min,
+			preferred_salary_max,
+			work_mode,
+			completion_percent
+		FROM profiles
+		WHERE user_id = $1
+	`, uid).Scan(
+		&firstName,
+		&lastName,
+		&phone,
+		&location,
+		&city,
+		&state,
+		&country,
+		&headline,
+		&linkedinURL,
+		&portfolioURL,
+		&summary,
+		&preferredCity,
+		&preferredState,
+		&preferredRole,
+		&preferredSalaryMin,
+		&preferredSalaryMax,
+		&workMode,
+		&profile.CompletionPercent,
+	)
+
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to grab user from database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to get profile: %v\n", err)
 		return Profile{}, err
 	}
 
 	profile.UserID = uid
-	profile.FirstName = extractValue(first_name)
-	profile.LastName = extractValue(last_name)
-	profile.City = extractValue(city)
+	profile.FirstName = extractValue(firstName)
+	profile.LastName = extractValue(lastName)
 	profile.Phone = extractValue(phone)
+	profile.Location = extractValue(location)
+	profile.City = extractValue(city)
 	profile.State = extractValue(state)
 	profile.Country = extractValue(country)
-	profile.LinkedinURL = extractValue(linkedin_url)
-	profile.PortfolioURL = extractValue(portfolio)
+	profile.Headline = extractValue(headline)
+	profile.LinkedinURL = extractValue(linkedinURL)
+	profile.PortfolioURL = extractValue(portfolioURL)
 	profile.Summary = extractValue(summary)
+	profile.PreferredCity = extractValue(preferredCity)
+	profile.PreferredState = extractValue(preferredState)
+	profile.PreferredRole = extractValue(preferredRole)
+	profile.WorkMode = extractValue(workMode)
+
+	if preferredSalaryMin.Valid {
+		profile.PreferredSalaryMin = int(preferredSalaryMin.Int64)
+	}
+	if preferredSalaryMax.Valid {
+		profile.PreferredSalaryMax = int(preferredSalaryMax.Int64)
+	}
 
 	return profile, nil
 }
@@ -87,42 +189,58 @@ func extractValue(str sql.NullString) string {
 // Calculate what percent of the profile is filled out
 func (profile *Profile) SetCompletionPercent() {
 	var filledFields int = 0
-	var numFields int = 9
+	var numFields int = 17
+
 	if profile.FirstName != "" {
 		filledFields++
 	}
-
 	if profile.LastName != "" {
 		filledFields++
 	}
-
 	if profile.Phone != "" {
 		filledFields++
 	}
-
+	if profile.Location != "" {
+		filledFields++
+	}
 	if profile.City != "" {
 		filledFields++
 	}
-
 	if profile.State != "" {
 		filledFields++
 	}
-
 	if profile.Country != "" {
 		filledFields++
 	}
-
+	if profile.Headline != "" {
+		filledFields++
+	}
 	if profile.LinkedinURL != "" {
 		filledFields++
 	}
-
 	if profile.PortfolioURL != "" {
 		filledFields++
 	}
-
 	if profile.Summary != "" {
 		filledFields++
 	}
-
-	profile.CompletionPercent = int(float32(filledFields/numFields) * 100)
+	if profile.PreferredCity != "" {
+		filledFields++
+	}
+	if profile.PreferredState != "" {
+		filledFields++
+	}
+	if profile.PreferredRole != "" {
+		filledFields++
+	}
+	if profile.PreferredSalaryMin > 0 {
+		filledFields++
+	}
+	if profile.PreferredSalaryMax > 0 {
+		filledFields++
+	}
+	if profile.WorkMode != "" {
+		filledFields++
+	}
+	profile.CompletionPercent = int((float32(filledFields) / float32(numFields)) * 100)
 }
