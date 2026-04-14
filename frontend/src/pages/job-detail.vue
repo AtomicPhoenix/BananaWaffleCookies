@@ -126,6 +126,23 @@
           {{ messages.outcome.error }}
         </p>
       </div>
+
+      <!-- ================= RESUME GENERATION ================= -->
+      <div class="section">
+        <h3 class="section-title">AI Resume Generator</h3>
+      
+        <button @click="generateResume" :disabled="isGeneratingResume">
+          {{ isGeneratingResume ? 'Generating...' : 'Generate Resume' }}
+        </button>
+      
+        <div v-if="resumeResponse" class="item-card">
+          <h4>Generated Resume</h4>
+          <pre class="sub-text" style="white-space: pre-wrap;">
+      {{ resumeResponse }}
+          </pre>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -143,6 +160,9 @@ const job = reactive({
   company_name: '',
   timeline: []
 })
+
+const resumeResponse = ref('')
+const isGeneratingResume = ref(false)
 
 const interviews = ref([])
 const followUps = ref([])
@@ -168,6 +188,34 @@ const messages = reactive({
 function reset(section) {
   messages[section].success = false
   messages[section].error = ''
+}
+
+// Get resume draft
+const generateResume = async () => {
+  isGeneratingResume.value = true
+  resumeResponse.value = ''
+
+  try {
+    const path = `/api/jobs/${route.params.job_id}/resume`
+
+    const res = await fetch(path, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    const data = await res.json()
+
+    if (data?.success) {
+      resumeResponse.value = data.response
+    } else {
+      resumeResponse.value = 'Failed to generate resume.'
+    }
+  } catch (err) {
+    console.error('Failed to generate job resume:', err)
+    resumeResponse.value = 'Error generating resume.'
+  } finally {
+    isGeneratingResume.value = false
+  }
 }
 
 function formatDate(date) {
