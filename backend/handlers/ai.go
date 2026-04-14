@@ -52,6 +52,11 @@ func GetResumeDraft(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	respJson := struct {
+		Success  bool   `json:"success"`
+		Response string `json:"response"`
+	}{Success: true,
+		Response: response}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(respJson)
 }

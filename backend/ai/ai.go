@@ -74,10 +74,11 @@ Description: %s
 		job.Status,
 		job.Description,
 	)
-	return QueryModel(query)
+	fmt.Printf("Query: %s\n---------------------------\n", query)
+	return queryModel(query)
 }
 
-func QueryModel(query string) (string, error) {
+func queryModel(query string) (string, error) {
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, nil)
 	if err != nil {
@@ -95,6 +96,5 @@ func QueryModel(query string) (string, error) {
 		fmt.Fprintf(os.Stderr, "Failed to query ai: %v", err)
 		return "ERROR", err
 	}
-	fmt.Println(result.Text())
 	return result.Text(), err
 }
