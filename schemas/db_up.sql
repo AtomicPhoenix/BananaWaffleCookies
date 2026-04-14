@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     first_name TEXT,
     last_name TEXT,
     phone TEXT,
+    location TEXT, --added for preferences frontend
     city TEXT,
     state TEXT,
     country TEXT,
@@ -25,13 +26,12 @@ CREATE TABLE IF NOT EXISTS profiles (
     linkedin_url TEXT,
     portfolio_url TEXT,
     summary TEXT,
-
+    preferred_city TEXT,
+    preferred_state TEXT,
     preferred_role TEXT,
     preferred_salary_min INT,
     preferred_salary_max INT,
-    preferred_remote BOOLEAN NOT NULL DEFAULT FALSE,
-    preferred_city TEXT,
-    preferred_state CHAR(2),
+    work_mode TEXT, --added for frontend, was city&state+remote boolean
 
     completion_percent INT NOT NULL DEFAULT 0
         CHECK (completion_percent BETWEEN 0 AND 100),
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS profile_experiences (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     experience_type TEXT NOT NULL CHECK (
-        experience_type IN ('employment', 'project')
+        experience_type IN ('employment') --used to hold project, new table now
     ),
     title TEXT NOT NULL,
     organization TEXT,
@@ -106,18 +106,32 @@ CREATE TABLE IF NOT EXISTS profile_skills (
     CONSTRAINT uq_profile_skill UNIQUE (user_id, skill_name)
 );
 
--- JOBS
+-- PROJECTS
+CREATE TABLE IF NOT EXISTS profile_projects (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    link TEXT,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS jobs (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     company_name TEXT NOT NULL,
     title TEXT NOT NULL,
     location_text TEXT,
+    posting_url TEXT,
     salary INT,
     status TEXT NOT NULL CHECK (
         status IN ('interested', 'applied', 'interview', 'offer', 'rejected')
     ),
     deadline_date DATE,
+    last_activity_at TIMESTAMPTZ,
+    notes TEXT,
     description TEXT,
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -130,19 +144,52 @@ CREATE TABLE IF NOT EXISTS job_activities (
     job_id BIGINT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
     activity_type TEXT NOT NULL CHECK (
         activity_type IN (
-            'created',
-            'updated',
-            'status_changed',
-            'applied',
-            'note_added',
-            'document_linked',
-            'document_unlinked'
-        )
+        'created',
+        'updated',
+        'status_changed',
+        'applied',
+        'note_added',
+        'document_linked',
+        'document_unlinked',
+        'interview_scheduled',
+        'interview_completed',
+        'follow_up_created',
+        'follow_up_completed',
+        'outcome'
+    )
     ),
     activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     description TEXT,
     metadata JSONB
 );
+
+-- INTERVIEWS
+CREATE TABLE IF NOT EXISTS interviews (
+    id BIGSERIAL PRIMARY KEY,
+    job_id BIGINT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    round_type TEXT NOT NULL,
+    scheduled_at TIMESTAMPTZ NOT NULL,
+    completed_at TIMESTAMPTZ,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- FOLLOW UPS
+CREATE TABLE IF NOT EXISTS follow_up_tasks (
+    id BIGSERIAL PRIMARY KEY,
+    job_id BIGINT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    notes TEXT,
+    due_at TIMESTAMPTZ,
+    remind_at TIMESTAMPTZ,
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (completed_at IS NULL OR is_completed = TRUE)
+);
+
 
 -- DOCUMENTS
 CREATE TABLE IF NOT EXISTS documents (
@@ -206,6 +253,9 @@ CREATE INDEX IF NOT EXISTS idx_profile_skills_user_id
 CREATE INDEX IF NOT EXISTS idx_profile_skills_user_sort
     ON profile_skills(user_id, sort_order);
 
+CREATE INDEX IF NOT EXISTS idx_profile_projects_user_sort
+    ON profile_projects(user_id, sort_order);
+
 CREATE INDEX IF NOT EXISTS idx_jobs_user_id
     ON jobs(user_id);
 
@@ -223,6 +273,20 @@ CREATE INDEX IF NOT EXISTS idx_job_activities_job_id
 
 CREATE INDEX IF NOT EXISTS idx_job_activities_activity_at
     ON job_activities(job_id, activity_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_interviews_job_id
+    ON interviews(job_id);
+
+CREATE INDEX IF NOT EXISTS idx_interviews_job_scheduled_at
+    ON interviews(job_id, scheduled_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_follow_up_tasks_job_id
+    ON follow_up_tasks(job_id);
+
+CREATE INDEX IF NOT EXISTS idx_follow_up_tasks_due_at
+    ON follow_up_tasks(job_id, due_at);
+
+
 
 CREATE INDEX IF NOT EXISTS idx_job_document_links_job_id
     ON job_document_links(job_id);
