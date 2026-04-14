@@ -5,27 +5,17 @@
     <div class="form-card">
       <!-- ================= TIMELINE ================= -->
       <div class="section">
-        <h3 class="section-title">Activity Timeline</h3>
-
-        <div
-          v-for="(event, index) in sortedTimeline"
-          :key="index"
-          class="item-card"
-        >
-          <strong>{{ event.type.toUpperCase() }}</strong>
-          <p class="sub-text">{{ formatDate(event.date) }}</p>
-          <p>{{ event.note }}</p>
-        </div>
+        <h3 class="section-title">Timeline</h3>
+          <div
+            v-for="(event, index) in sortedActivities"
+            :key="event.id"
+            class="item-card"
+          >
+            <strong>{{ formatActivityType(event.activity_type) }}</strong>
+            <p class="sub-text">{{ formatDate(event.activity_at) }}</p>
+            <p>{{ event.description }}</p>
+          </div>
       </div>
-
-      <!-- ================= Last Modified ================= -->
-      <div class="section">
-        <h3 class="section-title">Last Modified</h3>
-        <p class="sub-text">
-          {{ timestamp ? formatDate(timestamp) : 'No activity yet' }}
-        </p>
-      </div>
-
       <!-- ================= INTERVIEWS ================= -->
       <div class="section">
         <h3 class="section-title">Interviews</h3>
@@ -192,7 +182,8 @@ const isGeneratingCoverLetter = ref(false)
 
 const interviews = ref([])
 const followUps = ref([])
-const timestamp = ref([null]) 
+const activities = ref([])
+
 
 const newInterview = reactive({ round: '', datetime: '', notes: '' })
 const newFollow = reactive({ task: '', date: '' })
@@ -277,12 +268,15 @@ function formatDate(date) {
   return new Date(date).toLocaleString()
 }
 
-const sortedTimeline = computed(() =>
-  [...job.timeline].sort((a, b) => new Date(b.date) - new Date(a.date))
+const sortedActivities = computed(() =>
+  [...activities.value].sort(
+    (a, b) => new Date(b.activity_at) - new Date(a.activity_at)
+  )
 )
-// ================= Last Modified =================
 
-const getTimestamp = async () => {
+// ================= Modified History =================
+
+const getActivities = async () => {
   try {
     const res = await fetch(`/api/jobs/${job.id}/activities`, {
       method: 'GET',
@@ -295,24 +289,18 @@ const getTimestamp = async () => {
 
     const data = await res.json()
 
-    if (!Array.isArray(data) || data.length === 0) {
-      timestamp.value = null
-      return
-    }
-
-    // find most recent activity
-    const latest = data.reduce((latest, current) => {
-      return new Date(current.activity_at) > new Date(latest.activity_at)
-        ? current
-        : latest
-    })
-
-    timestamp.value = latest.activity_at
+    activities.value = data || []
 
   } catch (err) {
-    console.error('Failed to fetch timestamp:', err)
-    timestamp.value = null
+    console.error('Failed to fetch activities:', err)
+    activities.value = []
   }
+}
+
+function formatActivityType(type) {
+  return type
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
 }
 
 
@@ -352,7 +340,7 @@ async function getJob(id) {
       })
     }
 
-    await getTimestamp()
+    await getActivities()
   }
 }
 
@@ -390,6 +378,7 @@ async function addInterview() {
   } catch {
     messages.interview.error = 'Server error'
   }
+
 }
 
 async function deleteInterview(id) {
@@ -407,6 +396,7 @@ async function deleteInterview(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 function startEditInterview(i) {
@@ -447,6 +437,7 @@ async function updateInterview(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 // ================= FOLLOW UPS =================
@@ -481,6 +472,7 @@ async function addFollowUp() {
   } catch {
     messages.follow.error = 'Server error'
   }
+
 }
 
 async function deleteFollowUp(id) {
@@ -498,6 +490,7 @@ async function deleteFollowUp(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 function startEditFollow(f) {
@@ -538,6 +531,7 @@ async function updateFollowUp(id) {
   } catch (err) {
     console.error(err)
   }
+
 }
 
 function toggleDone(f) {
