@@ -384,17 +384,21 @@ const messages = reactive({
 })
 
 const completionPercentage = computed(() => {
-  const total = [
-    ...Object.values(form),
+  const fields = [
+    form.first_name,
+    form.last_name,
+    form.phone,
     preferences.target_roles,
-    preferences.location
+    preferences.location,
+    preferences.work_mode,
+    preferences.salary
   ]
-  const filled = total.filter(
-    v => v && v.toString().trim() !== ''
-  ).length
 
-  return Math.round((filled / total.length) * 100)
+  const filled = fields.filter(v => v && v.toString().trim() !== '').length
+
+  return Math.round((filled / fields.length) * 100)
 })
+
 
 onMounted(() => {
   getProfile()
@@ -405,13 +409,18 @@ onMounted(() => {
 })
 
 async function getProfile() {
-  const res = await fetch('/api/profile')
-  if (res.ok) {
-    const data = await res.json()
-    Object.assign(form, data)
-    Object.assign(preferences, data.preferences || {})
+  try {
+    const res = await fetch('/api/profile')
+    if (res.ok) {
+      const data = await res.json()
+      Object.assign(form, data)
+      Object.assign(preferences, data.preferences || {})
+    }
+  } catch (err) {
+    console.error(err)
   }
 }
+
 
 async function getEducation() {
   const res = await fetch('/api/profile/education')

@@ -121,6 +121,8 @@ import Chatbox from '@/pages/chatbox.vue'
 
 const chatboxRef = ref(null)
 
+const activeDocumentName = ref('')
+
 function openChat(doc) {
   chatboxRef.value?.setActiveDocument?.(doc)
 }

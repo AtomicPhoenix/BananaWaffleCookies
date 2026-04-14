@@ -130,5 +130,9 @@ async function sendMessage() {
   }
 }
 
+defineExpose({
+  setActiveDocument
+})
+
 </script>
 <style scoped src="@/assets/css/chatbox.css"></style>
