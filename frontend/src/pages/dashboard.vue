@@ -318,6 +318,7 @@ const deleteJob = async (job) => {
   } catch (err) {
     window.alert('Unable to delete job, please try again later.')
   }
+  location.reload();
 }
 
 const archiveJob = async (job) => {
