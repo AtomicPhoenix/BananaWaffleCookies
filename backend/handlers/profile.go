@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"bananawafflecookies.com/m/v2/db"
+	"github.com/go-chi/chi/v5"
 )
 
 // Handler for /api/profile (PUT)
@@ -122,7 +123,7 @@ func DeleteProfileEducation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idParam := r.URL.Query().Get("id")
+	idParam := chi.URLParam(r, "id")
 	if idParam == "" {
 		http.Error(w, "Missing experience id", http.StatusBadRequest)
 		return
@@ -255,7 +256,7 @@ func DeleteProfileExperience(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idParam := r.URL.Query().Get("id")
+	idParam := chi.URLParam(r, "id")
 	if idParam == "" {
 		http.Error(w, "Missing experience id", http.StatusBadRequest)
 		return
@@ -388,7 +389,7 @@ func DeleteProfileSkill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idParam := r.URL.Query().Get("id")
+	idParam := chi.URLParam(r, "id")
 	if idParam == "" {
 		http.Error(w, "Missing id", http.StatusBadRequest)
 		return
