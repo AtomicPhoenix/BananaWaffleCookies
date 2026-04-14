@@ -83,7 +83,7 @@ describe("Profile.vue", () => {
     expect(wrapper.vm.form.first_name).toContain("Testname");
     expect(wrapper.vm.form.last_name).toContain("nameTest");
   });
-/* 
+
   // ---------------------------- //
   // COMPLETION PERCENTAGE TEST   //
   // ---------------------------- //
@@ -96,7 +96,7 @@ describe("Profile.vue", () => {
 
     await wrapper.vm.$nextTick();
 
-    const expected = Math.round((2 / 7) * 100);
+    const expected = Math.round((2 / 9) * 100);
 
     expect(wrapper.vm.completionPercentage).toBe(expected);
   });
@@ -106,36 +106,55 @@ describe("Profile.vue", () => {
   // ---------------------------- //
 
   it("loads profile data from API on mount", async () => {
-    const mockData = {
+    const mockProfile = {
       first_name: "John",
       last_name: "Doe",
       phone: "1234567890",
-      preferences: {
-        target_roles: "Engineer",
-        location: "NJ",
-      },
     };
 
-    // Override ONLY the profile endpoint
-    fetch.mockImplementationOnce((url) => {
+    const mockPreferences = {
+      preferred_role: "Engineer",
+      preferred_state: "NJ",
+    };
+
+    fetch.mockImplementation((url) => {
       if (url === "/api/profile") {
         return Promise.resolve({
           ok: true,
-          json: async () => mockData,
+          json: async () => mockProfile,
         });
       }
-      return global.fetch(url);
+
+      if (url === "/api/profile/preferences") {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockPreferences,
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({}),
+      });
     });
 
     const wrapper = mount(Profile);
 
     await flushPromises();
 
+    // form data check
     expect(wrapper.vm.form.first_name).toBe("John");
-    expect(wrapper.vm.preferences.location).toBe("NJ");
+    expect(wrapper.vm.form.last_name).toBe("Doe");
+    expect(wrapper.vm.form.phone).toBe("1234567890");
+
+    // preferences now correctly tested
+    expect(wrapper.vm.preferences.preferred_role).toBe("Engineer");
+    expect(wrapper.vm.preferences.preferred_state).toBe("NJ");
+
     expect(fetch).toHaveBeenCalledWith("/api/profile");
+    expect(fetch).toHaveBeenCalledWith("/api/profile/preferences");
   });
-*/
+
   // ---------------------------- //
   // SAVE PROFILE (PUT)           //
   // ---------------------------- //
