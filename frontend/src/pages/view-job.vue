@@ -4,19 +4,19 @@
 
       <div class="job-information-box">
         <ul class="job-list-column">
-          <li>Company: {{job.company_name}}</li>
-          <li>Salary: {{job.salary}}</li>
-          <li>Location: {{job.location_text}}</li>
-          <li>Posting: {{job.posting_url}}</li>
-          <li>Date Applied: {{job.date_applied}}</li>
-          <li>Deadline: {{job.deadline_date}}</li>
-          <li>Status: {{job.status}}</li>
+          <li><b>Company:</b> {{job.company_name}}</li>
+          <li><b>Salary:</b> {{job.salary}}</li>
+          <li><b>Location:</b> {{job.location_text}}</li>
+          <li><b>Posting:</b> {{job.posting_url}}</li>
+          <li><b>Date Applied:</b> {{job.date_applied}}</li>
+          <li><b>Deadline:</b> {{job.deadline_date}}</li>
+          <li><b>Status:</b> {{job.status}}</li>
         </ul>
 
         <h2 class="job-notes">Notes</h2>
         <p>{{job.description}}</p>
 
-        <div class="edit-button" v-if="isOwner && job.id">
+        <div class="edit-button-view" v-if="isOwner && job.id">
           <button @click="edit" class="edit-job-button">Edit</button>
         </div>
       </div>
