@@ -402,7 +402,7 @@ const matchesSalaryFilter = (job) => {
   })
 }
 
-const filteredJobs = (jobs) => jobs.filter(matchesStatusFilter).filter(matchesSalaryFilter)
+const filteredJobs = (jobs) => jobs.filter(matchesStatusFilter).filter(matchesSalaryFilter).filter(job => String(job.status || '').toLowerCase() !== 'archived')
 
 const sortedJobs = (jobs) => {
   return [...jobs].sort((left, right) => {
