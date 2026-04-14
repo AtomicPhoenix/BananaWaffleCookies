@@ -314,6 +314,23 @@ const updateJobStatus = async (job, newStatus) => {
 }
 
 const deleteJob = async (job) => {
+  const confirmed = window.confirm(
+    `Delete "${job.title}" at ${job.company_name}? This action cannot be undone.`
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  const typedConfirmation = window.prompt(
+    'To permanently delete this job, type "delete" below.'
+  )
+
+  if ((typedConfirmation || '').trim().toLowerCase() !== 'delete') {
+    window.alert('Delete cancelled. You must type "delete" exactly to confirm.')
+    return
+  }
+
   try {
     const res = await fetch(`/api/jobs/${job.id}`, {
       method: 'DELETE',

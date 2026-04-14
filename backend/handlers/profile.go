@@ -11,34 +11,36 @@ import (
 
 // Handler for /api/profile (PUT)
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to update profile", http.StatusUnauthorized)
+		fmt.Fprintf(os.Stderr, "Failed to update profile: %v\n", err)
+		return
+
+	}
+
 	var profile db.Profile
 
-	err := json.NewDecoder(r.Body).Decode(&profile)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&profile)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	var tokenInfo Claim
-	err, tokenInfo = GrabToken(r)
-	if err != nil {
-		http.Error(w, "Failed to update profile", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to update profile: %v\n", err)
-		return
-
-	}
 	profile.UserID = tokenInfo.Uid
 	profile.SetCompletionPercent()
 
 	err = db.UpdateProfile(profile)
 	if err != nil {
-		http.Error(w, "Failed to update profile", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to update profile: %v\n", err)
+		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Internal server error when updating profile: %v\n", err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"message":"Profile successfully updated."}`)
 }
 
 // Handler for /api/profile (GET)
@@ -46,7 +48,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
-		http.Error(w, "Failed to get profile", http.StatusBadRequest)
+		http.Error(w, "Failed to get profile", http.StatusUnauthorized)
 		fmt.Fprintf(os.Stderr, "Failed to get profile: %v\n", err)
 		return
 
@@ -55,7 +57,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := db.GetProfile(uid)
 	if err != nil {
-		http.Error(w, "Failed to get profile", http.StatusBadRequest)
+		http.Error(w, "Internal server error when getting profile", http.StatusInternalServerError)
 		fmt.Fprintf(os.Stderr, "Failed to get profile: %v\n", err)
 		return
 	}

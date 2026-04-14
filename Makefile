@@ -1,15 +1,17 @@
 # Run this build target regardless of if file exists or not
-.PHONY: bananaWaffleCookies test
+.PHONY: bananaWaffleCookies backend frontend test
 
 # Default 
 all: bananaWaffleCookies
 
-front-end:
+frontend:
 	npm --prefix frontend/ run build
 
-# Build frontend and Go backend
-bananaWaffleCookies: install front-end
+backend:
 	go -C backend/ build -o ../bananaWaffleCookies 
+
+# Build frontend and Go backend
+bananaWaffleCookies: frontend backend
 
 # Install Node.js and golang packages 
 install:
