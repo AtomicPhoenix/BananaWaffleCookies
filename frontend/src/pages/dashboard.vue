@@ -324,7 +324,7 @@ const deleteJob = async (job) => {
 const archiveJob = async (job) => {
   try {
     const res = await fetch(`/api/jobs/${job.id}/archive`, {
-      method: 'PUT',
+      method: 'POST',
       credentials: 'include',
     })
 
@@ -339,7 +339,7 @@ const archiveJob = async (job) => {
 const unArchiveJob = async (job) => {
   try {
     const res = await fetch(`/api/jobs/${job.id}/unarchive`, {
-      method: 'PUT',
+      method: 'POST',
       credentials: 'include',
     })//blah
 
