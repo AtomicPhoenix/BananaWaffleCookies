@@ -22,7 +22,9 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	var profile db.Profile
 
-	err = json.NewDecoder(r.Body).Decode(&profile)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&profile)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
