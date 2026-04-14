@@ -41,12 +41,12 @@
         <h3 class="section-title">Education</h3>
 
         <div class="form-row">
-          <input v-model="newEducation.school" placeholder="School" />
+          <input v-model="newEducation.institution" placeholder="School" />
           <input v-model="newEducation.degree" placeholder="Degree" />
         </div>
 
         <div class="form-row">
-          <input v-model="newEducation.field" placeholder="Field" />
+          <input v-model="newEducation.field_of_study" placeholder="Field" />
           <input v-model="newEducation.start_date" type="date" />
           <input v-model="newEducation.end_date" type="date" />
         </div>
@@ -65,8 +65,8 @@
         >
           <div v-if="editId !== edu.id" class="item-row">
             <div>
-              <strong>{{ edu.school }}</strong> — {{ edu.degree }}
-              <p class="sub-text">{{ edu.field }}</p>
+              <strong>{{ edu.institution }}</strong> — {{ edu.degree }}
+              <p class="sub-text">{{ edu.field_of_study }}</p>
             </div>
 
             <div class="actions">
@@ -76,9 +76,9 @@
           </div>
 
           <div v-else class="edit-row">
-            <input v-model="editEducation.school" />
+            <input v-model="editEducation.institution" />
             <input v-model="editEducation.degree" />
-            <input v-model="editEducation.field" />
+            <input v-model="editEducation.field_of_study" />
             <input v-model="editEducation.start_date" type="date" />
             <input v-model="editEducation.end_date" type="date" />
 
@@ -94,8 +94,8 @@
       <div class="section">
         <h3 class="section-title">Employment</h3>
 
-        <input v-model="newEmployment.company" placeholder="Company" />
-        <input v-model="newEmployment.role" placeholder="Role" />
+        <input v-model="newEmployment.organization" placeholder="Company" />
+        <input v-model="newEmployment.title" placeholder="Role" />
         <input v-model="newEmployment.start_date" type="date" />
         <input v-model="newEmployment.end_date" type="date" />
         <input
@@ -117,7 +117,7 @@
         >
           <div v-if="editEmploymentId !== emp.id" class="item-row">
             <div>
-              <strong>{{ emp.company }}</strong> — {{ emp.role }}
+              <strong>{{ emp.organization }}</strong> — {{ emp.title }}
               <p class="sub-text">{{ emp.description }}</p>
             </div>
 
@@ -130,8 +130,8 @@
           </div>
 
           <div v-else class="edit-row">
-            <input v-model="editEmployment.company" />
-            <input v-model="editEmployment.role" />
+            <input v-model="editEmployment.organization" />
+            <input v-model="editEmployment.title" />
             <input v-model="editEmployment.description" />
 
             <div class="actions">
@@ -147,13 +147,13 @@
         <h3 class="section-title">Skills</h3>
 
         <div class="form-row">
-          <input v-model="newSkill.name" placeholder="Skill" />
+          <input v-model="newSkill.skill_name" placeholder="Skill" />
           <input
             v-model="newSkill.category"
             placeholder="Category (optional)"
           />
 
-          <select v-model="newSkill.proficiency">
+          <select v-model="newSkill.proficiency_label">
             <option value="">Proficiency</option>
             <option>Beginner</option>
             <option>Intermediate</option>
@@ -175,9 +175,9 @@
         >
           <div v-if="editSkillId !== skill.id" class="item-row">
             <div>
-              <strong>{{ skill.name }}</strong>
+              <strong>{{ skill.skill_name }}</strong>
               <p class="sub-text">
-                {{ skill.category }} • {{ skill.proficiency }}
+                {{ skill.category }} • {{ skill.proficiency_label }}
               </p>
             </div>
 
@@ -190,10 +190,10 @@
           </div>
 
           <div v-else class="edit-row">
-            <input v-model="editSkill.name" />
+            <input v-model="editSkill.skill_name" />
             <input v-model="editSkill.category" />
 
-            <select v-model="editSkill.proficiency">
+            <select v-model="editSkill.proficiency_label">
               <option value="">Proficiency</option>
               <option>Beginner</option>
               <option>Intermediate</option>
@@ -259,7 +259,7 @@
         <h3 class="section-title">Preferences</h3>
 
         <input
-          v-model="preferences.target_roles"
+          v-model="preferences.preferred_role"
           placeholder="Target Roles"
         />
         <input
@@ -303,7 +303,7 @@ const form = reactive({
 })
 
 const preferences = reactive({
-  target_roles: '',
+  preferred_role: '',
   location: '',
   work_mode: '',
   salary: ''
@@ -315,22 +315,22 @@ const employmentList = ref([])
 const projectList = ref([])
 
 const newEducation = reactive({
-  school: '',
+  institution: '',
   degree: '',
-  field: '',
+  field_of_study: '',
   start_date: '',
   end_date: ''
 })
 
 const newSkill = reactive({
-  name: '',
+  skill_name: '',
   category: '',
-  proficiency: ''
+  proficiency_label: ''
 })
 
 const newEmployment = reactive({
-  company: '',
-  role: '',
+  organization: '',
+  title: '',
   start_date: '',
   end_date: '',
   description: ''
@@ -344,24 +344,24 @@ const newProject = reactive({
 
 const editId = ref(null)
 const editEducation = reactive({
-  school: '',
+  institution: '',
   degree: '',
-  field: '',
+  field_of_study: '',
   start_date: '',
   end_date: ''
 })
 
 const editSkillId = ref(null)
 const editSkill = reactive({
-  name: '',
+  skill_name: '',
   category: '',
-  proficiency: ''
+  proficiency_label: ''
 })
 
 const editEmploymentId = ref(null)
 const editEmployment = reactive({
-  company: '',
-  role: '',
+  organization: '',
+  title: '',
   start_date: '',
   end_date: '',
   description: ''
@@ -388,7 +388,7 @@ const completionPercentage = computed(() => {
     form.first_name,
     form.last_name,
     form.phone,
-    preferences.target_roles,
+    preferences.preferred_role,
     preferences.location,
     preferences.work_mode,
     preferences.salary
@@ -440,7 +440,7 @@ async function saveSkillOrder() {
       body: JSON.stringify(
         skillsList.value.map((skill, index) => ({
           id: skill.id,
-          position: index
+          sort_order: index
         }))
       )
     })
@@ -462,7 +462,7 @@ async function saveEmploymentOrder() {
       body: JSON.stringify(
         employmentList.value.map((emp, index) => ({
           id: emp.id,
-          position: index
+          sort_order: index
         }))
       )
     })
@@ -484,7 +484,7 @@ async function saveProjectOrder() {
       body: JSON.stringify(
         projectList.value.map((proj, index) => ({
           id: proj.id,
-          position: index
+          sort_order: index
         }))
       )
     })
@@ -523,7 +523,7 @@ async function saveBasic() {
 async function savePreferences() {
   reset('preferences')
 
-  if (!preferences.target_roles || !preferences.location) {
+  if (!preferences.preferred_role || !preferences.location) {
     messages.preferences.error = 'Roles and location required'
     return
   }
@@ -546,9 +546,9 @@ async function addEducation() {
   reset('education')
 
   if (
-    !newEducation.school ||
+    !newEducation.institution ||
     !newEducation.degree ||
-    !newEducation.field ||
+    !newEducation.field_of_study ||
     !newEducation.start_date ||
     !newEducation.end_date
   ) {
@@ -598,9 +598,9 @@ async function updateEducation(id) {
   reset('education')
 
   if (
-    !editEducation.school ||
+    !editEducation.institution ||
     !editEducation.degree ||
-    !editEducation.field ||
+    !editEducation.field_of_study ||
     !editEducation.start_date ||
     !editEducation.end_date
   ) {
@@ -646,7 +646,7 @@ function cancelEditSkill() {
 async function updateSkill(id) {
   reset('skills')
 
-  if (!editSkill.name) {
+  if (!editSkill.skill_name) {
     messages.skills.error = 'Skill name required'
     return
   }
@@ -673,7 +673,7 @@ async function updateSkill(id) {
 async function addSkill() {
   reset('skills')
 
-  if (!newSkill.name) {
+  if (!newSkill.skill_name) {
     messages.skills.error = 'Skill name required'
     return
   }
@@ -721,7 +721,7 @@ async function moveSkillDown(index) {
 async function addEmployment() {
   reset('employment')
 
-  if (!newEmployment.company || !newEmployment.role) {
+  if (!newEmployment.organization || !newEmployment.title) {
     messages.employment.error = 'Company and role required'
     return
   }
