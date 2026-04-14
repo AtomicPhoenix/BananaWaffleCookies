@@ -18,6 +18,12 @@
         </div>
       </div>
 
+      <!-- ================= Last Modified ================= -->
+      <div class="section">
+        <h3 class="section-title">Last Modified</h3>
+        <p class="sub-text" :value="timestamp">{{ getTimestamp() }}</p>
+      </div>
+
       <!-- ================= INTERVIEWS ================= -->
       <div class="section">
         <h3 class="section-title">Interviews</h3>
@@ -184,6 +190,9 @@ const isGeneratingCoverLetter = ref(false)
 
 const interviews = ref([])
 const followUps = ref([])
+const timestamp = ref([
+  {}
+]) 
 
 const newInterview = reactive({ round: '', datetime: '', notes: '' })
 const newFollow = reactive({ task: '', date: '' })
@@ -271,6 +280,26 @@ function formatDate(date) {
 const sortedTimeline = computed(() =>
   [...job.timeline].sort((a, b) => new Date(b.date) - new Date(a.date))
 )
+// ================= Last Modified =================
+
+const getTimestamp = async () => {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/activities`, {
+      method: 'GET',
+      credentials: 'include' // important if using sessions/cookies
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch jobs with code ${res.status}`)
+    }
+
+    const data = await res.json()
+    Object.assign(form, data)
+
+  } catch (err) {
+    console.error('Failed to fetch user jobs:', err)
+  }
+}
 
 // ================= FETCH =================
 import { watch } from 'vue'
