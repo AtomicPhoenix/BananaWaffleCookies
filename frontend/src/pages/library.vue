@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
-    <div v-if="activeDocumentName" class="active-doc">
-      Analyzing: {{ activeDocumentName }}
+    <div v-if="activeJobName" class="active-doc">
+      Analyzing: {{ activeJobName }}
     </div>
 
     <h2 class="page-title">Document Library</h2>
@@ -99,7 +99,6 @@
 
         <!-- ACTIONS -->
         <div class="doc-actions">
-          <button @click="openDocument(doc)">Open</button>
           <button @click="openChat(doc)">Chat</button>
           <button @click="deleteDocument(doc.id)" class="delete-btn">
             Delete
@@ -120,12 +119,9 @@ import { ref, onMounted } from 'vue'
 import Chatbox from '@/pages/chatbox.vue'
 
 const chatboxRef = ref(null)
-
-const activeDocumentName = ref('')
 const activeJobName = ref('')
 
-
-function openChat(doc) {
+function openChat(job) {
   chatboxRef.value?.setActiveJob?.(job)
 }
 
@@ -232,15 +228,6 @@ async function uploadFile() {
   } catch (err) {
     console.error(err)
     error.value = 'Server error'
-  }
-}
-
-/* ACTIONS */
-function openDocument(doc) {
-  if (doc.url) {
-    window.open(doc.url, '_blank')
-  } else {
-    alert('No file URL available')
   }
 }
 

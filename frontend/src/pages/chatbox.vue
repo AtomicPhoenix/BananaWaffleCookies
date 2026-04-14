@@ -60,14 +60,14 @@ const userInput = ref('')
 const isLoading = ref(false)
 
 const messages = ref([
-  { role: 'ai', content: 'Upload a resume and ask for feedback!' }
+  { role: 'ai', content: 'Upload a resume with a job and ask for feedback!' }
 ])
 
 // selected documentID
 const activeJobId = ref(null)
 const activeJobName = ref('')
 
-function setActiveJob(doc) {
+function setActiveJob(job) {
   activeJobId.value = job.id
   activeJobName.value = job.title
   isOpen.value = true
@@ -82,10 +82,10 @@ async function sendMessage() {
   const input = userInput.value.trim()
   if (!input || isLoading.value) return
 
-  if (!activeDocumentId.value) {
+  if (!activeJobId.value) {
     messages.value.push({
       role: 'ai',
-      content: 'Please select a document to analyze first.'
+      content: 'Please select a job to analyze first.'
     })
     return
   }
@@ -104,7 +104,7 @@ async function sendMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: input,
-        documentIds: [activeDocumentId.value],
+        documentIds: [activeJobId.value],
         history: messages.value
       })
     })
