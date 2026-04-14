@@ -1,7 +1,6 @@
 package db
 
 import (
-	"context"
 	"testing"
 	"time"
 )
@@ -37,7 +36,7 @@ func TestRetrieveJob(t *testing.T) {
 		deleteTestUser(t, test_user.Id)
 	})
 
-	retrieved_job, err := GetJob(test_job.ID)
+	retrieved_job, err := GetJob(test_job.ID, test_user.Id)
 	if err != nil {
 		t.Fatalf("Failed to retrieve job: %v", err)
 	}
@@ -53,6 +52,7 @@ func TestUpdateJob(t *testing.T) {
 		deleteTestUser(t, test_user.Id)
 	})
 
+	test_job.UserID = test_user.Id
 	test_job.CompanyName = "Aperture Labs"
 	test_job.Title = "Cave Johnson"
 	test_job.Status = "applied"
@@ -64,12 +64,12 @@ func TestUpdateJob(t *testing.T) {
 		t.Fatalf("Failed to update test user: %v", err)
 	}
 
-	retrieved_job, err := GetJob(test_job.ID)
+	retrieved_job, err := GetJob(test_job.ID, test_job.UserID)
 	if err != nil {
 		t.Fatalf("Failed to retrieve updated job: %v", err)
 	}
 
-	if retrieved_job.CompanyName != test_job.CompanyName {
+	if retrieved_job.Title != test_job.Title {
 		t.Errorf("Failed to retrieve job with correct information: expected %s, got %s", test_job.CompanyName, retrieved_job.CompanyName)
 	}
 }
@@ -80,8 +80,48 @@ func TestDeleteJob(t *testing.T) {
 		deleteTestUser(t, test_user.Id)
 	})
 
-	_, err := DbConn.Exec(context.Background(), "DELETE FROM jobs WHERE id=$1", test_job.ID)
-	if err != nil {
+	if err := DeleteJob(test_job); err != nil {
 		t.Fatalf("Failed to delete test job: %v", err)
+	}
+}
+
+func TestUnauthorizedUpdateJob(t *testing.T) {
+	test_user, test_job := createTestJob(t)
+	t.Cleanup(func() {
+		deleteTestUser(t, test_user.Id)
+	})
+
+	var updatedJob Job
+	updatedJob.UserID = -1 // Invalid User ID
+	updatedJob.CompanyName = "Aperture Labs"
+	updatedJob.Title = "Cave Johnson"
+	updatedJob.Status = "applied"
+	updatedJob.DeadlineDate = time.Now()
+	updatedJob.Description = "Owner, CEO, Visionary"
+
+	err := UpdateJob(updatedJob)
+	if err == nil {
+		t.Fatalf("Succeeded in updating test job with unauthorized user: %v", err)
+	}
+
+	retrieved_job, err := GetJob(test_job.ID, test_job.UserID)
+	if err != nil {
+		t.Fatalf("Failed to retrieve updated job: %v", err)
+	}
+
+	if retrieved_job.Title != test_job.Title {
+		t.Errorf("Succeeded in updating test job with unauthorized user: expected %s, got %s", retrieved_job.CompanyName, test_job.CompanyName)
+	}
+}
+
+func TestUnauthorizedRetrieveJob(t *testing.T) {
+	test_user, test_job := createTestJob(t)
+	t.Cleanup(func() {
+		deleteTestUser(t, test_user.Id)
+	})
+
+	_, err := GetJob(test_job.ID, -1)
+	if err == nil {
+		t.Fatalf("Succeeded in retrieving job with unauthorized user: %v", err)
 	}
 }

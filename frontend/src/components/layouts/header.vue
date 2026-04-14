@@ -29,7 +29,13 @@
             </div>
 
             <!-- Log Out Button -->
-            <button @click.stop="signOut" class="signout-button desktop">Sign Out</button>
+            <button 
+              v-if="isAuthenticated"
+              @click.stop="signOut" 
+              class="signout-button desktop"
+            >
+              Sign Out
+            </button>
             <!-- Mobile Menu Hamburger -->
             <button @click.stop="toggleMenu" class="hamburger" aria-label="Menu" aria-expanded="false">☰</button>
         </nav>
@@ -39,36 +45,57 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from "axios";
+
 const isOpen = ref(false)
 const menuRef = ref(null)
+const isAuthenticated = ref(false)
 
+// ---------------- AUTH ----------------
+const checkAuth = async () => {
+  try {
+    const response = await axios.get("/api/auth", {
+      withCredentials: true,
+    })
+
+    isAuthenticated.value = response.data.authenticated
+  } catch (err) {
+    isAuthenticated.value = false
+  }
+}
+
+// ---------------- SIGN OUT ----------------
 const signOut = async () => {
   try {
-    await axios.post("/api/logout", { withCredentials: true });
-    window.location.href = "/login";
-  } catch (err) {
-    console.error("Logout failed:", err);
-  }
-};
+    await axios.post("/api/logout", {}, {
+      withCredentials: true
+    })
 
+    isAuthenticated.value = false
+    window.location.href = "/login"
+  } catch (err) {
+    console.error("Logout failed:", err)
+  }
+}
+
+// ---------------- MENU ----------------
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
 }
 
 const handleClickOutside = (event) => {
-  if (
-    menuRef.value &&
-    !menuRef.value.contains(event.target)
-  ) {
+  if (menuRef.value && !menuRef.value.contains(event.target)) {
     isOpen.value = false
   }
 }
 
+// ---------------- LIFECYCLE ----------------
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  checkAuth()
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+

@@ -1,10 +1,12 @@
 package main
 
-import (
+	import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
+	"os"
 
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/handlers"
@@ -28,6 +30,11 @@ func init() {
 
 	godotenv.Load("./.env")
 
+	// Confirm existence of necessary environmental variables
+	if os.Getenv("GEMINI_API_KEY") == "" {
+		log.Fatal("GEMINI_API_KEY env not present")
+	}
+
 	// Initiailize AuthToken
 	handlers.InitAuth()
 
@@ -35,6 +42,16 @@ func init() {
 	err := db.InitDB()
 	if err != nil {
 		log.Fatalf(`Failed to init database: %v`, err)
+	}
+
+	// Create data folder
+	err = os.MkdirAll("data", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data directory: %s\n", err)
+	}
+	err = os.MkdirAll("data/documents", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data/documents directory: %s\n", err)
 	}
 }
 
@@ -50,14 +67,44 @@ func main() {
 	router.Group(func(r chi.Router) {
 		r.Use(handlers.AuthMiddleware)
 		r.Get("/api/auth", handlers.GetAuth)
+
 		r.Put("/api/profile", handlers.UpdateProfile)
 		r.Get("/api/profile", handlers.GetProfile)
-		r.Get("/api/jobs", handlers.GetJobs)
-		r.Get("/api/jobs/{id}", handlers.GetJob)
-		r.Post("/api/jobs", handlers.CreateJob)
-		r.Put("/api/jobs", handlers.UpdateJob)
+		r.Post("/api/profile/education", handlers.AddProfileEducation)
+		r.Get("/api/profile/education", handlers.GetProfileEducation)
+		r.Delete("/api/profile/education/{id}", handlers.DeleteProfileEducation)
+		r.Put("/api/profile/education", handlers.UpdateProfileEducation)
+		r.Put("/api/profile/education/reorder", handlers.ReorderProfileEducation)
+		r.Post("/api/profile/experiences", handlers.AddProfileExperience)
+		r.Get("/api/profile/experiences", handlers.GetProfileExperiences)
+		r.Delete("/api/profile/experiences/{id}", handlers.DeleteProfileExperience)
+		r.Put("/api/profile/experiences/reorder", handlers.ReorderProfileExperiences)
+		r.Put("/api/profile/experiences", handlers.UpdateProfileExperience)
+		r.Post("/api/profile/skills", handlers.AddProfileSkill)
+		r.Put("/api/profile/skills", handlers.UpdateProfileSkill)
+		r.Get("/api/profile/skills", handlers.GetProfileSkills)
+		r.Delete("/api/profile/skills/{id}", handlers.DeleteProfileSkill)
+		r.Put("/api/profile/skills/reorder", handlers.ReorderProfileSkill)
+		r.Route("/api/jobs", func(r chi.Router) {
+			r.Get("/", handlers.GetJobs)
+			r.Post("/", handlers.CreateJob)
+			r.Put("/", handlers.UpdateJob)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/", handlers.GetJob)
+				r.Delete("/", handlers.DeleteJob)
+				r.Post("/archive", handlers.ArchiveJob)
+				r.Post("/unarchive", handlers.UnarchiveJob)
+				r.Post("/resume", handlers.GetResumeDraft)
+				r.Get("/activities", handlers.GetJobActivities)
+			})
+		})
 		r.Put("/api/settings", handlers.UpdateSettings)
 		r.Get("/api/settings", handlers.GetSettings)
+		r.Get("/api/documents/{id}", handlers.GetDocument)
+		r.Get("/api/documents/{id}/info", handlers.GetDocumentInfo)
+		r.Post("/api/documents", handlers.UploadDocument)
+		r.Delete("/api/documents/{id}", handlers.DeleteDocument)
+		r.Put("/api/documents/{id}", handlers.UpdateDocument)
 	})
 
 	// Serve frontend for Vue routes

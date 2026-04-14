@@ -7,9 +7,11 @@ import SettingsPage from "@/pages/settings.vue";
 import LoginPage from "@/pages/login.vue";
 import DashboardPage from "@/pages/dashboard.vue";
 import CreateJobPage from "@/pages/create-job.vue";
-import ViewJobPage from "@/pages/view-job.vue";
 import EditJobPage from "@/pages/edit-job.vue";
 import SignupPage from "@/pages/signup.vue";
+import Chatbox from "@/pages/chatbox.vue";
+
+import JobDetail from "@/pages/job-detail.vue";
 
 async function checkUserAuth(_) {
   try {
@@ -68,7 +70,7 @@ const router = createRouter({
       path: "/jobs",
       children: [
         { path: "create", name: "create-job", component: CreateJobPage },
-        { path: ":job_id", component: ViewJobPage },
+        { path: ":job_id", name: "job-detail", component: JobDetail, props: true },
         { path: ":job_id/edit", name: "edit-job", component: EditJobPage },
       ],
       beforeEnter: checkUserAuth,

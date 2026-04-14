@@ -1,15 +1,17 @@
 # Run this build target regardless of if file exists or not
-.PHONY: bananaWaffleCookies
+.PHONY: bananaWaffleCookies backend frontend test
 
 # Default 
 all: bananaWaffleCookies
 
-front-end:
+frontend:
 	npm --prefix frontend/ run build
 
-# Build frontend and Go backend
-bananaWaffleCookies: install front-end
+backend:
 	go -C backend/ build -o ../bananaWaffleCookies 
+
+# Build frontend and Go backend
+bananaWaffleCookies: frontend backend
 
 # Install Node.js and golang packages 
 install:
@@ -29,3 +31,9 @@ clean: check_clean
 	# Remove potentially stale executables & build artifacts
 	rm -f bananaWaffleCookies 
 	rm -rf frontend/dist
+
+# Run tests
+test:
+	npm --prefix frontend/ test run
+	go -C backend/ test -v ./db/
+	go -C backend/ test -v ./handlers/

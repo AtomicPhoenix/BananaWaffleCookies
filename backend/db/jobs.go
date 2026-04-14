@@ -20,34 +20,65 @@ type Job struct {
 	Status       string    `json:"status"`
 	DeadlineDate time.Time `json:"deadline_date"`
 	Description  string    `json:"description"`
+	IsArchived   bool      `json:"is_archived"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-type Job_Activity struct {
-	job_id        int
-	activity_type string // in ( 'created', 'updated', 'status_changed', 'applied', 'note_added', 'document_linked', 'document_unlinked')
-	time          time.Time
-	description   string
-	metadata      string
+// Struct for tracking updates to a job
+type JobActivity struct {
+	ID           int          `json:"id"`
+	JobID        int          `json:"job_id"`
+	ActivityType ActivityType `json:"activity_type"`
+	ActivityAt   time.Time    `json:"activity_at"` // When the activity occured
+	Description  string       `json:"description,omitempty"`
 }
+
+// Valid activity types
+type ActivityType string
+
+const (
+	ActivityCreated            ActivityType = "created"
+	ActivityUpdated            ActivityType = "updated"
+	ActivityStatusChanged      ActivityType = "status_changed"
+	ActivityApplied            ActivityType = "applied"
+	ActivityNoteAdded          ActivityType = "note_added"
+	ActivityDocumentLinked     ActivityType = "document_linked"
+	ActivityDocumentUnlinked   ActivityType = "document_unlinked"
+	ActivityInterviewScheduled ActivityType = "interview_scheduled"
+	ActivityInterviewCompleted ActivityType = "interview_completed"
+	ActivityFollowUpCreated    ActivityType = "follow_up_created"
+	ActivityFollowUpCompleted  ActivityType = "follow_up_completed"
+	ActivityOutcome            ActivityType = "outcome"
+)
 
 func CreateJob(job Job) (int, error) {
 	var id int
-	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, description) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived) 
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 				RETURNING id`
-	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description).Scan(&id)
+	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, false).Scan(&id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to insert job into database: %v\n", err)
 		return -1, err
 	}
+
+	_, err = InsertJobActivity(JobActivity{
+		JobID:        id,
+		ActivityType: ActivityCreated,
+		Description:  "Job created",
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to insert job creation activity: %v\n", err)
+		return id, err
+	}
+
 	return id, err
 }
 
-func GetJobs(searchQuery string) ([]Job, error) {
+func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 	sqlQuery := `
-		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs `
+		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived, created_at, updated_at FROM jobs WHERE user_id = $1 `
 
 	var (
 		rows pgx.Rows
@@ -56,19 +87,19 @@ func GetJobs(searchQuery string) ([]Job, error) {
 
 	if searchQuery != "" {
 		sqlQuery += `
-			WHERE company_name ILIKE $1 
-			OR title ILIKE $1 
-			OR description ILIKE $1
+			AND (company_name ILIKE $2 
+			OR title ILIKE $2 
+			OR description ILIKE $2)
 			ORDER BY created_at DESC;`
 		searchTerm := "%" + searchQuery + "%"
-		rows, err = DbConn.Query(context.Background(), sqlQuery, searchTerm)
+		rows, err = DbConn.Query(context.Background(), sqlQuery, user_id, searchTerm)
 	} else {
 		sqlQuery += `ORDER BY created_at DESC;`
-		rows, err = DbConn.Query(context.Background(), sqlQuery)
+		rows, err = DbConn.Query(context.Background(), sqlQuery, user_id)
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %s\n%v\n", sqlQuery, err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -81,7 +112,7 @@ func GetJobs(searchQuery string) ([]Job, error) {
 		var deadlineDate sql.NullTime
 		var salary sql.NullInt64
 
-		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.CreatedAt, &j.UpdatedAt)
+		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.IsArchived, &j.CreatedAt, &j.UpdatedAt)
 
 		if err != nil {
 			return nil, err
@@ -110,11 +141,11 @@ func GetJobs(searchQuery string) ([]Job, error) {
 	return jobs, nil
 }
 
-func GetJob(job_id int) (Job, error) {
-	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs WHERE id = $1;`
+func GetJob(job_id int, user_id int) (Job, error) {
+	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived, created_at, updated_at FROM jobs WHERE id = $1 AND user_id = $2;`
 
 	var job Job
-	err := DbConn.QueryRow(context.Background(), sql_query, job_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.CreatedAt, &job.UpdatedAt)
+	err := DbConn.QueryRow(context.Background(), sql_query, job_id, user_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.IsArchived, &job.CreatedAt, &job.UpdatedAt)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get job with id %d from database: %v\n", job_id, err)
@@ -126,11 +157,185 @@ func GetJob(job_id int) (Job, error) {
 func UpdateJob(job Job) error {
 	sql_query := `UPDATE jobs 
 				SET company_name = $1, title = $2, location_text = $3, salary = $4, status = $5, deadline_date = $6, description = $7
-				WHERE id = $8`
-	_, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID)
+				WHERE id = $8 AND user_id = $9`
+	result, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID, job.UserID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to update job: %v\n", err)
 		return err
 	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in update operation (job doesn't exist or is not owned by user)")
+	}
+
+	_, err = InsertJobActivity(JobActivity{
+		JobID:        job.ID,
+		ActivityType: ActivityUpdated,
+		Description:  "Job updated",
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to insert job update activity: %v\n", err)
+		return err
+	}
+
 	return err
+}
+
+func ArchiveJob(job Job) error {
+	return setArchive(job, true)
+}
+
+func UnarchiveJob(job Job) error {
+	return setArchive(job, false)
+}
+
+func setArchive(job Job, is_archived bool) error {
+	sql_query := `UPDATE jobs 
+				SET is_archived = $1
+				WHERE id = $2 AND user_id = $3`
+	result, err := DbConn.Exec(context.Background(), sql_query, is_archived, job.ID, job.UserID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to arhive job: %v\n", err)
+		return err
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in archive operation (job doesn't exist or is not owned by user)")
+	}
+
+	var desc string
+	if is_archived {
+		desc = "Job archived"
+	} else {
+		desc = "Job unarchived"
+	}
+
+	_, err = InsertJobActivity(JobActivity{
+		JobID:        job.ID,
+		ActivityType: ActivityStatusChanged,
+		Description:  desc,
+	})
+
+	return err
+}
+
+func DeleteJob(job Job) error {
+	result, err := DbConn.Exec(context.Background(), "DELETE FROM jobs WHERE id=$1 AND user_id = $2", job.ID, job.UserID)
+	if err != nil {
+		return fmt.Errorf("Failed to delete test job: %v", err)
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in delete operation (job doesn't exist or is not owned by user)")
+	}
+	return nil
+}
+
+// JOB ACTIVITY HELPERS
+func InsertJobActivity(activity JobActivity) (JobActivity, error) {
+	query := `
+		INSERT INTO job_activities (
+			job_id,
+			activity_type,
+			description
+		)
+		VALUES ($1, $2, $3)
+		RETURNING id, activity_at
+	`
+
+	err := DbConn.QueryRow(
+		context.Background(),
+		query,
+		activity.JobID,
+		activity.ActivityType,
+		activity.Description,
+	).Scan(&activity.ID, &activity.ActivityAt)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to insert job activity: %v\n", err)
+		return JobActivity{}, err
+	}
+
+	return activity, nil
+}
+
+func GetJobActivities(jobID int) ([]JobActivity, error) {
+	query := `
+		SELECT
+			id,
+			job_id,
+			activity_type,
+			activity_at,
+			description
+		FROM job_activities
+		WHERE job_id = $1
+		ORDER BY activity_at DESC
+	`
+
+	rows, err := DbConn.Query(context.Background(), query, jobID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to query job activities: %v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var activities []JobActivity
+
+	for rows.Next() {
+		var activity JobActivity
+		var description sql.NullString
+
+		err := rows.Scan(
+			&activity.ID,
+			&activity.JobID,
+			&activity.ActivityType,
+			&activity.ActivityAt,
+			&description,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to scan job activity: %v\n", err)
+			return nil, err
+		}
+
+		if description.Valid {
+			activity.Description = description.String
+		}
+
+		activities = append(activities, activity)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return activities, nil
+}
+
+func IsJobOwner(jobID int, userID int) (bool, error) {
+	query := `
+		SELECT is_owner (
+			SELECT 1
+			FROM jobs
+			WHERE id = $1 AND user_id = $2
+		);
+	`
+
+	var is_owner bool
+
+	err := DbConn.QueryRow(
+		context.Background(),
+		query,
+		jobID,
+		userID,
+	).Scan(&is_owner)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to verify job ownership: %v\n", err)
+		return false, err
+	}
+
+	return is_owner, nil
 }

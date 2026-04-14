@@ -2,21 +2,28 @@
   <div class="job-page">
       <h1>{{job.title}}</h1>
 
-      <ul>
-        <li>Company: {{job.company_name}}</li>
-        <li>Salary: {{job.salary}}</li>
-        <li>Location: {{job.location_text}}</li>
-        <li>Posting: {{job.posting_url}}</li>
-        <li>Date Applied: {{job.date_applied}}</li>
-        <li>Deadline: {{job.deadline_date}}</li>
-        <li>Status: {{job.status}}</li>
-      </ul>
+      <div class="job-information-box">
+        <ul class="job-list-column">
+          <li><b>Company:</b> {{job.company_name}}</li>
+          <li><b>Salary:</b> {{job.salary}}</li>
+          <li><b>Location:</b> {{job.location_text}}</li>
+          <li><b>Posting:</b> {{job.posting_url}}</li>
+          <li><b>Date Applied:</b> {{job.date_applied}}</li>
+          <li><b>Deadline:</b> {{job.deadline_date}}</li>
+          <li><b>Status:</b> {{job.status}}</li>
+        </ul>
 
-      <h2>Description</h2>
-      <p>{{job.description}}</p>
-      
-      <div class="edit-button" v-if="isOwner && job.id">
-        <button @click="edit" class="edit-job-button">Edit</button>
+        <h2 class="job-notes">Notes</h2>
+        <p>{{job.description}}</p>
+
+        <div class="edit-button-view" v-if="isOwner && job.id">
+          <button @click="edit" class="edit-job-button">Edit</button>
+        </div>
+
+
+        <div class="generate-resume-button" v-if="isOwner && job.id">
+          <button @click="generateResume" class="generate-resume-button">Edit</button>
+        </div>
       </div>
 
       <!-- FEEDBACK -->
@@ -65,11 +72,26 @@ const getUser = async () => {
       credentials: 'include' // important if using sessions/cookies
     })
     let data = await res.json()
-    user_id.value = data.id
+    user_id.value = data.user_id
   } catch (err) {
     console.error('Failed to fetch user id:', err) 
   }
 }
+
+// Get resume draft
+const generateResume = async () => {
+  try {
+    let path = '/api/jobs/' + route.params.job_id + '/resume'
+    const res = await fetch(path, {
+      method: 'GET',
+      credentials: 'include' // important if using sessions/cookies
+    })
+    job.value = await res.json()
+  } catch (err) {
+    console.error('Failed to generate job resume:', err)
+  }
+}
+
 
 watch(() => route.params.job_id, (newId) => {
   form.id = newId
