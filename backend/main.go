@@ -30,6 +30,11 @@ func init() {
 
 	godotenv.Load("./.env")
 
+	// Confirm existence of necessary environmental variables
+	if os.Getenv("GEMINI_API_KEY") == "" {
+		log.Fatal("GEMINI_API_KEY env not present")
+	}
+
 	// Initiailize AuthToken
 	handlers.InitAuth()
 
@@ -84,6 +89,7 @@ func main() {
 		r.Get("/api/jobs/{id}", handlers.GetJob)
 		r.Post("/api/jobs/{id}/archive", handlers.ArchiveJob)
 		r.Post("/api/jobs/{id}/unarchive", handlers.UnarchiveJob)
+		r.Post("/api/jobs/{id}/resume", handlers.GetResumeDraft)
 		r.Delete("/api/jobs/{id}", handlers.DeleteJob)
 		r.Post("/api/jobs", handlers.CreateJob)
 		r.Put("/api/jobs", handlers.UpdateJob)
