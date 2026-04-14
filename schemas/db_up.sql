@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     location_text TEXT,
     salary INT,
     status TEXT NOT NULL CHECK (
-        status IN ('interested', 'applied', 'interview', 'offer', 'rejected', 'archived')
+        status IN ('interested', 'applied', 'interview', 'offer', 'rejected')
     ),
     deadline_date DATE,
     description TEXT,
