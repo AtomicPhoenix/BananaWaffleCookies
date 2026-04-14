@@ -90,53 +90,53 @@
         </div>
       </div>
 
-      <!-- ================= EMPLOYMENT ================= -->
+      <!-- ================= EXPERIENCES ================= -->
       <div class="section">
-        <h3 class="section-title">Employment</h3>
+        <h3 class="section-title">Experiences</h3>
 
-        <input v-model="newEmployment.organization" placeholder="Company" />
-        <input v-model="newEmployment.title" placeholder="Role" />
-        <input v-model="newEmployment.start_date" type="date" />
-        <input v-model="newEmployment.end_date" type="date" />
+        <input v-model="newExperiences.organization" placeholder="Company" />
+        <input v-model="newExperiences.title" placeholder="Role" />
+        <input v-model="newExperiences.start_date" type="date" />
+        <input v-model="newExperiences.end_date" type="date" />
         <input
-          v-model="newEmployment.description"
+          v-model="newExperiences.description"
           placeholder="Description"
         />
 
-        <button @click="addEmployment">Add Employment</button>
+        <button @click="addExperiences">Add Experiences</button>
 
-        <p v-if="messages.employment.success" class="success">Saved!</p>
-        <p v-if="messages.employment.error" class="error">
-          {{ messages.employment.error }}
+        <p v-if="messages.experiences.success" class="success">Saved!</p>
+        <p v-if="messages.experiences.error" class="error">
+          {{ messages.experiences.error }}
         </p>
 
         <div
-          v-for="(emp, index) in employmentList"
+          v-for="(emp, index) in experiencesList"
           :key="emp.id"
           class="item-card"
         >
-          <div v-if="editEmploymentId !== emp.id" class="item-row">
+          <div v-if="editExperiencesId !== emp.id" class="item-row">
             <div>
               <strong>{{ emp.organization }}</strong> — {{ emp.title }}
               <p class="sub-text">{{ emp.description }}</p>
             </div>
 
             <div class="actions">
-              <button @click="startEditEmployment(emp)">Edit</button>
-              <button @click="moveEmploymentUp(index)">↑</button>
-              <button @click="moveEmploymentDown(index)">↓</button>
-              <button @click="deleteEmployment(emp.id)">Delete</button>
+              <button @click="startEditExperiences(emp)">Edit</button>
+              <button @click="moveExperiencesUp(index)">↑</button>
+              <button @click="moveExperiencesDown(index)">↓</button>
+              <button @click="deleteExperiences(emp.id)">Delete</button>
             </div>
           </div>
 
           <div v-else class="edit-row">
-            <input v-model="editEmployment.organization" />
-            <input v-model="editEmployment.title" />
-            <input v-model="editEmployment.description" />
+            <input v-model="editExperiences.organization" />
+            <input v-model="editExperiences.title" />
+            <input v-model="editExperiences.description" />
 
             <div class="actions">
-              <button @click="updateEmployment(emp.id)">Save</button>
-              <button @click="cancelEditEmployment">Cancel</button>
+              <button @click="updateExperiences(emp.id)">Save</button>
+              <button @click="cancelEditExperiences">Cancel</button>
             </div>
           </div>
         </div>
@@ -311,7 +311,7 @@ const preferences = reactive({
 
 const educationList = ref([])
 const skillsList = ref([])
-const employmentList = ref([])
+const experiencesList = ref([])
 const projectList = ref([])
 
 const newEducation = reactive({
@@ -328,7 +328,7 @@ const newSkill = reactive({
   proficiency_label: ''
 })
 
-const newEmployment = reactive({
+const newExperiences = reactive({
   organization: '',
   title: '',
   start_date: '',
@@ -358,8 +358,8 @@ const editSkill = reactive({
   proficiency_label: ''
 })
 
-const editEmploymentId = ref(null)
-const editEmployment = reactive({
+const editExperiencesId = ref(null)
+const editExperiences = reactive({
   organization: '',
   title: '',
   start_date: '',
@@ -378,7 +378,7 @@ const messages = reactive({
   basic: { success: false, error: '' },
   education: { success: false, error: '' },
   skills: { success: false, error: '' },
-  employment: { success: false, error: '' },
+  experiences: { success: false, error: '' },
   projects: { success: false, error: '' },
   preferences: { success: false, error: '' }
 })
@@ -404,7 +404,7 @@ onMounted(() => {
   getProfile()
   getEducation()
   getSkills()
-  getEmployment()
+  getExperiences()
   getProjects()
 })
 
@@ -449,25 +449,25 @@ async function saveSkillOrder() {
   }
 }
 
-async function getEmployment() {
-  const res = await fetch('/api/profile/employment')
-  if (res.ok) employmentList.value = await res.json()
+async function getExperiences() {
+  const res = await fetch('/api/profile/experiences')
+  if (res.ok) experiencesList.value = await res.json()
 }
 
-async function saveEmploymentOrder() {
+async function saveExperiencesOrder() {
   try {
-    await fetch('/api/profile/employment/reorder', {
+    await fetch('/api/profile/experiences/reorder', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(
-        employmentList.value.map((emp, index) => ({
+        experiencesList.value.map((emp, index) => ({
           id: emp.id,
           sort_order: index
         }))
       )
     })
   } catch (err) {
-    console.error('Failed to save employment order', err)
+    console.error('Failed to save experiences order', err)
   }
 }
 
@@ -718,59 +718,59 @@ async function moveSkillDown(index) {
   await saveSkillOrder()
 }
 
-async function addEmployment() {
-  reset('employment')
+async function addExperiences() {
+  reset('experiences')
 
-  if (!newEmployment.organization || !newEmployment.title) {
-    messages.employment.error = 'Company and role required'
+  if (!newExperiences.organization || !newExperiences.title) {
+    messages.experiences.error = 'Company and role required'
     return
   }
 
-  const res = await fetch('/api/profile/employment', {
+  const res = await fetch('/api/profile/experiences', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newEmployment)
+    body: JSON.stringify(newExperiences)
   })
 
   if (res.ok) {
-    messages.employment.success = true
-    Object.keys(newEmployment).forEach(k => (newEmployment[k] = ''))
-    getEmployment()
+    messages.experiences.success = true
+    Object.keys(newExperiences).forEach(k => (newExperiences[k] = ''))
+    getExperiences()
   } else {
-    messages.employment.error = 'Save failed'
+    messages.experiences.error = 'Save failed'
   }
 }
 
-function startEditEmployment(emp) {
-  editEmploymentId.value = emp.id
-  Object.assign(editEmployment, emp)
+function startEditExperiences(emp) {
+  editExperiencesId.value = emp.id
+  Object.assign(editExperiences, emp)
 }
 
-function cancelEditEmployment() {
-  editEmploymentId.value = null
+function cancelEditExperiences() {
+  editExperiencesId.value = null
 }
 
-async function updateEmployment(id) {
-  reset('employment')
+async function updateExperiences(id) {
+  reset('experiences')
 
-  const res = await fetch(`/api/profile/employment/${id}`, {
+  const res = await fetch(`/api/profile/experiences/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(editEmployment)
+    body: JSON.stringify(editExperiences)
   })
 
   if (res.ok) {
-    messages.employment.success = true
-    editEmploymentId.value = null
-    getEmployment()
+    messages.experiences.success = true
+    editExperiencesId.value = null
+    getExperiences()
   } else {
-    messages.employment.error = 'Update failed'
+    messages.experiences.error = 'Update failed'
   }
 }
 
-async function deleteEmployment(id) {
-  await fetch(`/api/profile/employment/${id}`, { method: 'DELETE' })
-  getEmployment()
+async function deleteExperiences(id) {
+  await fetch(`/api/profile/experiences/${id}`, { method: 'DELETE' })
+  getExperiences()
 }
 
 async function addProject() {
@@ -828,20 +828,20 @@ async function deleteProject(id) {
   getProjects()
 }
 
-async function moveEmploymentUp(index) {
+async function moveExperiencesUp(index) {
   if (index === 0) return
-  const temp = employmentList.value[index]
-  employmentList.value[index] = employmentList.value[index - 1]
-  employmentList.value[index - 1] = temp
-  await saveEmploymentOrder()
+  const temp = experiencesList.value[index]
+  experiencesList.value[index] = experiencesList.value[index - 1]
+  experiencesList.value[index - 1] = temp
+  await saveExperiencesOrder()
 }
 
-async function moveEmploymentDown(index) {
-  if (index === employmentList.value.length - 1) return
-  const temp = employmentList.value[index]
-  employmentList.value[index] = employmentList.value[index + 1]
-  employmentList.value[index + 1] = temp
-  await saveEmploymentOrder()
+async function moveExperiencesDown(index) {
+  if (index === experiencesList.value.length - 1) return
+  const temp = experiencesList.value[index]
+  experiencesList.value[index] = experiencesList.value[index + 1]
+  experiencesList.value[index + 1] = temp
+  await saveExperiencesOrder()
 }
 
 async function moveProjectUp(index) {
