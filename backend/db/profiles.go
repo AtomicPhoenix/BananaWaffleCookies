@@ -65,6 +65,10 @@ func UpdateProfile(profile Profile) error {
 		updated_at = NOW()
 	WHERE user_id = $19`
 
+	if profile.CompletionPercent == 0 {
+		profile.SetCompletionPercent()
+	}
+
 	_, err := DbConn.Exec(
 		context.Background(),
 		query,
@@ -186,8 +190,12 @@ func extractValue(str sql.NullString) string {
 	return ""
 }
 
-// Calculate what percent of the profile is filled out
 func (profile *Profile) SetCompletionPercent() {
+	profile.CompletionPercent = profile.getProfileCompletionPercent()
+}
+
+// Calculate what percent of the profile is filled out (returns an int from 0 to 100)
+func (profile *Profile) getProfileCompletionPercent() int {
 	var filledFields int = 0
 	var numFields int = 17
 
@@ -242,5 +250,5 @@ func (profile *Profile) SetCompletionPercent() {
 	if profile.WorkMode != "" {
 		filledFields++
 	}
-	profile.CompletionPercent = int((float32(filledFields) / float32(numFields)) * 100)
+	return int((float32(filledFields) / float32(numFields)) * 100)
 }
