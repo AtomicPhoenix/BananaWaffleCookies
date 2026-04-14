@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <h2 class="page-title">{{ job.company }} — {{ job.role }}</h2>
+    <h2 class="page-title">{{ job.company_name }} — {{ job.title }}</h2>
 
     <div class="form-card">
       <!-- ================= TIMELINE ================= -->
@@ -137,7 +137,12 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 // ================= STATE =================
-const job = reactive({ id: null, company: '', role: '', timeline: [] })
+const job = reactive({
+  id: null,
+  title: '',
+  company_name: '',
+  timeline: []
+})
 
 const interviews = ref([])
 const followUps = ref([])
@@ -174,13 +179,20 @@ const sortedTimeline = computed(() =>
 )
 
 // ================= FETCH =================
+import { watch } from 'vue'
+
 onMounted(() => {
-  const id = route.params.id
-  getJob(id)
+  getJob(route.params.job_id)
+})
+
+watch(() => route.params.job_id, (newId) => {
+  getJob(newId)
 })
 
 async function getJob(id) {
-  const res = await fetch(`/api/jobs/${id}`)
+  const res = await fetch(`/api/jobs/${id}`, {
+    credentials: 'include'
+  })
   if (res.ok) {
     const data = await res.json()
 
