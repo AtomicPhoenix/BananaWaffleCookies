@@ -63,6 +63,13 @@
               {{ range.label }}
             </label>
           </div>
+          <p class="filter-section-label">Other</p>
+            <div class="filter-options">
+              <label class="filter-option">
+                  <input type="checkbox" v-model="showArchived">
+                  Show Archived Jobs
+                </label>
+            </div>
         </div>
 
         <!-- OVERVIEW -->
@@ -124,8 +131,9 @@
               </template>
               <BDropdownItem :to="`/jobs/${job.id}`">View</BDropdownItem>
               <BDropdownItem :to="`/jobs/${job.id}/edit`">Modify</BDropdownItem>
-              <BDropdownItem>Archive</BDropdownItem>
-              <BDropdownItem>Delete</BDropdownItem>
+              <BDropdownItem @click="archiveJob(job)">Archive</BDropdownItem>
+              <BDropdownItem @click="unArchiveJob(job)">Restore</BDropdownItem>
+              <BDropdownItem @click="deleteJob(job)">Delete</BDropdownItem>
             </BDropdown>
           </div>
         </div>
@@ -149,6 +157,7 @@ const sortBy = ref('updated-desc')
 const selectedStatuses = ref([])
 const selectedSalaryRanges = ref([])
 const firstName = ref('')
+const showArchived = ref(false)
 
 const welcomeMessage = computed(() => {
   const name = String(firstName.value || '').trim()
@@ -164,7 +173,7 @@ const stats = ref({
   rejected: 0
 })
 
-const statusOptions = ['interested', 'applied', 'interview', 'offer', 'rejected', 'archived']
+const statusOptions = ['interested', 'applied', 'interview', 'offer', 'rejected']
 const salaryRangeOptions = [
   { value: 'under-50000', label: 'Under $50,000' },
   { value: '50000-74999', label: '$50,000 - $74,999' },
@@ -246,7 +255,7 @@ const computeStats = (jobs) => {
   jobs.forEach(job => {
     const status = job.status.toLowerCase()
 
-    if (counts[status] !== undefined) {
+    if (counts[status] !== undefined && !job.is_archived) {
       counts[status]++
     }
   })
@@ -304,6 +313,55 @@ const updateJobStatus = async (job, newStatus) => {
   }
 }
 
+const deleteJob = async (job) => {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    if (!res.ok) {
+      return
+    }
+  } catch (err) {
+    window.alert('Unable to delete job, please try again later.')
+  }
+  location.reload();
+}
+
+const archiveJob = async (job) => {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/archive`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+
+    if (!res.ok) {
+      return
+    }
+
+  } catch (err) {
+    window.alert('Unable to archive job, please try again later.')
+  }
+  location.reload();
+}
+
+const unArchiveJob = async (job) => {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/unarchive`, {
+      method: 'POST',
+      credentials: 'include',
+    })//blah
+
+    if (!res.ok) {
+      return
+    }
+  } catch (err) {
+    window.alert('Unable to archive job, please try again later.')
+  }
+  location.reload();
+}
+
 const toTimeValue = (value) => {
   const timestamp = new Date(value).getTime()
   return Number.isNaN(timestamp) ? 0 : timestamp
@@ -313,9 +371,12 @@ const matchesStatusFilter = (job) => {
   if (!selectedStatuses.value.length) {
     return true
   }
-
   return selectedStatuses.value.includes(statusToCssId(job.status))
 }
+
+
+
+
 
 const salaryValue = (job) => {
   const parsed = Number(job.salary)
@@ -355,7 +416,16 @@ const matchesSalaryFilter = (job) => {
   })
 }
 
-const filteredJobs = (jobs) => jobs.filter(matchesStatusFilter).filter(matchesSalaryFilter)
+const excludeArchivedUnlessEnabled = (job) => {
+  if (showArchived.value) return true
+  return !job.is_archived
+}
+
+const filteredJobs = (jobs) =>
+  jobs
+    .filter(excludeArchivedUnlessEnabled)
+    .filter(matchesStatusFilter)
+    .filter(matchesSalaryFilter)
 
 const sortedJobs = (jobs) => {
   return [...jobs].sort((left, right) => {

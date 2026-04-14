@@ -20,6 +20,7 @@ type Job struct {
 	Status       string    `json:"status"`
 	DeadlineDate time.Time `json:"deadline_date"`
 	Description  string    `json:"description"`
+	IsArchived   bool      `json:"is_archived"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -34,10 +35,10 @@ type Job_Activity struct {
 
 func CreateJob(job Job) (int, error) {
 	var id int
-	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, description) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived) 
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 				RETURNING id`
-	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description).Scan(&id)
+	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, false).Scan(&id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to insert job into database: %v\n", err)
 		return -1, err
@@ -47,7 +48,7 @@ func CreateJob(job Job) (int, error) {
 
 func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 	sqlQuery := `
-		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs WHERE user_id = $1 `
+		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived, created_at, updated_at FROM jobs WHERE user_id = $1 `
 
 	var (
 		rows pgx.Rows
@@ -81,7 +82,7 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 		var deadlineDate sql.NullTime
 		var salary sql.NullInt64
 
-		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.CreatedAt, &j.UpdatedAt)
+		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.IsArchived, &j.CreatedAt, &j.UpdatedAt)
 
 		if err != nil {
 			return nil, err
@@ -111,10 +112,10 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 }
 
 func GetJob(job_id int, user_id int) (Job, error) {
-	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, created_at, updated_at FROM jobs WHERE id = $1 AND user_id = $2;`
+	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived, created_at, updated_at FROM jobs WHERE id = $1 AND user_id = $2;`
 
 	var job Job
-	err := DbConn.QueryRow(context.Background(), sql_query, job_id, user_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.CreatedAt, &job.UpdatedAt)
+	err := DbConn.QueryRow(context.Background(), sql_query, job_id, user_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.IsArchived, &job.CreatedAt, &job.UpdatedAt)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get job with id %d from database: %v\n", job_id, err)
@@ -139,4 +140,43 @@ func UpdateJob(job Job) error {
 	}
 
 	return err
+}
+
+func ArchiveJob(job Job) error {
+	return setArchive(job, true)
+}
+
+func UnarchiveJob(job Job) error {
+	return setArchive(job, false)
+}
+
+func setArchive(job Job, is_archived bool) error {
+	sql_query := `UPDATE jobs 
+				SET is_archived = $1
+				WHERE id = $2 AND user_id = $3`
+	result, err := DbConn.Exec(context.Background(), sql_query, is_archived, job.ID, job.UserID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to arhive job: %v\n", err)
+		return err
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in archive operation (job doesn't exist or is not owned by user)")
+	}
+
+	return err
+}
+
+func DeleteJob(job Job) error {
+	result, err := DbConn.Exec(context.Background(), "DELETE FROM jobs WHERE id=$1 AND user_id = $2", job.ID, job.UserID)
+	if err != nil {
+		return fmt.Errorf("Failed to delete test job: %v", err)
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in delete operation (job doesn't exist or is not owned by user)")
+	}
+	return nil
 }

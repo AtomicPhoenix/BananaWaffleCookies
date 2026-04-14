@@ -131,3 +131,102 @@ func UpdateJob(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"message":"Job successfully updated."}`)
 }
+
+// Handler for /api/jobs/{id}/archive (POST)
+func ArchiveJob(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to archive job", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to archive job; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
+	job_id_raw := chi.URLParam(r, "id")
+
+	job_id, err := strconv.Atoi(job_id_raw)
+	if err != nil {
+		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		return
+	}
+
+	var job db.Job
+	job.ID = job_id
+	job.UserID = tokenInfo.Uid
+	err = db.ArchiveJob(job)
+	if err != nil {
+		http.Error(w, "Failed to archive job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to archive job: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Job successfully Archived."}`)
+}
+
+// Handler for /api/jobs/{id}/unarchive (POST)
+func UnarchiveJob(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to unarchive job", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to unarchive job; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
+	job_id_raw := chi.URLParam(r, "id")
+
+	job_id, err := strconv.Atoi(job_id_raw)
+	if err != nil {
+		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		return
+	}
+
+	var job db.Job
+	job.ID = job_id
+	job.UserID = tokenInfo.Uid
+	err = db.UnarchiveJob(job)
+	if err != nil {
+		http.Error(w, "Failed to unarchive job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to unarchive job: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Job successfully Unarchived."}`)
+}
+
+// Handler for /api/jobs/{id} (Delete)
+func DeleteJob(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to delete job", http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Failed to delete job; Failed to grab auth token information: %v\n", err)
+		return
+	}
+
+	job_id_raw := chi.URLParam(r, "id")
+
+	job_id, err := strconv.Atoi(job_id_raw)
+	if err != nil {
+		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		return
+	}
+
+	var job db.Job
+	job.ID = job_id
+	job.UserID = tokenInfo.Uid
+	err = db.DeleteJob(job)
+	if err != nil {
+		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Failed to delete job: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Job successfully deleted."}`)
+}
