@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     ),
     deadline_date DATE,
     description TEXT,
-    is_archived BOOLEAN
+    is_archived BOOLEAN,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
