@@ -83,7 +83,7 @@
         <h4>{{ doc.title }}</h4>
 
         <p class="doc-sub">
-          {{ doc.type }} • Job ID: {{ doc.job_id || 'N/A' }}
+          {{ doc.type }} • job ID: {{ doc.job_id || 'N/A' }}
         </p>
 
         <!-- TAGS -->
@@ -125,6 +125,7 @@ const activeDocumentName = ref('')
 
 function openChat(doc) {
   chatboxRef.value?.setActiveDocument?.(doc)
+  chatboxRef.value?.setActiveJobID?.(job)
 }
 
 /* STATE */

@@ -65,14 +65,21 @@ const messages = ref([
 
 // selected documentID
 const activeDocumentId = ref(null)
+const activeJobId = ref(null)
 const activeDocumentName = ref('')
 
 function setActiveDocument(doc) {
   activeDocumentId.value = doc.id
   activeDocumentName.value = doc.title
   isOpen.value = true
+
+  //calls chat history
+  getMessage()
 }
 
+function setActiveJobId(job) {
+  activeJobId.value = job.id
+}
 
 function closeChat() {
   isOpen.value = false
@@ -105,6 +112,7 @@ async function sendMessage() {
       body: JSON.stringify({
         message: input,
         documentIds: [activeDocumentId.value],
+        jobIds: [activeJobId.value],
         history: messages.value
       })
     })
@@ -130,8 +138,54 @@ async function sendMessage() {
   }
 }
 
+// Fetch messages back from AI
+// Fetch messages back from AI
+const getMessage = async () => {
+  try {
+    isLoading.value = true
+
+    const res = await fetch('/api/ai/chat', {
+      method: 'GET',
+      credentials: 'include'
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to receive message with code ${res.status}`)
+    }
+
+    const data = await res.json()
+
+    // Handle both possible response shapes
+    const fetchedMessages = Array.isArray(data)
+      ? data
+      : data.messages
+
+    if (!fetchedMessages) {
+      throw new Error('Invalid response format')
+    }
+
+    // Replace or merge messages (choose behavior)
+    messages.value = [
+      { role: 'ai', content: 'Upload a resume and ask for feedback!' },
+      ...fetchedMessages
+    ]
+
+  } catch (err) {
+    console.error('Failed to fetch messages:', err)
+
+    messages.value.push({
+      role: 'ai',
+      content: 'Error: Unable to fetch previous messages.'
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+
 defineExpose({
-  setActiveDocument
+  setActiveDocument,
+  setActiveJobId
 })
 
 </script>
