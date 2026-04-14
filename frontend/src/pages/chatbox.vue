@@ -42,7 +42,7 @@
       />
       <button 
         @click="sendMessage"
-        :disabled="!activeDocumentId || isLoading"
+        :disabled="!activeJobId || isLoading"
       >
       Send
       </button>
