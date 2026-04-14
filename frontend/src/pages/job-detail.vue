@@ -41,7 +41,6 @@
             </div>
 
             <div class="actions">
-              <button @click="startEditInterview(i)">Edit</button>
               <button @click="deleteInterview(i.id)">Delete</button>
             </div>
           </div>
@@ -64,8 +63,9 @@
       <div class="section">
         <h3 class="section-title">Follow-Ups / Reminders</h3>
 
-        <input v-model="newFollow.task" placeholder="Task" />
-        <input v-model="newFollow.date" type="date" />
+        <input v-model="newFollow.title" placeholder="Title" />
+        <input v-model="newFollow.due_at" type="date" />
+        <input v-model="newFollow.notes" placeholder="Notes (optional)" />
 
         <button @click="addFollowUp">Add Reminder</button>
 
@@ -78,14 +78,15 @@
           <!-- VIEW -->
           <div v-if="editFollowId !== f.id" class="item-row">
             <div>
-              <strong>{{ f.task }}</strong>
-              <p class="sub-text">{{ formatDate(f.date) }}</p>
+              <strong>{{ f.title }}</strong>
+              <p class="sub-text">{{ formatDate(f.due_at ) }}</p>
+              <p v-if="f.notes">{{ f.notes }}</p>
             </div>
 
             <div class="actions">
               <button @click="startEditFollow(f)">Edit</button>
               <button @click="toggleDone(f)">
-                {{ f.done ? 'Undo' : 'Done' }}
+                {{ f.is_completed ? 'Undo' : 'Done' }}
               </button>
               <button @click="deleteFollowUp(f.id)">Delete</button>
             </div>
@@ -93,8 +94,8 @@
 
           <!-- EDIT -->
           <div v-else class="edit-row">
-            <input v-model="editFollow.task" />
-            <input v-model="editFollow.date" type="date" />
+            <input v-model="editFollow.title" />
+            <input v-model="editFollow.due_at" type="date" />
 
             <div class="actions">
               <button @click="updateFollowUp(f.id)">Save</button>
@@ -186,7 +187,11 @@ const activities = ref([])
 
 
 const newInterview = reactive({ round: '', datetime: '', notes: '' })
-const newFollow = reactive({ task: '', date: '' })
+const newFollow = reactive({
+  title: '',
+  due_at: '',
+  notes: ''
+})
 
 const outcome = reactive({ status: '', notes: '' })
 
@@ -194,7 +199,12 @@ const editInterviewId = ref(null)
 const editInterview = reactive({ round: '', datetime: '', notes: '' })
 
 const editFollowId = ref(null)
-const editFollow = reactive({ task: '', date: '' })
+const editFollow = reactive({
+  title: '',
+  due_at: '',
+  notes: '',
+  is_completed: false
+})
 
 const messages = reactive({
   interview: { success: false, error: '' },
@@ -324,7 +334,6 @@ async function getJob(id) {
     const data = await res.json()
 
     Object.assign(job, data)
-    interviews.value = data.interviews || []
     followUps.value = data.followUps || []
     Object.assign(outcome, data.outcome || {})
 
@@ -339,12 +348,43 @@ async function getJob(id) {
         note: 'Application submitted'
       })
     }
-
     await getActivities()
+    await getFollowUps(id)
   }
 }
 
 // ================= INTERVIEWS =================
+async function getInterviews(jobId) {
+  try {
+    const res = await fetch(`/api/jobs/${jobId}/interviews`, {
+      credentials: 'include'
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+
+      // map backend → frontend shape
+      interviews.value = data.map(i => ({
+        id: i.id,
+        round: i.round_type,
+        datetime: i.scheduled_at,
+        notes: i.notes
+      }))
+
+      // rebuild timeline entries
+      interviews.value.forEach(i => {
+        job.timeline.push({
+          type: 'interview',
+          date: i.datetime,
+          note: i.round
+        })
+      })
+    }
+  } catch (err) {
+    console.error('Failed to fetch interviews', err)
+  }
+}
+
 async function addInterview() {
   reset('interview')
 
@@ -357,17 +397,30 @@ async function addInterview() {
     const res = await fetch(`/api/jobs/${job.id}/interviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newInterview)
+      credentials: 'include',
+      body: JSON.stringify({
+        round_type: newInterview.round,
+        scheduled_at: new Date(newInterview.datetime).toISOString(),
+        notes: newInterview.notes
+      })
     })
 
     if (res.ok) {
-      const saved = await res.json()
-      interviews.value.push(saved)
+      const data = await res.json()
+
+      const newItem = {
+        id: data.id,
+        round: newInterview.round,
+        datetime: newInterview.datetime,
+        notes: newInterview.notes
+      }
+
+      interviews.value.push(newItem)
 
       job.timeline.push({
         type: 'interview',
-        date: saved.datetime,
-        note: saved.round
+        date: newItem.datetime,
+        note: newItem.round
       })
 
       Object.keys(newInterview).forEach(k => (newInterview[k] = ''))
@@ -383,11 +436,15 @@ async function addInterview() {
 
 async function deleteInterview(id) {
   try {
-    await fetch(`/api/jobs/${job.id}/interviews/${id}`, {
-      method: 'DELETE'
+    const res = await fetch(`/api/jobs/${job.id}/interviews/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
     })
 
+    if (!res.ok) return
+
     const old = interviews.value.find(i => i.id === id)
+
     interviews.value = interviews.value.filter(i => i.id !== id)
 
     job.timeline = job.timeline.filter(
@@ -441,11 +498,21 @@ async function updateInterview(id) {
 }
 
 // ================= FOLLOW UPS =================
+async function getFollowUps(jobId) {
+  const res = await fetch(`/api/jobs/${jobId}/followups`, {
+    credentials: 'include'
+  })
+
+  if (res.ok) {
+    followUps.value = await res.json()
+  }
+}
+
 async function addFollowUp() {
   reset('follow')
 
-  if (!newFollow.task || !newFollow.date) {
-    messages.follow.error = 'Task and date required'
+  if (!newFollow.title || !newFollow.due_at) {
+    messages.follow.error = 'Title and due date required'
     return
   }
 
@@ -453,21 +520,29 @@ async function addFollowUp() {
     const res = await fetch(`/api/jobs/${job.id}/followups`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newFollow)
+      credentials: 'include',
+      body: JSON.stringify({
+        title: newFollow.title,
+        due_at: new Date(newFollow.due_at).toISOString(),
+        notes: newFollow.notes
+      })
     })
 
     if (res.ok) {
       const saved = await res.json()
+
       followUps.value.push(saved)
 
       job.timeline.push({
         type: 'follow-up',
-        date: saved.date,
-        note: saved.task
+        date: saved.due_at,
+        note: saved.title
       })
 
       Object.keys(newFollow).forEach(k => (newFollow[k] = ''))
       messages.follow.success = true
+    } else {
+      messages.follow.error = 'Save failed'
     }
   } catch {
     messages.follow.error = 'Server error'
@@ -485,7 +560,7 @@ async function deleteFollowUp(id) {
     followUps.value = followUps.value.filter(f => f.id !== id)
 
     job.timeline = job.timeline.filter(
-      e => !(e.type === 'follow-up' && e.note === old.task)
+      e => !(e.type === 'follow-up' && e.note === old.title)
     )
   } catch (err) {
     console.error(err)
@@ -495,7 +570,10 @@ async function deleteFollowUp(id) {
 
 function startEditFollow(f) {
   editFollowId.value = f.id
-  Object.assign(editFollow, f)
+  Object.assign(editFollow, {
+    ...f,
+    due_at: f.due_at ? f.due_at.slice(0, 10) : ''
+  })
 }
 
 function cancelEditFollow() {
@@ -507,7 +585,11 @@ async function updateFollowUp(id) {
     const res = await fetch(`/api/jobs/${job.id}/followups/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editFollow)
+      credentials: 'include',
+      body: JSON.stringify({
+        ...editFollow,
+        due_at: new Date(editFollow.due_at).toISOString()
+      })
     })
 
     if (res.ok) {
@@ -517,13 +599,13 @@ async function updateFollowUp(id) {
       followUps.value[index] = updated
 
       job.timeline = job.timeline.filter(
-        e => !(e.type === 'follow-up' && e.note === updated.task)
+        e => !(e.type === 'follow-up' && e.note === updated.title)
       )
 
       job.timeline.push({
         type: 'follow-up',
-        date: updated.date,
-        note: updated.task
+        date: updated.due_at,
+        note: updated.title
       })
 
       editFollowId.value = null
@@ -534,8 +616,25 @@ async function updateFollowUp(id) {
 
 }
 
-function toggleDone(f) {
-  f.done = !f.done
+async function toggleDone(f) {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/followups/${f.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        ...f,
+        is_completed: !f.is_completed
+      })
+    })
+
+    if (res.ok) {
+      const updated = await res.json()
+      Object.assign(f, updated)
+    }
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 // ================= OUTCOME =================
