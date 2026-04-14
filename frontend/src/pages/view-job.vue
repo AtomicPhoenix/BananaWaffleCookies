@@ -2,21 +2,23 @@
   <div class="job-page">
       <h1>{{job.title}}</h1>
 
-      <ul>
-        <li>Company: {{job.company_name}}</li>
-        <li>Salary: {{job.salary}}</li>
-        <li>Location: {{job.location_text}}</li>
-        <li>Posting: {{job.posting_url}}</li>
-        <li>Date Applied: {{job.date_applied}}</li>
-        <li>Deadline: {{job.deadline_date}}</li>
-        <li>Status: {{job.status}}</li>
-      </ul>
+      <div class="job-information-box">
+        <ul class="job-list-column">
+          <li>Company: {{job.company_name}}</li>
+          <li>Salary: {{job.salary}}</li>
+          <li>Location: {{job.location_text}}</li>
+          <li>Posting: {{job.posting_url}}</li>
+          <li>Date Applied: {{job.date_applied}}</li>
+          <li>Deadline: {{job.deadline_date}}</li>
+          <li>Status: {{job.status}}</li>
+        </ul>
 
-      <h2>Description</h2>
-      <p>{{job.description}}</p>
-      
-      <div class="edit-button" v-if="isOwner && job.id">
-        <button @click="edit" class="edit-job-button">Edit</button>
+        <h2 class="job-notes">Notes</h2>
+        <p>{{job.description}}</p>
+
+        <div class="edit-button" v-if="isOwner && job.id">
+          <button @click="edit" class="edit-job-button">Edit</button>
+        </div>
       </div>
 
       <!-- FEEDBACK -->

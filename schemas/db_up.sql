@@ -121,7 +121,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     description TEXT,
     is_archived BOOLEAN,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- JOB ACTIVITIES
