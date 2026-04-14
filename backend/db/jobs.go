@@ -57,9 +57,9 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 
 	if searchQuery != "" {
 		sqlQuery += `
-			WHERE company_name ILIKE $2 
+			AND (company_name ILIKE $2 
 			OR title ILIKE $2 
-			OR description ILIKE $2
+			OR description ILIKE $2)
 			ORDER BY created_at DESC;`
 		searchTerm := "%" + searchQuery + "%"
 		rows, err = DbConn.Query(context.Background(), sqlQuery, user_id, searchTerm)
@@ -69,7 +69,7 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %s\n%v\n", sqlQuery, err)
 		return nil, err
 	}
 	defer rows.Close()
