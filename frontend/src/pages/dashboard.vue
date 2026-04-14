@@ -321,14 +321,14 @@ const deleteJob = async (job) => {
 
 const archiveJob = async (job) => {
   try {
-    const res = await fetch('/api/jobs/${job.id}', {
-      method: 'POST',
+    const res = await fetch('/api/jobs', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       credentials: 'include',
+      body: JSON.stringify(form)
     })
-
-    if (!res.ok) {
-      return
-    }
   } catch (err) {
     window.alert('Unable to archive job, please try again later.')
   }
