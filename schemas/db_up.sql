@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS profile_education (
     start_date DATE,
     end_date DATE,
     is_current BOOLEAN NOT NULL DEFAULT FALSE,
-    honors TEXT,
+    honors TEXT NOT NULL DEFAULT '',
     gpa NUMERIC(3,2),
     sort_order INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
