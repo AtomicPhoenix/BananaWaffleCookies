@@ -166,3 +166,16 @@ func setArchive(job Job, is_archived bool) error {
 
 	return err
 }
+
+func DeleteJob(job Job) error {
+	result, err := DbConn.Exec(context.Background(), "DELETE FROM jobs WHERE id=$1 AND user_id = $2", job.ID, job.UserID)
+	if err != nil {
+		return fmt.Errorf("Failed to delete test job: %v", err)
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows affected in delete operation (job doesn't exist or is not owned by user)")
+	}
+	return nil
+}
