@@ -268,3 +268,67 @@ func GetJobActivities(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(activities)
 }
+
+func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
+	err, token := GrabToken(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		return
+	}
+	var body struct {
+		Type    string `json:"type"`
+		Content string `json:"content"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	if body.Content == "" {
+		http.Error(w, "empty content", http.StatusBadRequest)
+		return
+	}
+
+	doc := db.Document{
+		UserID:       token.Uid,
+		Title:        fmt.Sprintf("AI %s - Job %d", body.Type, jobID),
+		DocumentType: body.Type,
+		IsArchived:   false,
+	}
+
+	docID, err := db.CreateDocument(doc)
+	if err != nil {
+		http.Error(w, "failed to create document", http.StatusInternalServerError)
+		return
+	}
+
+	doc.ID = docID
+
+	filePath := fmt.Sprintf("./data/documents/%d.txt", docID)
+
+	err = os.WriteFile(filePath, []byte(body.Content), 0644)
+	if err != nil {
+		_ = db.DeleteDocument(token.Uid, int(docID))
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.CreateDocumentLink(jobID, docID, body.Type)
+	if err != nil {
+		http.Error(w, "Failed to link document", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]any{
+		"success":  true,
+		"document": doc,
+	})
+}

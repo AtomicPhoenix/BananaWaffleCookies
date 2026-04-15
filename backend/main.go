@@ -114,6 +114,7 @@ func main() {
 					r.Get("/", handlers.GetJobDocuments)
 					r.Post("/", handlers.LinkDocumentToJob)
 					r.Delete("/{document_id}", handlers.UnlinkDocumentFromJob)
+					r.Post("/ai-save", handlers.SaveAIDocumentToJob)
 				})
 			})
 
