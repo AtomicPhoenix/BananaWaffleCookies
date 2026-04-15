@@ -142,6 +142,19 @@
         </div>
       </div>
 
+      <!-- ================= SAVE RESUME ================= -->
+      <div v-if="resumeResponse" class="item-card">
+        <h4>Generated Resume</h4>
+      
+        <pre class="sub-text" style="white-space: pre-wrap;">
+      {{ resumeResponse }}
+        </pre>
+      
+        <button @click="saveGeneratedResume">
+          Save to Job
+        </button>
+      </div>
+
       <!-- ================= COVER LETTER GENERATION ================= -->
       <div class="section">
         <h3 class="section-title">AI Cover Letter Generator</h3>
@@ -157,6 +170,10 @@
           </pre>
         </div>
       </div>
+
+      <button @click="saveGeneratedCoverLetter">
+        Save to Job
+      </button>
 
     </div>
   </div>
@@ -271,6 +288,56 @@ const generateCoverLetter = async () => {
     coverLetterResponse.value = 'Error generating cover letter.'
   } finally {
     isGeneratingCoverLetter.value = false
+  }
+}
+
+async function saveGeneratedResume() {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/documents/ai-save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        type: 'resume',
+        content: resumeResponse.value
+      })
+    })
+
+    const data = await res.json()
+
+    if (!data.success) {
+      alert('Failed to save resume')
+      return
+    }
+
+    alert('Resume saved to job!')
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function saveGeneratedCoverLetter() {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/documents/ai-save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        type: 'cover_letter',
+        content: coverLetterResponse.value
+      })
+    })
+
+    const data = await res.json()
+
+    if (!data.success) {
+      alert('Failed to save cover letter')
+      return
+    }
+
+    alert('Cover letter saved to job!')
+  } catch (err) {
+    console.error(err)
   }
 }
 

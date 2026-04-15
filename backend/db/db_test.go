@@ -29,7 +29,7 @@ func TestPingDB(t *testing.T) {
 
 func TestTableExistence(t *testing.T) {
 	var result bool
-	tables := []string{"users", "profiles", "jobs", "job_activities", "documents", "document_versions"}
+	tables := []string{"users", "profiles", "jobs", "job_activities", "documents", "document_links"}
 	for _, table := range tables {
 		err := DbConn.QueryRow(context.Background(), "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = $1);", table).Scan(&result)
 		if err != nil || result == false {

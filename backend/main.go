@@ -110,6 +110,12 @@ func main() {
 					r.Put("/{followup_id}", handlers.UpdateFollowUp)
 					r.Delete("/{followup_id}", handlers.DeleteFollowUp)
 				})
+				r.Route("/documents", func(r chi.Router) {
+					r.Get("/", handlers.GetJobDocuments)
+					r.Post("/", handlers.LinkDocumentToJob)
+					r.Delete("/{document_id}", handlers.UnlinkDocumentFromJob)
+					r.Post("/ai-save", handlers.SaveAIDocumentToJob)
+				})
 			})
 
 		})
