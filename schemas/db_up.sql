@@ -249,9 +249,6 @@ CREATE INDEX IF NOT EXISTS idx_jobs_user_status
 CREATE INDEX IF NOT EXISTS idx_documents_user_id
     ON documents(user_id);
 
-CREATE INDEX IF NOT EXISTS idx_document_versions_document_id
-    ON document_versions(document_id);
-
 CREATE INDEX IF NOT EXISTS idx_job_activities_job_id
     ON job_activities(job_id);
 
@@ -274,6 +271,3 @@ CREATE INDEX IF NOT EXISTS idx_follow_up_tasks_due_at
 
 CREATE INDEX IF NOT EXISTS idx_document_links_job_id
     ON document_links(job_id);
-
-CREATE INDEX IF NOT EXISTS idx_document_links_document_version_id
-    ON document_links(document_version_id);
