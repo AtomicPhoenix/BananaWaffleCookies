@@ -72,6 +72,7 @@ func AddProfileEducation(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&edu); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		fmt.Println("Invalid request body for adding education: %v", err)
 		return
 	}
 
