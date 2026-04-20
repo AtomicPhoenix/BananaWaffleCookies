@@ -141,7 +141,7 @@
     <div v-if="selectedJobForModal" class="job-modal-overlay" @click="closeJobModal">
       <div class="job-modal" role="dialog" aria-modal="true" aria-label="Job details" @click.stop>
         <button type="button" class="job-modal-close" @click="closeJobModal">x</button>
-        <h3 class="job-modal-title">{{ selectedJobForModal.title || 'Untitled Job' }}</h3>
+        <JobWorkspace :jobId="selectedJobForModal.id" />
       </div>
     </div>
   </div>
@@ -152,6 +152,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
+import JobWorkspace from './job-workspace.vue'
 
 /* ---------------- STATE ---------------- */
 const searchQuery = ref('')
