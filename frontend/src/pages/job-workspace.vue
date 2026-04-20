@@ -152,6 +152,12 @@
 			</div>
 
 			<div class="section">
+				<h3>Company Notes</h3>
+					<textarea v-model="company_notes" class="status-bar"></textarea>
+				<button type="button" class="action-button" @click="saveCompanyNotes">
+			</div>
+
+			<div class="section">
 				<h3>Outcome</h3>
 				<div class="inline-form">
 					<select v-model="outcome.status">
@@ -184,8 +190,10 @@ const resolvedJobId = computed(() => props.jobId ?? route.params.job_id)
 
 const loading = ref(false)
 const saving = ref(false)
+const savingCompanyNotes = ref(false)
 const error = ref('')
 const activeTab = ref('details')
+const company_notes = ref('')
 
 const form = reactive({
 	id: null,
@@ -270,6 +278,7 @@ async function fetchJob() {
 		form.deadline_date = toDateInput(data.deadline_date)
 		form.status = data.status || ''
 		form.description = data.description || ''
+		company_notes.value = data.company_notes || ''
 
 		Object.assign(outcome, data.outcome || { status: '', notes: '' })
 	} catch (err) {
@@ -392,6 +401,36 @@ async function saveJobDetails() {
 		saving.value = false
 	}
 }
+
+async function saveCompanyNotes() {
+	if (!resolvedJobId.value) return
+
+	try {
+		savingCompanyNotes.value = true
+		error.value = ''
+
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}/company-notes`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				company_notes: company_notes.value
+			})
+		})
+
+		if (!res.ok) throw new Error()
+
+		await fetchJob()
+	} catch (err) {
+		error.value = 'Unable to save company notes.'
+		console.error(err)
+	} finally {
+		saving.value = false
+	}
+}
+
 
 async function addInterview() {
 	if (!resolvedJobId.value) return
