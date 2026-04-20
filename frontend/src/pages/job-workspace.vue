@@ -153,8 +153,8 @@
 
 			<div class="section">
 				<h3>Company Notes</h3>
-					<textarea v-model="company_notes" class="status-bar"></textarea>
-				<button type="button" class="action-button" @click="saveCompanyNotes"></button>
+					<textarea v-model="company_notes" class="status-bar"></textarea><br><br>
+				<button type="button" class="action-button" @click="saveCompanyNotes">Save Company Notes</button>
 			</div>
 
 			<div class="section">
