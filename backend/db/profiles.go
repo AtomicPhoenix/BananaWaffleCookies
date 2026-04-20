@@ -719,3 +719,66 @@ func ReorderProfileSkill(userID int, skillID int, sortOrder int) error {
 
 	return err
 }
+
+func UpdateProfilePreferences(userID int, profile Profile) error {
+	query := `
+		UPDATE profiles SET
+			preferred_city = $1,
+			preferred_state = $2,
+			preferred_role = $3,
+			preferred_salary_min = $4,
+			preferred_salary_max = $5,
+			work_mode = $6,
+			updated_at = NOW()
+		WHERE user_id = $7
+	`
+
+	_, err := DbConn.Exec(
+		context.Background(),
+		query,
+		profile.PreferredCity,
+		profile.PreferredState,
+		profile.PreferredRole,
+		profile.PreferredSalaryMin,
+		profile.PreferredSalaryMax,
+		profile.WorkMode,
+		userID,
+	)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to update profile preferences: %v\n", err)
+		return err
+	}
+
+	return nil
+}
+
+func GetProfilePreferences(userID int) (Profile, error) {
+	var p Profile
+
+	err := DbConn.QueryRow(context.Background(), `
+		SELECT
+			preferred_city,
+			preferred_state,
+			preferred_role,
+			preferred_salary_min,
+			preferred_salary_max,
+			work_mode
+		FROM profiles
+		WHERE user_id = $1
+	`, userID).Scan(
+		&p.PreferredCity,
+		&p.PreferredState,
+		&p.PreferredRole,
+		&p.PreferredSalaryMin,
+		&p.PreferredSalaryMax,
+		&p.WorkMode,
+	)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get profile preferences: %v\n", err)
+		return Profile{}, err
+	}
+
+	return p, nil
+}

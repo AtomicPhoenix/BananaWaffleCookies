@@ -58,9 +58,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS profile_experiences (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    experience_type TEXT NOT NULL CHECK (
-        experience_type IN ('employment') --used to hold project, new table now
-    ),
+    experience_type TEXT NOT NULL,
     title TEXT NOT NULL,
     organization TEXT,
     location_text TEXT,
@@ -203,31 +201,16 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- DOCUMENT VERSIONS
-CREATE TABLE IF NOT EXISTS document_versions (
-    id BIGSERIAL PRIMARY KEY,
-    document_id BIGINT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-    version_number INT NOT NULL,
-    file_name TEXT NOT NULL,
-    file_path TEXT NOT NULL,
-    mime_type TEXT,
-    file_size_bytes BIGINT,
-    storage_provider TEXT,
-    is_current BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_document_version UNIQUE (document_id, version_number)
-);
-
--- JOB <-> DOCUMENT VERSION LINKS
-CREATE TABLE IF NOT EXISTS job_document_links (
+-- JOB <-> DOCUMENT LINKS
+CREATE TABLE IF NOT EXISTS document_links (
     id BIGSERIAL PRIMARY KEY,
     job_id BIGINT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-    document_version_id BIGINT NOT NULL REFERENCES document_versions(id) ON DELETE CASCADE,
+    document_id BIGINT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
     link_type TEXT NOT NULL CHECK (
         link_type IN ('resume', 'cover_letter', 'attachment', 'other')
     ),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_job_document_version_link UNIQUE (job_id, document_version_id, link_type)
+    CONSTRAINT uq_job_document_link UNIQUE (job_id, document_id, link_type)
 );
 
 -- INDEXES
@@ -264,9 +247,6 @@ CREATE INDEX IF NOT EXISTS idx_jobs_user_status
 CREATE INDEX IF NOT EXISTS idx_documents_user_id
     ON documents(user_id);
 
-CREATE INDEX IF NOT EXISTS idx_document_versions_document_id
-    ON document_versions(document_id);
-
 CREATE INDEX IF NOT EXISTS idx_job_activities_job_id
     ON job_activities(job_id);
 
@@ -287,8 +267,5 @@ CREATE INDEX IF NOT EXISTS idx_follow_up_tasks_due_at
 
 
 
-CREATE INDEX IF NOT EXISTS idx_job_document_links_job_id
-    ON job_document_links(job_id);
-
-CREATE INDEX IF NOT EXISTS idx_job_document_links_document_version_id
-    ON job_document_links(document_version_id);
+CREATE INDEX IF NOT EXISTS idx_document_links_job_id
+    ON document_links(job_id);

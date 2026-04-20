@@ -208,83 +208,40 @@
         </div>
       </div>
 
-      <!-- ================= PROJECTS ================= -->
-      <div class="section">
-        <h3 class="section-title">Projects</h3>
-
-        <input v-model="newProject.title" placeholder="Title" />
-        <input v-model="newProject.description" placeholder="Description" />
-        <input v-model="newProject.link" placeholder="Link" />
-
-        <button @click="addProject">Add Project</button>
-
-        <p v-if="messages.projects.success" class="success">Saved!</p>
-        <p v-if="messages.projects.error" class="error">
-          {{ messages.projects.error }}
-        </p>
-
-        <div
-          v-for="(proj, index) in projectList"
-          :key="proj.id"
-          class="item-card"
-        >
-          <div v-if="editProjectId !== proj.id" class="item-row">
-            <div>
-              <strong>{{ proj.title }}</strong>
-              <p class="sub-text">{{ proj.description }}</p>
-            </div>
-
-            <div class="actions">
-              <button @click="startEditProject(proj)">Edit</button>
-              <button @click="moveProjectUp(index)">↑</button>
-              <button @click="moveProjectDown(index)">↓</button>
-              <button @click="deleteProject(proj.id)">Delete</button>
-            </div>
-          </div>
-
-          <div v-else class="edit-row">
-            <input v-model="editProject.title" />
-            <input v-model="editProject.description" />
-
-            <div class="actions">
-              <button @click="updateProject(proj.id)">Save</button>
-              <button @click="cancelEditProject">Cancel</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- ================= PREFERENCES ================= -->
       <div class="section">
         <h3 class="section-title">Preferences</h3>
-
-        <input
-          v-model="preferences.preferred_role"
-          placeholder="Target Roles"
-        />
-        <input
-          v-model="preferences.location"
-          placeholder="Preferred Location"
-        />
-
+      
+        <div class="form-row">
+          <input v-model="preferences.preferred_city" placeholder="Preferred City" />
+          <input v-model="preferences.preferred_state" placeholder="Preferred State" />
+        </div>
+      
+        <input v-model="preferences.preferred_role" placeholder="Target Roles" />
+      
+        <div class="form-row">
+          <input
+            v-model="preferences.preferred_salary_min"
+            type="number"
+            placeholder="Min Salary"
+          />
+          <input
+            v-model="preferences.preferred_salary_max"
+            type="number"
+            placeholder="Max Salary"
+          />
+        </div>
+      
         <select v-model="preferences.work_mode">
           <option value="">Work Mode</option>
           <option>Remote</option>
           <option>Hybrid</option>
           <option>On-site</option>
         </select>
-
-        <input
-          v-model="preferences.salary"
-          type="number"
-          placeholder="Desired Salary"
-        />
-
+      
         <button @click="savePreferences">Save Preferences</button>
-
-        <p v-if="messages.preferences.success" class="success">
-          Saved!
-        </p>
+      
+        <p v-if="messages.preferences.success" class="success">Saved!</p>
         <p v-if="messages.preferences.error" class="error">
           {{ messages.preferences.error }}
         </p>
@@ -303,10 +260,12 @@ const form = reactive({
 })
 
 const preferences = reactive({
+  preferred_city: '',
+  preferred_state: '',
   preferred_role: '',
-  location: '',
-  work_mode: '',//changed
-  salary: ''
+  preferred_salary_min: '',
+  preferred_salary_max: '',
+  work_mode: ''
 })
 
 const educationList = ref([])
@@ -388,10 +347,12 @@ const completionPercentage = computed(() => {
     form.first_name,
     form.last_name,
     form.phone,
+    preferences.preferred_city,
+    preferences.preferred_state,
     preferences.preferred_role,
-    preferences.location,
-    preferences.work_mode,
-    preferences.salary
+    preferences.preferred_salary_min,
+    preferences.preferred_salary_max,
+    preferences.work_mode
   ]
 
   const filled = fields.filter(v => v && v.toString().trim() !== '').length
@@ -402,6 +363,7 @@ const completionPercentage = computed(() => {
 
 onMounted(() => {
   getProfile()
+  getPreferences()
   getEducation()
   getSkills()
   getExperiences()
@@ -414,7 +376,18 @@ async function getProfile() {
     if (res.ok) {
       const data = await res.json()
       Object.assign(form, data)
-      Object.assign(preferences, data.preferences || {})
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function getPreferences() {
+  try {
+    const res = await fetch('/api/profile/preferences')
+    if (res.ok) {
+      const data = await res.json()
+      Object.assign(preferences, data)
     }
   } catch (err) {
     console.error(err)
@@ -523,7 +496,7 @@ async function saveBasic() {
 async function savePreferences() {
   reset('preferences')
 
-  if (!preferences.preferred_role || !preferences.location) {
+  if (!preferences.preferred_role || !preferences.preferred_city || !preferences.preferred_state) {
     messages.preferences.error = 'Roles and location required'
     return
   }
@@ -561,11 +534,21 @@ async function addEducation() {
     return
   }
 
+  const payload = {
+      ...newEducation,
+      start_date: newEducation.start_date
+        ? new Date(newEducation.start_date).toISOString()
+        : null,
+      end_date: newEducation.end_date
+        ? new Date(newEducation.end_date).toISOString()
+        : null
+  }
+
   try {
     const res = await fetch('/api/profile/education', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newEducation)
+      body: JSON.stringify(payload)
     })
 
     if (res.ok) {
@@ -726,10 +709,20 @@ async function addExperiences() {
     return
   }
 
+  const payload = {
+      ...newExperiences,
+      start_date: newExperiences.start_date
+        ? new Date(newExperiences.start_date).toISOString()
+        : null,
+      end_date: newExperiences.end_date
+        ? new Date(newExperiences.end_date).toISOString()
+        : null
+  }
+
   const res = await fetch('/api/profile/experiences', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newExperiences)
+    body: JSON.stringify(payload)
   })
 
   if (res.ok) {

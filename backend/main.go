@@ -1,6 +1,6 @@
 package main
 
-	import (
+import (
 	"flag"
 	"fmt"
 	"io/fs"
@@ -70,6 +70,8 @@ func main() {
 
 		r.Put("/api/profile", handlers.UpdateProfile)
 		r.Get("/api/profile", handlers.GetProfile)
+		r.Put("/api/profile/preferences", handlers.UpdateProfilePreferences)
+		r.Get("/api/profile/preferences", handlers.GetProfilePreferences)
 		r.Post("/api/profile/education", handlers.AddProfileEducation)
 		r.Get("/api/profile/education", handlers.GetProfileEducation)
 		r.Delete("/api/profile/education/{id}", handlers.DeleteProfileEducation)
@@ -95,8 +97,27 @@ func main() {
 				r.Post("/archive", handlers.ArchiveJob)
 				r.Post("/unarchive", handlers.UnarchiveJob)
 				r.Post("/resume", handlers.GetResumeDraft)
+				r.Post("/cover-letter", handlers.GetCoverLetterDraft)
 				r.Get("/activities", handlers.GetJobActivities)
+				r.Route("/interviews", func(r chi.Router) {
+					r.Get("/", handlers.GetInterviews)
+					r.Post("/", handlers.CreateInterview)
+					r.Delete("/{interview_id}", handlers.DeleteInterview)
+				})
+				r.Route("/followups", func(r chi.Router) {
+					r.Get("/", handlers.GetFollowUps)
+					r.Post("/", handlers.CreateFollowUp)
+					r.Put("/{followup_id}", handlers.UpdateFollowUp)
+					r.Delete("/{followup_id}", handlers.DeleteFollowUp)
+				})
+				r.Route("/documents", func(r chi.Router) {
+					r.Get("/", handlers.GetJobDocuments)
+					r.Post("/", handlers.LinkDocumentToJob)
+					r.Delete("/{document_id}", handlers.UnlinkDocumentFromJob)
+					r.Post("/ai-save", handlers.SaveAIDocumentToJob)
+				})
 			})
+
 		})
 		r.Put("/api/settings", handlers.UpdateSettings)
 		r.Get("/api/settings", handlers.GetSettings)

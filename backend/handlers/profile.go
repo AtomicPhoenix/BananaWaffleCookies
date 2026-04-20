@@ -72,6 +72,7 @@ func AddProfileEducation(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&edu); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		fmt.Printf("Invalid request body for adding education: %v\n", err)
 		return
 	}
 
@@ -460,4 +461,47 @@ func ReorderProfileSkill(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"message":"Skill reordered successfully "}`)
+}
+
+// Handler for PUT /api/profile/preferences
+func UpdateProfilePreferences(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req db.Profile
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	err = db.UpdateProfilePreferences(tokenInfo.Uid, req)
+	if err != nil {
+		http.Error(w, "Failed to update preferences", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// Handler for GET /api/profile/preferences
+func GetProfilePreferences(w http.ResponseWriter, r *http.Request) {
+	var tokenInfo Claim
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	prefs, err := db.GetProfilePreferences(tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to get preferences", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(prefs)
 }

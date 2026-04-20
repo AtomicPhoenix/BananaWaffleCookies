@@ -5,8 +5,7 @@
 -- Drop child tables first (reverse dependency order)
 
 -- Job-related children
-DROP TABLE IF EXISTS job_document_links;
-DROP TABLE IF EXISTS document_versions;
+DROP TABLE IF EXISTS document_links;
 DROP TABLE IF EXISTS documents;
 
 DROP TABLE IF EXISTS interviews;
