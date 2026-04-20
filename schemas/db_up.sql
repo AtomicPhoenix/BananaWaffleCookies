@@ -153,7 +153,9 @@ CREATE TABLE IF NOT EXISTS job_activities (
         'interview_completed',
         'follow_up_created',
         'follow_up_completed',
-        'outcome'
+        'outcome',
+        'rejected',
+        'ghosted'
     )
     ),
     activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
