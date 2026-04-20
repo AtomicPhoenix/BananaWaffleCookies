@@ -60,8 +60,8 @@
 				</div>
 
 				<div class="form-group">
-					<label>Date Applied</label>
-					<input v-model="form.date_applied" type="date" class="status-bar" />
+					<label>Created</label>
+					<input :value="formatDateTime(createdAt)" type="text" class="status-bar" readonly />
 				</div>
 
 				<div class="form-group">
@@ -154,7 +154,7 @@
 			<div class="section">
 				<h3>Company Notes</h3>
 					<textarea v-model="company_notes" class="status-bar"></textarea>
-				<button type="button" class="action-button" @click="saveCompanyNotes">
+				<button type="button" class="action-button" @click="saveCompanyNotes"></button>
 			</div>
 
 			<div class="section">
@@ -202,11 +202,11 @@ const form = reactive({
 	location_text: '',
 	posting_url: '',
 	salary: '',
-	date_applied: '',
 	deadline_date: '',
 	status: '',
 	description: ''
 })
+	const createdAt = ref('')
 
 const activities = ref([])
 const interviews = ref([])
@@ -274,11 +274,11 @@ async function fetchJob() {
 		form.location_text = data.location_text || ''
 		form.posting_url = data.posting_url || ''
 		form.salary = data.salary ?? ''
-		form.date_applied = toDateInput(data.date_applied)
 		form.deadline_date = toDateInput(data.deadline_date)
 		form.status = data.status || ''
 		form.description = data.description || ''
 		company_notes.value = data.company_notes || ''
+		createdAt.value = data.created_at || ''
 
 		Object.assign(outcome, data.outcome || { status: '', notes: '' })
 	} catch (err) {
@@ -376,8 +376,7 @@ async function saveJobDetails() {
 		const payload = {
 			...form,
 			id: form.id || Number(resolvedJobId.value),
-			deadline_date: form.deadline_date ? new Date(form.deadline_date).toISOString() : null,
-			date_applied: form.date_applied ? new Date(form.date_applied).toISOString() : null
+			deadline_date: form.deadline_date ? new Date(form.deadline_date).toISOString() : null
 		}
 
 		const res = await fetch('/api/jobs', {
