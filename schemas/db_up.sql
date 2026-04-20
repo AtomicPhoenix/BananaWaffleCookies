@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     posting_url TEXT,
     salary INT,
     status TEXT NOT NULL CHECK (
-        status IN ('interested', 'applied', 'interview', 'offer', 'rejected')
+        status IN ('interested', 'applied', 'interview', 'offer', 'rejected', 'ghosted')
     ),
     deadline_date DATE,
     last_activity_at TIMESTAMPTZ,
