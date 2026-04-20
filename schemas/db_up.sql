@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     last_activity_at TIMESTAMPTZ,
     notes TEXT,
     description TEXT,
+    company_notes TEXT,
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
