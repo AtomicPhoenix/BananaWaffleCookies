@@ -126,8 +126,6 @@
                 <span aria-hidden="true">☰</span>
                 <span class="visually-hidden">Job actions</span>
               </template>
-              <BDropdownItem :to="{ name: 'job-detail', params: { job_id: job.id } }">View</BDropdownItem>
-              <BDropdownItem :to="`/jobs/${job.id}/edit`">Modify</BDropdownItem>
               <BDropdownItem @click="archiveJob(job)">Archive</BDropdownItem>
               <BDropdownItem @click="unArchiveJob(job)">Restore</BDropdownItem>
               <BDropdownItem @click="deleteJob(job)">Delete</BDropdownItem>
