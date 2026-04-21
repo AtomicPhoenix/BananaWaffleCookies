@@ -141,10 +141,7 @@
           <button @click="uploadFile(doc)">
             Upload New Version
           </button>
-
-          <button @click="openChat(doc)">Chat</button>
           <button @click="duplicateDocument(doc)">Duplicate</button>
-
           <button
             @click="deleteDocument(doc.id)"
             class="delete-btn"
@@ -154,25 +151,12 @@
         </div>
       </div>
     </div>
-
-    <!-- CHAT -->
-    <div class="gemini-box">
-      <Chatbox ref="chatboxRef" />
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import Chatbox from '@/pages/chatbox.vue'
-
-const chatboxRef = ref(null)
 const activeDocumentName = ref('')
-
-function openChat(doc) {
-  activeDocumentName.value = doc.title
-  chatboxRef.value?.setActiveDocument?.(doc)
-}
 
 function openVersion(v) {
   window.open(v.file_url, '_blank')
