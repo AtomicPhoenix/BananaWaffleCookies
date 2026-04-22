@@ -9,8 +9,6 @@ import DashboardPage from "@/pages/dashboard.vue";
 import CreateJobPage from "@/pages/create-job.vue";
 import EditJobPage from "@/pages/edit-job.vue";
 import SignupPage from "@/pages/signup.vue";
-import Chatbox from "@/pages/chatbox.vue";
-
 import JobDetail from "@/pages/job-detail.vue";
 
 async function checkUserAuth(_) {
