@@ -117,6 +117,16 @@ textarea.status-bar {
 .action-button {
 	background: linear-gradient(to right, #ffa946, #fc5b2e);
 }
+.action-button-enhance {
+	background: linear-gradient(to right, #ff46e3, #811465);
+	border: none;
+	border-radius: 8px;
+	padding: 0.5rem 0.75rem;
+	cursor: pointer;
+	color: #fff;
+	font-weight: 600;
+	box-shadow: 2px 2px 2px 2px #811465;
+}
 
 .danger-button {
 	background: #d7263d;

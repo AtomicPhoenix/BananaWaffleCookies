@@ -153,8 +153,28 @@
 
 			<div class="section">
 				<h3>Company Notes</h3>
-					<textarea v-model="company_notes" class="status-bar"></textarea><br><br>
-				<button type="button" class="action-button" @click="saveCompanyNotes">Save Company Notes</button>
+				<textarea v-model="company_notes" class="status-bar"></textarea><br><br>
+
+				<div class="row-actions">
+					<button
+						type="button"
+						class="action-button"
+						@click="saveCompanyNotes"
+						:disabled="savingCompanyNotes"
+					>
+						{{ savingCompanyNotes ? 'Saving...' : 'Save Company Notes' }}
+					</button>
+
+					<button
+						v-if="company_notes && company_notes.trim().length > 0"
+						type="button"
+						class="action-button-enhance"
+						@click="enhanceCompanyNotes"
+						:disabled="enhancingAI"
+					>
+						{{ enhancingAI ? 'Enhancing...' : 'Enhance with AI' }}
+					</button>
+				</div>
 			</div>
 
 			<div class="section">
@@ -194,6 +214,8 @@ const savingCompanyNotes = ref(false)
 const error = ref('')
 const activeTab = ref('details')
 const company_notes = ref('')
+const enhancingAI = ref(false)
+
 
 const form = reactive({
 	id: null,
@@ -427,6 +449,46 @@ async function saveCompanyNotes() {
 		console.error(err)
 	} finally {
 		saving.value = false
+	}
+}
+
+async function enhanceCompanyNotes() {
+	if (!resolvedJobId.value || !company_notes.value.trim()) return
+
+	try {
+		enhancingAI.value = true
+		error.value = ''
+
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}/enhance-notes`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				type: 'enhance_company_notes', //idk
+				content: company_notes.value
+			})
+		})
+
+		if (!res.ok) {
+			throw new Error('AI enhancement failed, try again later')
+		}
+
+		const data = await res.json()
+
+		// expecting something like: { enhanced_text: "..." }
+		if (data?.enhanced_text) {
+			company_notes.value = data.enhanced_text
+		} else {
+			throw new Error('Invalid AI response format')
+		}
+
+	} catch (err) {
+		error.value = 'Unable to enhance notes right now.'
+		console.error(err)
+	} finally {
+		enhancingAI.value = false
 	}
 }
 
