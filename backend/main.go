@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/fs"
 	"log"
@@ -10,48 +9,48 @@ import (
 
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/handlers"
+	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
 
-// CLI Arguments
-type Config struct {
-	dev  *bool
-	port *int
-}
-
-var config Config
-
-func init() {
-	// Parse CLI Arguments
-	config.dev = flag.Bool("dev", false, "run in development mode")
-	config.port = flag.Int("p", 8080, "port to run server on")
-	flag.Parse()
-
+func initEnvs() {
 	godotenv.Load("./.env")
 
 	// Confirm existence of necessary environmental variables
 	if os.Getenv("GEMINI_API_KEY") == "" {
 		log.Fatal("GEMINI_API_KEY env not present")
 	}
+}
 
-	// Initiailize AuthToken
-	handlers.InitAuth()
-
-	// Initialize DB
-	err := db.InitDB()
-	if err != nil {
-		log.Fatalf(`Failed to init database: %v`, err)
-	}
-
+func initDirs() {
 	// Create data folder
-	err = os.MkdirAll("data", 0750)
+	err := os.MkdirAll("data", 0750)
 	if err != nil && err != fs.ErrExist {
 		log.Fatalf("Failed to create data directory: %s\n", err)
 	}
 	err = os.MkdirAll("data/documents", 0750)
 	if err != nil && err != fs.ErrExist {
 		log.Fatalf("Failed to create data/documents directory: %s\n", err)
+	}
+	err = os.MkdirAll("data/logs", 0750)
+	if err != nil && err != fs.ErrExist {
+		log.Fatalf("Failed to create data/logs directory: %s\n", err)
+	}
+}
+
+func init() {
+	initEnvs()
+	initDirs()
+
+	settings.InitArgs()
+	settings.InitLogs()
+	handlers.InitAuth()
+
+	// Initialize DB
+	err := db.InitDB()
+	if err != nil {
+		log.Fatalf(`Failed to init database: %v`, err)
 	}
 }
 
@@ -137,7 +136,7 @@ func main() {
 	router.Handle("/images/*", http.StripPrefix("/images/", http.FileServer(http.Dir("./frontend/dist/images"))))
 	router.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("./frontend/dist/assets"))))
 
-	portStr := fmt.Sprintf(":%d", *config.port)
+	portStr := fmt.Sprintf(":%d", settings.CLIArgs.GetPort())
 
 	log.Printf("[INFO] Server running on %s\n", portStr)
 	log.Fatal(http.ListenAndServe(portStr, router))
