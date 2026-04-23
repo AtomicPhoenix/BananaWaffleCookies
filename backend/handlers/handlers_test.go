@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"bananawafflecookies.com/m/v2/db"
+	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -43,6 +44,8 @@ func deleteTestUser(t *testing.T, test_uid int) {
 // Setup database connection for testing
 func TestMain(t *testing.T) {
 	godotenv.Load("../.env")
+	settings.InitArgs()
+	settings.InitLogs()
 	err := db.InitDB()
 	if err != nil {
 		t.Fatalf("Failed to initialize database: %v\n", err)
