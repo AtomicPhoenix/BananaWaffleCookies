@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"bananawafflecookies.com/m/v2/settings"
 	"github.com/joho/godotenv"
 )
 
@@ -14,6 +15,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestInitDB(t *testing.T) {
+	settings.InitArgs()
+	settings.InitLogs()
 	err := InitDB()
 	if err != nil {
 		t.Errorf(`Failed to init database: %v`, err)
