@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -150,6 +151,11 @@ func GetJob(job_id int, user_id int) (Job, error) {
 }
 
 func UpdateJob(job Job) error {
+	oldJob, err := GetJob(job.ID, job.UserID)
+	if err != nil {
+		return fmt.Errorf("Failed to update job job_id=%d user_id=%d: %w. Failed to get old job information", job.ID, job.UserID, err)
+	}
+
 	sql_query := `UPDATE jobs 
 				SET company_name = $1, title = $2, location_text = $3, salary = $4, status = $5, deadline_date = $6, description = $7
 				WHERE id = $8 AND user_id = $9`
@@ -163,11 +169,12 @@ func UpdateJob(job Job) error {
 		return fmt.Errorf("No rows affected when updating job job_id=%d user_id=%d", job.ID, job.UserID)
 	}
 
-	_, err = InsertJobActivity(JobActivity{
-		JobID:        job.ID,
-		ActivityType: ActivityUpdated,
-		Description:  "Job updated",
-	})
+	jobActivity, err := createJobActivity(oldJob, job)
+	if err != nil {
+		return fmt.Errorf("Failed to insert job update activity for job_id=%d: %w", job.ID, err)
+	}
+
+	_, err = InsertJobActivity(jobActivity)
 	if err != nil {
 		return fmt.Errorf("Failed to insert job update activity for job_id=%d: %w", job.ID, err)
 	}
@@ -253,6 +260,61 @@ func InsertJobActivity(activity JobActivity) (JobActivity, error) {
 	if err != nil {
 		return JobActivity{}, fmt.Errorf("Failed to insert job activity for job_id=%d: %w", activity.JobID, err)
 	}
+
+	return activity, nil
+}
+
+func createJobActivity(oldJob, newJob Job) (JobActivity, error) {
+	if oldJob.ID != newJob.ID {
+		return JobActivity{}, fmt.Errorf("Failed to create job activity: oldJob.ID != newJob.ID")
+	}
+
+	activity := JobActivity{
+		JobID:        newJob.ID,
+		ActivityType: ActivityUpdated,
+		Description:  "Job Updated:",
+	}
+
+	var changes []string
+
+	if oldJob.CompanyName != newJob.CompanyName {
+		changes = append(changes, fmt.Sprintf("Company name updated to %s", newJob.CompanyName))
+	}
+
+	if oldJob.Title != newJob.Title {
+		changes = append(changes, fmt.Sprintf("Title updated to %s", newJob.Title))
+	}
+
+	if oldJob.LocationText != newJob.LocationText {
+		changes = append(changes, fmt.Sprintf("Location updated to %s", newJob.LocationText))
+	}
+
+	if oldJob.Salary != newJob.Salary {
+		changes = append(changes, fmt.Sprintf("Salary updated to %d", newJob.Salary))
+	}
+
+	if oldJob.Status != newJob.Status {
+		changes = append(changes, fmt.Sprintf("Status updated to %s", newJob.Status))
+	}
+
+	if !oldJob.DeadlineDate.Equal(newJob.DeadlineDate) {
+		changes = append(changes, fmt.Sprintf("Deadline updated to %s", newJob.DeadlineDate.Format(time.RFC3339)))
+	}
+
+	if oldJob.Description != newJob.Description {
+		changes = append(changes, "Description updated")
+	}
+
+	if oldJob.IsArchived != newJob.IsArchived {
+		changes = append(changes, fmt.Sprintf("Archived status changed to %t", newJob.IsArchived))
+	}
+
+	if len(changes) == 0 {
+		activity.Description = "Job Updated: no changes detected"
+		return activity, nil
+	}
+
+	activity.Description = activity.Description + "\n\t- " + strings.Join(changes, "\n\t- ")
 
 	return activity, nil
 }
