@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -59,8 +58,8 @@ func CreateJob(job Job) (int, error) {
 				RETURNING id`
 	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, false).Scan(&id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert job into database: %v\n", err)
-		return -1, err
+		return -1, fmt.Errorf("Failed to insert job for user_id=%d: %w", job.UserID, err)
+
 	}
 
 	_, err = InsertJobActivity(JobActivity{
@@ -69,8 +68,7 @@ func CreateJob(job Job) (int, error) {
 		Description:  "Job created",
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert job creation activity: %v\n", err)
-		return id, err
+		return id, fmt.Errorf("Failed to insert job creation activity for job_id=%d: %w", id, err)
 	}
 
 	return id, err
@@ -99,8 +97,7 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %s\n%v\n", sqlQuery, err)
-		return nil, err
+		return nil, fmt.Errorf("Failed to query jobs for user_id=%d: %w", user_id, err)
 	}
 	defer rows.Close()
 
@@ -115,7 +112,7 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.IsArchived, &j.CreatedAt, &j.UpdatedAt)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to scan jobs for user_id=%d: %w", user_id, err)
 		}
 
 		// Convert nullable fields
@@ -135,8 +132,7 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 		jobs = append(jobs, j)
 	}
 	if err := rows.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get jobs from database: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("Failed to iterate jobs result for user_id=%d: %w", user_id, err)
 	}
 	return jobs, nil
 }
@@ -148,8 +144,7 @@ func GetJob(job_id int, user_id int) (Job, error) {
 	err := DbConn.QueryRow(context.Background(), sql_query, job_id, user_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.IsArchived, &job.CreatedAt, &job.UpdatedAt)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get job with id %d from database: %v\n", job_id, err)
-		return Job{}, err
+		return Job{}, fmt.Errorf("Failed to get job job_id=%d user_id=%d: %w", job_id, user_id, err)
 	}
 	return job, nil
 }
@@ -160,13 +155,12 @@ func UpdateJob(job Job) error {
 				WHERE id = $8 AND user_id = $9`
 	result, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID, job.UserID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update job: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to update job job_id=%d user_id=%d: %w", job.ID, job.UserID, err)
 	}
 
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
-		return fmt.Errorf("No rows affected in update operation (job doesn't exist or is not owned by user)")
+		return fmt.Errorf("No rows affected when updating job job_id=%d user_id=%d", job.ID, job.UserID)
 	}
 
 	_, err = InsertJobActivity(JobActivity{
@@ -175,8 +169,7 @@ func UpdateJob(job Job) error {
 		Description:  "Job updated",
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert job update activity: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to insert job update activity for job_id=%d: %w", job.ID, err)
 	}
 
 	return err
@@ -196,13 +189,12 @@ func setArchive(job Job, is_archived bool) error {
 				WHERE id = $2 AND user_id = $3`
 	result, err := DbConn.Exec(context.Background(), sql_query, is_archived, job.ID, job.UserID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to arhive job: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to update job archive state job_id=%d user_id=%d: %w", job.ID, job.UserID, err)
 	}
 
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
-		return fmt.Errorf("No rows affected in archive operation (job doesn't exist or is not owned by user)")
+		return fmt.Errorf("No rows affected when updating archive state job_id=%d user_id=%d", job.ID, job.UserID)
 	}
 
 	var desc string
@@ -218,18 +210,22 @@ func setArchive(job Job, is_archived bool) error {
 		Description:  desc,
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("Failed to insert job activity for archive state change job_id=%d: %w", job.ID, err)
+	}
+
+	return nil
 }
 
 func DeleteJob(job Job) error {
 	result, err := DbConn.Exec(context.Background(), "DELETE FROM jobs WHERE id=$1 AND user_id = $2", job.ID, job.UserID)
 	if err != nil {
-		return fmt.Errorf("Failed to delete test job: %v", err)
+		return fmt.Errorf("Failed to delete job job_id=%d user_id=%d: %w", job.ID, job.UserID, err)
 	}
 
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
-		return fmt.Errorf("No rows affected in delete operation (job doesn't exist or is not owned by user)")
+		return fmt.Errorf("No rows affected when deleting job job_id=%d user_id=%d", job.ID, job.UserID)
 	}
 	return nil
 }
@@ -255,8 +251,7 @@ func InsertJobActivity(activity JobActivity) (JobActivity, error) {
 	).Scan(&activity.ID, &activity.ActivityAt)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert job activity: %v\n", err)
-		return JobActivity{}, err
+		return JobActivity{}, fmt.Errorf("Failed to insert job activity for job_id=%d: %w", activity.JobID, err)
 	}
 
 	return activity, nil
@@ -277,8 +272,7 @@ func GetJobActivities(jobID int) ([]JobActivity, error) {
 
 	rows, err := DbConn.Query(context.Background(), query, jobID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to query job activities: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("Failed to query job activities for job_id=%d: %w", jobID, err)
 	}
 	defer rows.Close()
 
@@ -296,8 +290,7 @@ func GetJobActivities(jobID int) ([]JobActivity, error) {
 			&description,
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to scan job activity: %v\n", err)
-			return nil, err
+			return nil, fmt.Errorf("Failed to scan job activity for job_id=%d: %w", jobID, err)
 		}
 
 		if description.Valid {
@@ -333,8 +326,7 @@ func IsJobOwner(jobID int, userID int) (bool, error) {
 	).Scan(&exists)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to verify job ownership: %v\n", err)
-		return false, err
+		return false, fmt.Errorf("Failed to verify job ownership job_id=%d user_id=%d: %w", jobID, userID, err)
 	}
 
 	return exists, nil

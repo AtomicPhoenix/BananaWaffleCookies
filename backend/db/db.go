@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"bananawafflecookies.com/m/v2/settings"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -24,13 +25,13 @@ func get_db_connection_string() string {
 }
 
 func InitDB() error {
-	fmt.Println("Initializing Database")
+	settings.Logger.Info("Initializing Database")
 	var err error
 	DbConn, err = pgxpool.New(context.Background(), get_db_connection_string())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		settings.Logger.Error("Unable to connect to database", "err", err)
 		return err
 	}
-	fmt.Println("Successfully connected to database.")
+	settings.Logger.Info("Successfully connected to database.")
 	return nil
 }
