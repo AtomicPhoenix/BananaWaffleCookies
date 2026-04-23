@@ -92,4 +92,3 @@ func GetDocument(doc_id int, user_id int) (Document, error) {
 
 	return doc, nil
 }
-

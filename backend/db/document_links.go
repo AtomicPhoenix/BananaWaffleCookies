@@ -84,4 +84,3 @@ func GetJobDocuments(jobID int, userID int) ([]Document, error) {
 
 	return docs, nil
 }
-
