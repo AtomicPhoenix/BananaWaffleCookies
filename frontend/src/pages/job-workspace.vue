@@ -448,7 +448,7 @@ async function saveCompanyNotes() {
 		error.value = 'Unable to save company notes.'
 		console.error(err)
 	} finally {
-		saving.value = false
+		savingCompanyNotes.value = false
 	}
 }
 
