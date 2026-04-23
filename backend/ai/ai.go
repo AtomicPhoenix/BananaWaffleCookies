@@ -3,10 +3,10 @@ package ai
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"bananawafflecookies.com/m/v2/db"
+	"bananawafflecookies.com/m/v2/settings"
 	"google.golang.org/genai"
 )
 
@@ -263,7 +263,7 @@ func queryModel(query string) (string, error) {
 
 	client, err := genai.NewClient(ctx, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create ai client: %v", err)
+		settings.Logger.Error("Failed to create ai client", "err", err)
 		return "ERROR", err
 	}
 
@@ -274,7 +274,7 @@ func queryModel(query string) (string, error) {
 		nil,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to query ai: %v", err)
+		settings.Logger.Error("Failed to query ai client", "err", err)
 		return "ERROR", err
 	}
 	return result.Text(), nil
