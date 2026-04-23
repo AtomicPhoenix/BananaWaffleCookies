@@ -1,4 +1,4 @@
-@import './main.css';
+@import "./main.css";
 
 /* ================= PAGE ================= */
 .page-container {
@@ -29,13 +29,13 @@
 .progress-bar {
   width: 100%;
   height: 10px;
-  background: #E3E3E3;
+  background: #e3e3e3;
   border-radius: 5px;
 }
 
 .progress-fill {
   height: 10px;
-  background: #B8B8B8;
+  background: #b8b8b8;
   border-radius: 5px;
   transition: width 0.3s ease;
 }
@@ -229,6 +229,10 @@ button:disabled {
   font-size: 12px;
   color: #666;
   margin-top: 2px;
+}
+
+.activity-desc {
+  white-space: pre-line;
 }
 
 /* ================= FEEDBACK ================= */
