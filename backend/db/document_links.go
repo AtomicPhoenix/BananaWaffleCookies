@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -26,8 +25,7 @@ func CreateDocumentLink(jobID, documentID int, linkType string) (int, error) {
 
 	err := DbConn.QueryRow(context.Background(), sql, jobID, documentID, linkType).Scan(&id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "CreateDocumentLink failed for job_id=%d document_id=%d link_type=%s: %v\n", jobID, documentID, linkType, err)
-		return 0, err
+		return 0, fmt.Errorf("CreateDocumentLink failed for job_id=%d document_id=%d link_type=%s: %v\n", jobID, documentID, linkType, err)
 	}
 
 	return id, nil
@@ -41,8 +39,7 @@ func DeleteDocumentLink(job Job, doc Document) error {
 
 	_, err := DbConn.Exec(context.Background(), sql, job.ID, doc.ID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "DeleteDocumentLink failed for job_id=%d document_id=%d: %v\n", job.ID, doc.ID, err)
-		return err
+		return fmt.Errorf("DeleteDocumentLink failed for job_id=%d document_id=%d: %v\n", job.ID, doc.ID, err)
 	}
 
 	return nil
