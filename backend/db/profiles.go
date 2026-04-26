@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -79,8 +78,7 @@ type ProfileSkills struct {
 func createProfile(uid int) error {
 	_, err := DbConn.Exec(context.Background(), "INSERT INTO profiles (user_id) VALUES ($1)", uid)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create profile: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to insert profile for user_id=%d: %w", uid, err)
 	}
 	return nil
 }
@@ -137,8 +135,7 @@ func UpdateProfile(profile Profile) error {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update profile: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to update profile for user_id=%d: %w", profile.UserID, err)
 	}
 	return nil
 }
@@ -195,8 +192,7 @@ func GetProfile(uid int) (Profile, error) {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get profile: %v\n", err)
-		return Profile{}, err
+		return Profile{}, fmt.Errorf("Failed to fetch profile for user_id=%d: %w", uid, err)
 	}
 
 	profile.UserID = uid
@@ -320,8 +316,7 @@ func InsertProfileEducation(e ProfileEducation) (int, error) {
 	).Scan(&id)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert education into profile: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("Failed to insert education for user_id=%d: %w", e.UserID, err)
 	}
 	return id, nil
 }
@@ -336,8 +331,7 @@ func GetProfileEducation(userID int) ([]ProfileEducation, error) {
 		ORDER BY sort_order ASC, id ASC
 	`, userID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to grab education from profile: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Profile education query failed for user_id=%d: %w", userID, err)
 	}
 	defer rows.Close()
 
@@ -360,8 +354,7 @@ func GetProfileEducation(userID int) ([]ProfileEducation, error) {
 			&e.UpdatedAt,
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to grab education from profile: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("Profile education query scan failed for user_id=%d: %w", userID, err)
 		}
 		list = append(list, e)
 	}
@@ -375,7 +368,7 @@ func DeleteProfileEducation(userID, educationID int) error {
 	`, educationID, userID)
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile education deletion")
+		return fmt.Errorf("No rows affected in profile education deletion for user_id=%d education_id=%d", userID, educationID)
 	}
 
 	return err
@@ -414,12 +407,11 @@ func UpdateProfileEducation(edu ProfileEducation) error {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update education: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to update education for user_id=%d education_id=%d: %w", edu.UserID, edu.ID, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile education update")
+		return fmt.Errorf("No rows affected in profile education update for user_id=%d education_id=%d", edu.UserID, edu.ID)
 	}
 
 	return nil
@@ -432,12 +424,11 @@ func ReorderProfileEducation(userID int, eduID int, sortOrder int) error {
 	tag, err := DbConn.Exec(context.Background(), sql, sortOrder, eduID, userID)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to reoder profile education: %v", err)
-		return err
+		return fmt.Errorf("Failed to reorder education for user_id=%d education_id=%d: %w", userID, eduID, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile education reordering")
+		return fmt.Errorf("No rows affected in profile education reorder for user_id=%d education_id=%d", userID, eduID)
 	}
 
 	return err
@@ -468,8 +459,7 @@ func InsertProfileExperience(exp ProfileExperiences) (int, error) {
 	).Scan(&id)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert experience into profile: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("Failed to insert experience for user_id=%d: %w", exp.UserID, err)
 	}
 	return id, nil
 }
@@ -484,8 +474,7 @@ func GetProfileExperiences(userID int) ([]ProfileExperiences, error) {
 		ORDER BY sort_order ASC, start_date DESC
 	`, userID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to grab experience from profile: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Profile experience query failed for user_id=%d: %w", userID, err)
 	}
 	defer rows.Close()
 
@@ -508,8 +497,7 @@ func GetProfileExperiences(userID int) ([]ProfileExperiences, error) {
 			&e.UpdatedAt,
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to grab experience from profile: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("Profile experience query scan failed for user_id=%d: %w", userID, err)
 		}
 		list = append(list, e)
 	}
@@ -523,7 +511,7 @@ func DeleteProfileExperience(userID, expID int) error {
 	`, expID, userID)
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile experience deletion")
+		return fmt.Errorf("No rows affected in profile experience deletion for user_id=%d experience_id=%d", userID, expID)
 	}
 
 	return err
@@ -562,12 +550,11 @@ func UpdateProfileExperience(exp ProfileExperiences) error {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update experience: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to update experience for user_id=%d experience_id=%d: %w", exp.UserID, exp.ID, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile experience update")
+		return fmt.Errorf("No rows affected in profile experience update for user_id=%d experience_id=%d", exp.UserID, exp.ID)
 	}
 
 	return nil
@@ -580,12 +567,11 @@ func ReorderProfileExperience(userID int, expID int, sortOrder int) error {
 	tag, err := DbConn.Exec(context.Background(), sql, sortOrder, expID, userID)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to reoder profile skill: %v", err)
-		return err
+		return fmt.Errorf("Failed to reorder experience for user_id=%d experience_id=%d: %w", userID, expID, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile skill reordering")
+		return fmt.Errorf("No rows affected in profile experience reorder for user_id=%d experience_id=%d", userID, expID)
 	}
 
 	return err
@@ -609,8 +595,7 @@ func InsertProfileSkill(skill ProfileSkills) (int, error) {
 	).Scan(&id)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert skill into profile: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("Failed to insert skill for user_id=%d: %w", skill.UserID, err)
 	}
 	return id, nil
 }
@@ -623,8 +608,7 @@ func GetProfileSkills(userID int) ([]ProfileSkills, error) {
 		ORDER BY sort_order ASC, id ASC
 	`, userID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to grab skill from profile: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Profile skills query failed for user_id=%d: %w", userID, err)
 	}
 	defer rows.Close()
 
@@ -642,8 +626,7 @@ func GetProfileSkills(userID int) ([]ProfileSkills, error) {
 			&s.UpdatedAt,
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to grab skill from profile: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("Profile skills query scan failed for user_id=%d: %w", userID, err)
 		}
 		skills = append(skills, s)
 	}
@@ -657,12 +640,11 @@ func DeleteProfileSkill(userID, skillID int) error {
 	`, skillID, userID)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to delete skill from profile: %v", err)
-		return err
+		return fmt.Errorf("Failed to delete skill for user_id=%d skill_id=%d: %w", userID, skillID, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile skill deletion")
+		return fmt.Errorf("No rows affected in profile skill deletion for user_id=%d skill_id=%d", userID, skillID)
 	}
 
 	return err
@@ -691,12 +673,11 @@ func UpdateProfileSkill(skill ProfileSkills) error {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update skill: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to update skill for user_id=%d skill_id=%d: %w", skill.UserID, skill.ID, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile skill update")
+		return fmt.Errorf("No rows affected in profile skill update for user_id=%d skill_id=%d", skill.UserID, skill.ID)
 	}
 
 	return nil
@@ -709,12 +690,11 @@ func ReorderProfileSkill(userID int, skillID int, sortOrder int) error {
 	tag, err := DbConn.Exec(context.Background(), sql, sortOrder, skillID, userID)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to reoder profile skill: %v", err)
-		return err
+		return fmt.Errorf("Failed to reorder skill for user_id=%d skill_id=%d: %w", userID, skillID, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("No rows affected in profile skill reordering")
+		return fmt.Errorf("No rows affected in profile skill reorder for user_id=%d skill_id=%d", userID, skillID)
 	}
 
 	return err
@@ -746,8 +726,7 @@ func UpdateProfilePreferences(userID int, profile Profile) error {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update profile preferences: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to update profile preferences for user_id=%d: %w", userID, err)
 	}
 
 	return nil
@@ -776,8 +755,7 @@ func GetProfilePreferences(userID int) (Profile, error) {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get profile preferences: %v\n", err)
-		return Profile{}, err
+		return Profile{}, fmt.Errorf("Profile preferences query failed for user_id=%d: %w", userID, err)
 	}
 
 	return p, nil

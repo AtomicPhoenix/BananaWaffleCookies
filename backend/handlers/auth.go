@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"bananawafflecookies.com/m/v2/db"
+	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/jwtauth/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -93,19 +94,19 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password_hash), []byte(req.Password))
 	if err != nil {
 		http.Error(w, "Invalid password", http.StatusUnauthorized)
-		fmt.Printf("Failed to encrypt password: %v", err)
+		settings.Logger.Error("Failed to encrypt password", "err", err)
 		return
 	}
 
 	// Create JWT token
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"id":    fmt.Sprintf("%v", user.Id),
 		"email": user.Email,
 	}
 
 	_, tokenString, err := AuthToken.Encode(claims)
 	if err != nil {
-		fmt.Println("JWT encode error:", err)
+		settings.Logger.Error("JWT encode error", "err", err)
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
@@ -154,7 +155,7 @@ func GrabToken(r *http.Request) (error, Claim) {
 	// Decode auth token
 	reqToken, err := AuthToken.Decode(cookie.Value)
 	if err != nil {
-		fmt.Println("Failed to decode reqToken:", err)
+		settings.Logger.Error("Failed to decode reqToken", "err", err)
 		return err, Claim{}
 	}
 
@@ -164,20 +165,20 @@ func GrabToken(r *http.Request) (error, Claim) {
 	// Decode auth token
 	err = reqToken.Get("id", &uid_str)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to decode user id from auth token: %v\n", err)
+		settings.Logger.Error("Failed to decode user id from auth token", "err", err)
 		return err, Claim{}
 	}
 
 	uid, err := strconv.Atoi(uid_str)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		settings.Logger.Error("Failed to convert user id into integer", "err", err)
 		return err, Claim{}
 	}
 
 	// Grab email
 	err = reqToken.Get("email", &email)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to decode email from auth token: %v\n", err)
+		settings.Logger.Error("Failed to decode email from auth token", "err", err)
 		return err, Claim{}
 	}
 
