@@ -1,12 +1,13 @@
-name: CI/CD
+name: Tests
 
 on:
   push:
     branches-ignore:
       - "main"
   pull_request:
-    branches:
-      - "**"
+    branches-ignore:
+      - "main"
+
 jobs:
   # Frontend Tests
   node-tests:
