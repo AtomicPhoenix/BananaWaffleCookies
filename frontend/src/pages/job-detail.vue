@@ -13,7 +13,7 @@
           >
             <strong>{{ formatActivityType(event.activity_type) }}</strong>
             <p class="sub-text">{{ formatDate(event.activity_at) }}</p>
-            <p>{{ event.description }}</p>
+            <p class="activity-desc">{{ event.description }}</p>
           </div>
       </div>
       <!-- ================= INTERVIEWS ================= -->
