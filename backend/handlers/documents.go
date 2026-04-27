@@ -194,6 +194,28 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Handler for /api/documents (GET)
+func GetAllDocuments(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to get documents", http.StatusBadRequest)
+		settings.Logger.Error("Failed to get documents; Failed to grab auth token information", "err", err)
+		return
+	}
+
+	docs, err := db.GetAllDocuments(tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to get documents", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to get documents; DB query failed", "err", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(docs); err != nil {
+		settings.Logger.Error("Failed to encode documents response", "err", err)
+	}
+}
+
 // Handler for /api/documents/{id}/info (GET)
 func GetDocumentInfo(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
