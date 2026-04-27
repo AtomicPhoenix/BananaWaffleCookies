@@ -204,6 +204,20 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS document_versions (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    version_number INT NOT NULL,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size_bytes BIGINT,
+    tags TEXT,
+    is_current BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_document_version UNIQUE (document_id, version_number)
+);
+
 -- JOB <-> DOCUMENT LINKS
 CREATE TABLE IF NOT EXISTS document_links (
     id BIGSERIAL PRIMARY KEY,
