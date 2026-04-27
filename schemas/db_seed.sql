@@ -451,7 +451,6 @@ VALUES
         'peter_cover_letter_v1.pdf',
         'data/documents/peter_cover_letter_v1.pdf',
         90000,
-        'cover-letter,it-support',
         TRUE
     );
 
