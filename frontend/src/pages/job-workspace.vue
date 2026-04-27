@@ -22,6 +22,14 @@
 			<button
 				type="button"
 				class="workspace-tab"
+				:class="{ active: activeTab === 'documents' }"
+				@click="activeTab = 'documents'"
+			>
+				Documents
+			</button>
+			<button
+				type="button"
+				class="workspace-tab"
 				:class="{ active: activeTab === 'interviews' }"
 				@click="activeTab = 'interviews'"
 			>
@@ -101,6 +109,13 @@
 					<p class="sub-text">{{ formatDateTime(event.activity_at) }}</p>
 					<p>{{ event.description }}</p>
 				</div>
+			</div>
+		</div>
+
+		<div v-else-if="activeTab === 'documents'" class="workspace-panel">
+			<div class="section">
+				<h3>Documents</h3>
+				<p>Document management coming soon...</p>
 			</div>
 		</div>
 
