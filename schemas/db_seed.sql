@@ -405,6 +405,36 @@ VALUES
         NULL
     );
 
+
+    -- DOCUMENTS
+INSERT INTO documents (
+    id,
+    user_id,
+    title,
+    document_type,
+    file_path,
+    is_archived
+)
+VALUES
+    (
+        1,
+        1,
+        'Peter Griffin Resume (Template)',
+        'resume',
+        './data/documents/ResumeTemplate.pdf',
+        FALSE
+    ),
+    (
+        2,
+        1,
+        'Peter Griffin Resume (Final)',
+        'resume',
+        './data/documents/Resume1.pdf',
+        FALSE
+    )
+ON CONFLICT (id) DO NOTHING;
+
+
 -- SECOND USER
 INSERT INTO users (id, email, password_hash)
 VALUES

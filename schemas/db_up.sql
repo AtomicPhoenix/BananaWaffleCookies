@@ -199,6 +199,7 @@ CREATE TABLE IF NOT EXISTS documents (
     document_type TEXT NOT NULL CHECK (
         document_type IN ('resume', 'cover_letter', 'other')
     ),
+    tags TEXT,
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -211,7 +212,6 @@ CREATE TABLE IF NOT EXISTS document_versions (
     file_name TEXT NOT NULL,
     file_path TEXT NOT NULL,
     file_size_bytes BIGINT,
-    tags TEXT,
     is_current BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
