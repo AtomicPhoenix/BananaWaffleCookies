@@ -115,7 +115,20 @@
 		<div v-else-if="activeTab === 'documents'" class="workspace-panel">
 			<div class="section">
 				<h3>Documents</h3>
-				<p>Document management coming soon...</p>
+				<div class="inline-form">
+					<select v-model="selectedDocumentId">
+						<option disabled value="">Select a document</option>
+						<option v-for="doc in availableDocuments" :key="doc.id" :value="doc.id">
+							{{ doc.title }}
+						</option>
+					</select>
+					<div class="row-actions">
+						<button type="button" class="action-button" @click="addSelectedDocument">
+							Add Document
+						</button>
+					</div>
+				</div>
+				<div v-if="!availableDocuments.length" class="empty-state">No documents available.</div>
 			</div>
 		</div>
 
@@ -230,6 +243,8 @@ const error = ref('')
 const activeTab = ref('details')
 const company_notes = ref('')
 const enhancingAI = ref(false)
+const selectedDocumentId = ref('')
+const availableDocuments = ref([])
 
 
 const form = reactive({
@@ -285,6 +300,10 @@ function formatActivityType(type) {
 	return String(type)
 		.replaceAll('_', ' ')
 		.replace(/\b\w/g, c => c.toUpperCase())
+}
+
+function addSelectedDocument() {
+	return null
 }
 
 async function fetchJob() {
