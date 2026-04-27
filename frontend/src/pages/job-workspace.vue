@@ -1,8 +1,9 @@
 <template>
+	<!-- Job Workspace Page -->
 	<div class="job-workspace">
 		<h1 class="workspace-title">{{ form.title || 'Job Workspace' }}</h1>
 
-		<div class="workspace-tabs">
+		<div class="workspace-tabs"> 
 			<button
 				type="button"
 				class="workspace-tab"
