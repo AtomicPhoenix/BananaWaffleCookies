@@ -125,12 +125,13 @@ CREATE TABLE IF NOT EXISTS jobs (
     posting_url TEXT,
     salary INT,
     status TEXT NOT NULL CHECK (
-        status IN ('interested', 'applied', 'interview', 'offer', 'rejected')
+        status IN ('interested', 'applied', 'interview', 'offer', 'rejected', 'ghosted')
     ),
     deadline_date DATE,
     last_activity_at TIMESTAMPTZ,
     notes TEXT,
     description TEXT,
+    company_notes TEXT,
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -153,7 +154,9 @@ CREATE TABLE IF NOT EXISTS job_activities (
         'interview_completed',
         'follow_up_created',
         'follow_up_completed',
-        'outcome'
+        'outcome',
+        'rejected',
+        'ghosted'
     )
     ),
     activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
