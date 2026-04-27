@@ -6,15 +6,19 @@
 }
 
 .dashboard-header{
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
 }
 
 .dashboard-title{
-    font-size: clamp(24px, 3vw, 48px);
+    font-size: clamp(18px, 2.1vw, 30px);
     font-weight: 700;
+    line-height: 1.1;
 }
 .dashboard-subtitle{
-    font-size: clamp(16px, 2vw, 32px);
+    font-size: clamp(13px, 1.4vw, 18px);
     font-weight: 500;
     color: #555555;
 }
@@ -98,26 +102,176 @@
     flex-direction: column;
     gap: 1rem;
 }
-/* Overview Box */
+/* Overview & Analytics Box */
 .overview{
     width: 100%;
-    padding: 1rem;
+    padding: 0.85rem 1rem;
     background: #D9D9D9;
     border-radius: 1rem;
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-start;
 }
 
 .overview-title{
-    font-size: clamp(18px,2vw,36px);
-    margin-left: 0.5rem
+    width: 100%;
+    font-size: clamp(16px, 1.5vw, 20px);
+    font-weight: 700;
+    margin: 0 0 0.15rem;
+    color: #2F2F2F;
 }
 
-.overview-items{
-    font-size: clamp(18px,2vw,32px);
-    padding-left: 1rem;
-    font-weight: 500;
+.analytics-section{
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.55rem 0.65rem;
+    background: #E8E8E8;
+    border-radius: 0.75rem;
+    border: 1px solid #B8B8B8;
+    flex: 1 1 230px;
+    min-width: 220px;
+}
+
+.section-label{
+    font-size: clamp(12px, 1.05vw, 13px);
+    font-weight: 700;
+    margin: 0;
+    color: #2F2F2F;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Status Grid */
+.status-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 0.35rem;
+}
+
+.stat-item{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.35rem 0.4rem;
+    background: #F5F5F5;
+    border-radius: 0.5rem;
+    border-left: 3px solid #FC5B2E;
+}
+
+.stat-label{
+    font-size: clamp(10px, 0.95vw, 11px);
+    font-weight: 600;
+    color: #666;
+    text-transform: capitalize;
+}
+
+.stat-value{
+    font-size: clamp(15px, 1.6vw, 18px);
+    font-weight: 700;
+    color: #FC5B2E;
+    margin-top: 0.25rem;
+}
+
+/* Conversion Grid */
+.conversion-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.35rem;
+}
+
+.conversion-item{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0.5rem;
+    background: #F5F5F5;
+    border-radius: 0.5rem;
+    border-right: 3px solid #FC5B2E;
+}
+
+.conversion-label{
+    font-size: clamp(10px, 0.95vw, 11px);
+    font-weight: 600;
+    color: #666;
+}
+
+.conversion-value{
+    font-size: clamp(14px, 1.4vw, 16px);
+    font-weight: 700;
+    color: #FC5B2E;
+}
+
+.conversion-value.success{
+    color: #28a745;
+}
+
+.conversion-value.rejection{
+    color: #d32f2f;
+}
+
+/* Velocity Grid */
+.velocity-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.35rem;
+}
+
+.velocity-item{
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.35rem 0.5rem;
+    background: #F5F5F5;
+    border-radius: 0.5rem;
+    text-align: center;
+    border-top: 3px solid #FC5B2E;
+}
+
+.velocity-label{
+    font-size: clamp(10px, 0.95vw, 11px);
+    font-weight: 600;
+    color: #666;
+}
+
+.velocity-value{
+    font-size: clamp(14px, 1.4vw, 16px);
+    font-weight: 700;
+    color: #FC5B2E;
+}
+
+/* Time Grid */
+.time-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.35rem;
+}
+
+.time-item{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.35rem 0.45rem;
+    background: #F5F5F5;
+    border-radius: 0.5rem;
+    text-align: center;
+    border-bottom: 3px solid #FC5B2E;
+}
+
+.time-label{
+    font-size: clamp(10px, 0.95vw, 11px);
+    font-weight: 600;
+    color: #666;
+    text-transform: capitalize;
+}
+
+.time-value{
+    font-size: clamp(14px, 1.4vw, 16px);
+    font-weight: 700;
+    color: #FC5B2E;
 }
 
 .status-filter-box{
@@ -279,6 +433,7 @@ img {
     }
     grid-row: 2; 
 }
+
 .bot {
      .right{
         grid-column: 1;
@@ -473,7 +628,8 @@ img {
     .overview{
         width:100%;
         margin: 0;
-        padding: .25rem;
+        padding: .5rem;
+        flex-direction: column;
     }
     .job-list{
         width:90%;
@@ -511,5 +667,25 @@ img {
 
     .job-modal{
         min-height: 220px;
+    }
+
+    .analytics-section{
+        min-width: 0;
+    }
+    
+    .status-grid{
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .conversion-grid{
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .velocity-grid{
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .time-grid{
+        grid-template-columns: repeat(2, 1fr);
     }
 }

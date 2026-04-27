@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"bananawafflecookies.com/m/v2/db"
+	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -15,26 +16,23 @@ import (
 func CreateJob(w http.ResponseWriter, r *http.Request) {
 	var job db.Job
 
-	err := json.NewDecoder(r.Body).Decode(&job)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to post job; Failed to grab decode request: %v\n", err)
+		settings.Logger.Error("Failed to post job; Failed to decode request body", "err", err)
 		return
 	}
 
-	var tokenInfo Claim
-	err, tokenInfo = GrabToken(r)
+	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to post job", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to post job; Failed to grab auth token information: %v\n", err)
+		settings.Logger.Error("Failed to post job; Failed to grab auth token information", "err", err)
 		return
 	}
 
 	job.UserID = tokenInfo.Uid
-	_, err = db.CreateJob(job)
-	if err != nil {
+	if _, err := db.CreateJob(job); err != nil {
 		http.Error(w, "Failed to post job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to post job: %v\n", err)
+		settings.Logger.Error("Failed to post job", "err", err)
 		return
 	}
 
@@ -44,24 +42,22 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs (GET)
 func GetJobs(w http.ResponseWriter, r *http.Request) {
-	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to get job", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to get job; Failed to grab auth token information: %v\n", err)
+		settings.Logger.Error("Failed to get job; Failed to grab auth token information", "err", err)
 		return
 	}
 
-	// Grab search query from frontend (/api/jobs?search=QUERY)
 	searchQuery := r.URL.Query().Get("search")
 
 	jobs, err := db.GetJobs(tokenInfo.Uid, searchQuery)
-
 	if err != nil {
 		http.Error(w, "Failed to get jobs", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to get jobs: %v\n", err)
+		settings.Logger.Error("Failed to get jobs", "err", err)
 		return
 	}
+
 	if jobs == nil {
 		jobs = []db.Job{}
 	}
@@ -72,59 +68,53 @@ func GetJobs(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs/{id} (GET)
 func GetJob(w http.ResponseWriter, r *http.Request) {
-	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to get job", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to get job; Failed to grab auth token information: %v\n", err)
+		settings.Logger.Error("Failed to get job; Failed to grab auth token information", "err", err)
 		return
 	}
 
-	job_id_raw := chi.URLParam(r, "id")
-
-	job_id, err := strconv.Atoi(job_id_raw)
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
 	if err != nil {
 		http.Error(w, "Failed to get job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		settings.Logger.Error("Failed to get job; Failed to convert job id to int", "err", err)
 		return
 	}
 
-	job, err := db.GetJob(job_id, tokenInfo.Uid)
+	job, err := db.GetJob(jobID, tokenInfo.Uid)
 	if err != nil {
 		http.Error(w, "Failed to get job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to get job: %v\n", err)
+		settings.Logger.Error("Failed to get job", "err", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(job)
-
 }
 
 // Handler for /api/jobs (PUT)
 func UpdateJob(w http.ResponseWriter, r *http.Request) {
 	var job db.Job
 
-	err := json.NewDecoder(r.Body).Decode(&job)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to update job; Failed to grab decode request: %v\n", err)
+		settings.Logger.Error("Failed to update job; Failed to decode request body", "err", err)
 		return
 	}
 
-	var tokenInfo Claim
-	err, tokenInfo = GrabToken(r)
+	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to update job", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to update job; Failed to grab auth token information: %v\n", err)
+		settings.Logger.Error("Failed to update job; Failed to grab auth token information", "err", err)
 		return
 	}
 
 	job.UserID = tokenInfo.Uid
-	err = db.UpdateJob(job)
-	if err != nil {
-		http.Error(w, "Failed to post job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to update job: %v\n", err)
+	if err := db.UpdateJob(job); err != nil {
+		http.Error(w, "Failed to update job", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to update job", "err", err)
 		return
 	}
 
@@ -134,96 +124,90 @@ func UpdateJob(w http.ResponseWriter, r *http.Request) {
 
 // Handler for /api/jobs/{id}/archive (POST)
 func ArchiveJob(w http.ResponseWriter, r *http.Request) {
-	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to archive job", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to archive job; Failed to grab auth token information: %v\n", err)
+		settings.Logger.Error("Failed to archive job; Failed to grab auth token information", "err", err)
 		return
 	}
 
-	job_id_raw := chi.URLParam(r, "id")
-
-	job_id, err := strconv.Atoi(job_id_raw)
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
 	if err != nil {
-		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		http.Error(w, "Failed to archive job", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to archive job; Failed to convert job id to int", "err", err)
 		return
 	}
 
 	var job db.Job
-	job.ID = job_id
+	job.ID = jobID
 	job.UserID = tokenInfo.Uid
-	err = db.ArchiveJob(job)
-	if err != nil {
+
+	if err := db.ArchiveJob(job); err != nil {
 		http.Error(w, "Failed to archive job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to archive job: %v\n", err)
+		settings.Logger.Error("Failed to archive job", "err", err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"message":"Job successfully Archived."}`)
+	fmt.Fprintf(w, `{"message":"Job successfully archived."}`)
 }
 
 // Handler for /api/jobs/{id}/unarchive (POST)
 func UnarchiveJob(w http.ResponseWriter, r *http.Request) {
-	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to unarchive job", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to unarchive job; Failed to grab auth token information: %v\n", err)
+		settings.Logger.Error("Failed to unarchive job; Failed to grab auth token information", "err", err)
 		return
 	}
 
-	job_id_raw := chi.URLParam(r, "id")
-
-	job_id, err := strconv.Atoi(job_id_raw)
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
 	if err != nil {
-		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		http.Error(w, "Failed to unarchive job", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to unarchive job; Failed to convert job id to int", "err", err)
 		return
 	}
 
 	var job db.Job
-	job.ID = job_id
+	job.ID = jobID
 	job.UserID = tokenInfo.Uid
-	err = db.UnarchiveJob(job)
-	if err != nil {
+
+	if err := db.UnarchiveJob(job); err != nil {
 		http.Error(w, "Failed to unarchive job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to unarchive job: %v\n", err)
+		settings.Logger.Error("Failed to unarchive job", "err", err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"message":"Job successfully Unarchived."}`)
+	fmt.Fprintf(w, `{"message":"Job successfully unarchived."}`)
 }
 
 // Handler for /api/jobs/{id} (Delete)
 func DeleteJob(w http.ResponseWriter, r *http.Request) {
-	var tokenInfo Claim
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Failed to delete job", http.StatusBadRequest)
-		fmt.Fprintf(os.Stderr, "Failed to delete job; Failed to grab auth token information: %v\n", err)
+		settings.Logger.Error("Failed to delete job; Failed to grab auth token information", "err", err)
 		return
 	}
 
-	job_id_raw := chi.URLParam(r, "id")
-
-	job_id, err := strconv.Atoi(job_id_raw)
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
 	if err != nil {
 		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to convert user id into integer: %v\n", err)
+		settings.Logger.Error("Failed to delete job; Failed to convert job id to int", "err", err)
 		return
 	}
 
 	var job db.Job
-	job.ID = job_id
+	job.ID = jobID
 	job.UserID = tokenInfo.Uid
-	err = db.DeleteJob(job)
-	if err != nil {
+
+	if err := db.DeleteJob(job); err != nil {
 		http.Error(w, "Failed to delete job", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to delete job: %v\n", err)
+		settings.Logger.Error("Failed to delete job", "err", err)
 		return
 	}
 
@@ -236,28 +220,29 @@ func GetJobActivities(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		fmt.Fprintf(os.Stderr, "Auth error: %v\n", err)
+		settings.Logger.Error("Failed to get job activities; Failed to grab auth token information", "err", err)
 		return
 	}
 
 	jobIDRaw := chi.URLParam(r, "id")
-
 	jobID, err := strconv.Atoi(jobIDRaw)
 	if err != nil {
 		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		settings.Logger.Error("Failed to get job activities; Invalid job id", "err", err)
 		return
 	}
 
-	isJobOwner, err := db.IsJobOwner(jobID, tokenInfo.Uid)
-	if err != nil || !isJobOwner {
+	isOwner, err := db.IsJobOwner(jobID, tokenInfo.Uid)
+	if err != nil || !isOwner {
 		http.Error(w, "Failed to verify ownership of job", http.StatusUnauthorized)
+		settings.Logger.Error("Failed to get job activities; Failed to verify job ownership", "err", err)
 		return
 	}
 
 	activities, err := db.GetJobActivities(jobID)
 	if err != nil {
 		http.Error(w, "Failed to get job activities", http.StatusInternalServerError)
-		fmt.Fprintf(os.Stderr, "Failed to get job activities: %v\n", err)
+		settings.Logger.Error("Failed to get job activities", "err", err)
 		return
 	}
 
@@ -272,7 +257,8 @@ func GetJobActivities(w http.ResponseWriter, r *http.Request) {
 func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 	err, token := GrabToken(r)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		settings.Logger.Error("Failed to save AI document; Failed to grab auth token information", "err", err)
 		return
 	}
 
@@ -280,20 +266,24 @@ func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 	jobID, err := strconv.Atoi(jobIDRaw)
 	if err != nil {
 		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		settings.Logger.Error("Failed to save AI document; Failed to convert job id to int", "err", err)
 		return
 	}
+
 	var body struct {
 		Type    string `json:"type"`
 		Content string `json:"content"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+		http.Error(w, "Invalid body", http.StatusBadRequest)
+		settings.Logger.Error("Failed to save AI document; Failed to decode request body", "err", err)
 		return
 	}
 
 	if body.Content == "" {
-		http.Error(w, "empty content", http.StatusBadRequest)
+		http.Error(w, "Empty content", http.StatusBadRequest)
+		settings.Logger.Error("Failed to save AI document; Empty content")
 		return
 	}
 
@@ -306,29 +296,28 @@ func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 
 	docID, err := db.CreateDocument(doc)
 	if err != nil {
-		http.Error(w, "failed to create document", http.StatusInternalServerError)
+		http.Error(w, "Failed to create document", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to save AI document; Failed to create document", "err", err)
 		return
 	}
-
-	doc.ID = docID
 
 	filePath := fmt.Sprintf("./data/documents/%d.txt", docID)
 
-	err = os.WriteFile(filePath, []byte(body.Content), 0644)
-	if err != nil {
+	if err := os.WriteFile(filePath, []byte(body.Content), 0644); err != nil {
 		_ = db.DeleteDocument(token.Uid, int(docID))
 		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to save AI document; Failed to write file", "err", err)
 		return
 	}
 
-	_, err = db.CreateDocumentLink(jobID, docID, body.Type)
-	if err != nil {
+	if _, err := db.CreateDocumentLink(jobID, docID, body.Type); err != nil {
 		http.Error(w, "Failed to link document", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to save AI document; Failed to link document", "err", err)
 		return
 	}
 
 	json.NewEncoder(w).Encode(map[string]any{
-		"success":  true,
-		"document": doc,
+		"success": true,
+		"id":      docID,
 	})
 }

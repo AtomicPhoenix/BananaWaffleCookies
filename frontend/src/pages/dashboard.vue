@@ -3,6 +3,106 @@
     <div class="dashboard-header">
       <h1 class="dashboard-title">My Job Dashboard</h1>
       <h2 class="dashboard-subtitle">{{ welcomeMessage }}</h2>
+      <!-- OVERVIEW & ANALYTICS -->
+      <div class="overview">
+        <h1 class="overview-title">Pipeline Analytics</h1>
+        
+        <!-- Status Counts -->
+        <div class="analytics-section">
+          <h3 class="section-label">Job Status</h3>
+          <div class="status-grid">
+            <div class="stat-item">
+              <span class="stat-label">Interested</span>
+              <span class="stat-value">{{ stats.interested }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Applied</span>
+              <span class="stat-value">{{ stats.applied }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Interview</span>
+              <span class="stat-value">{{ stats.interview }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Offer</span>
+              <span class="stat-value">{{ stats.offer }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Rejected</span>
+              <span class="stat-value">{{ stats.rejected }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage Conversion -->
+        <div class="analytics-section">
+          <h3 class="section-label">Conversion Rates (% of Total Jobs)</h3>
+          <div class="conversion-grid">
+            <div class="conversion-item">
+              <span class="conversion-label">Applied</span>
+              <span class="conversion-value">{{ pipelineMetrics.applicationRate }}%</span>
+            </div>
+            <div class="conversion-item">
+              <span class="conversion-label">Interviewed</span>
+              <span class="conversion-value">{{ pipelineMetrics.interviewRate }}%</span>
+            </div>
+            <div class="conversion-item">
+              <span class="conversion-label">Success (Offer)</span>
+              <span class="conversion-value success">{{ pipelineMetrics.successRate }}%</span>
+            </div>
+            <div class="conversion-item">
+              <span class="conversion-label">Rejected</span>
+              <span class="conversion-value rejection">{{ pipelineMetrics.rejectionRate }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Velocity -->
+        <div class="analytics-section">
+          <h3 class="section-label">Velocity (Last 30 Days)</h3>
+          <div class="velocity-grid">
+            <div class="velocity-item">
+              <span class="velocity-label">Avg Jobs Added/Week</span>
+              <span class="velocity-value">{{ pipelineMetrics.jobsAddedPerWeek }}</span>
+            </div>
+            <div class="velocity-item">
+              <span class="velocity-label">Avg Applications/Week</span>
+              <span class="velocity-value">{{ pipelineMetrics.applicationsPerWeek }}</span>
+            </div>
+            <div class="velocity-item">
+              <span class="velocity-label">Avg Interviews/Week</span>
+              <span class="velocity-value">{{ pipelineMetrics.interviewsPerWeek }}</span>
+            </div>
+            <div class="velocity-item">
+              <span class="velocity-label">Avg Offers/Week</span>
+              <span class="velocity-value">{{ pipelineMetrics.offersPerWeek }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time in Stage -->
+        <div class="analytics-section">
+          <h3 class="section-label">Average Days in Stage</h3>
+          <div class="time-grid">
+            <div class="time-item">
+              <span class="time-label">Interested</span>
+              <span class="time-value">{{ pipelineMetrics.avgDaysInterested }}</span>
+            </div>
+            <div class="time-item">
+              <span class="time-label">Applied</span>
+              <span class="time-value">{{ pipelineMetrics.avgDaysApplied }}</span>
+            </div>
+            <div class="time-item">
+              <span class="time-label">Interview</span>
+              <span class="time-value">{{ pipelineMetrics.avgDaysInterview }}</span>
+            </div>
+            <div class="time-item">
+              <span class="time-label">Offer</span>
+              <span class="time-value">{{ pipelineMetrics.avgDaysOffer }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- SEARCH -->
     <div class="search-box">
@@ -72,18 +172,6 @@
             </div>
         </div>
 
-        <!-- OVERVIEW -->
-        <div class="overview">
-          <h1 class="overview-title">Overview</h1>
-          <p class="overview-items">
-            Interested: {{ stats.interested }}<br>
-            Applied: {{ stats.applied }}<br>
-            Interview: {{ stats.interview }}<br>
-            Offer: {{ stats.offer }}<br>
-            Accepted: {{ stats.accepted }}<br>
-            Rejected: {{ stats.rejected }}<br>
-          </p>
-        </div>
       </div>
 
       <!-- JOB LIST -->
@@ -175,6 +263,106 @@ const stats = ref({
   offer: 0,
   accepted: 0,
   rejected: 0
+})
+
+const pipelineMetrics = computed(() => {
+  const activeJobs = userJobs.value.filter(j => !j.is_archived)
+  const totalJobs = activeJobs.length
+  const interested = stats.value.interested
+  const applied = stats.value.applied
+  const interview = stats.value.interview
+  const offer = stats.value.offer
+  const rejected = stats.value.rejected
+
+  // Conversion rates as % of total jobs
+  const applicationRate = totalJobs > 0 ? Math.round((applied / totalJobs) * 100) : 0
+  const interviewRate = totalJobs > 0 ? Math.round((interview / totalJobs) * 100) : 0
+  const successRate = totalJobs > 0 ? Math.round((offer / totalJobs) * 100) : 0
+  const rejectionRate = totalJobs > 0 ? Math.round((rejected / totalJobs) * 100) : 0
+
+  // Velocity metrics - calculate based on last 30 days
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const jobsIn30Days = activeJobs.filter(job => {
+    const jobDate = new Date(job.created_at)
+    return jobDate >= thirtyDaysAgo
+  })
+  
+  const jobsByStatusIn30Days = {
+    interested: jobsIn30Days.filter(j => j.status === 'interested'),
+    applied: jobsIn30Days.filter(j => j.status === 'applied'),
+    interview: jobsIn30Days.filter(j => j.status === 'interview'),
+    offer: jobsIn30Days.filter(j => j.status === 'offer')
+  }
+
+  const weeksInPeriod = jobsIn30Days.length > 0 ? 4.29 : 1 // Approximate weeks in 30 days
+  
+  const jobsAddedPerWeek = jobsIn30Days.length > 0 ? (jobsIn30Days.length / weeksInPeriod).toFixed(1) : 0
+  const applicationsPerWeek = jobsIn30Days.length > 0 ? (jobsByStatusIn30Days.applied.length / weeksInPeriod).toFixed(1) : 0
+  const interviewsPerWeek = jobsIn30Days.length > 0 ? (jobsByStatusIn30Days.interview.length / weeksInPeriod).toFixed(1) : 0
+  const offersPerWeek = jobsIn30Days.length > 0 ? (jobsByStatusIn30Days.offer.length / weeksInPeriod).toFixed(1) : 0
+
+  // Calculate average time spent in each stage
+  // For current jobs in a stage, use time since update
+  // For past jobs that moved through, estimate from creation to now
+  const calculateAvgDaysInStage = (statusLabel) => {
+    const now = new Date().getTime()
+    const hourDurations = []
+
+    activeJobs.forEach(job => {
+      const createdTime = new Date(job.created_at).getTime()
+      const updatedTime = new Date(job.updated_at || job.created_at).getTime()
+
+      if (job.status === statusLabel) {
+        // Jobs currently in this stage: calculate from last update
+        const hoursInStage = Math.floor((now - updatedTime) / (1000 * 60 * 60))
+        hourDurations.push(hoursInStage)
+      } else if (statusLabel === 'interested' && job.status !== 'interested') {
+        // All jobs moved through "interested" stage - estimate from creation to now
+        const hoursInStage = Math.floor((now - createdTime) / (1000 * 60 * 60))
+        hourDurations.push(hoursInStage)
+      } else if (statusLabel === 'applied' && (job.status === 'interview' || job.status === 'offer' || job.status === 'rejected')) {
+        // Jobs that have moved past applied: estimate from creation
+        const hoursInStage = Math.floor((now - createdTime) / (1000 * 60 * 60)) 
+        hourDurations.push(Math.max(0, hoursInStage - 24)) // Rough estimate
+      } else if (statusLabel === 'interview' && (job.status === 'offer' || job.status === 'rejected')) {
+        // Jobs that moved past interview
+        const hoursInStage = Math.floor((now - createdTime) / (1000 * 60 * 60)) 
+        hourDurations.push(Math.max(0, hoursInStage - 72)) // Rough estimate
+      }
+    })
+
+    if (hourDurations.length === 0) return '—'
+    
+    const avgHours = hourDurations.reduce((a, b) => a + b, 0) / hourDurations.length
+    
+    if (avgHours < 1) return '< 1h'
+    if (avgHours < 24) return `${avgHours.toFixed(1)}h`
+    
+    const days = avgHours / 24
+    if (days < 1) return `${avgHours.toFixed(1)}h`
+    
+    const wholeDays = Math.floor(days)
+    const remainingHours = Math.round((days - wholeDays) * 24)
+    return remainingHours === 0 ? `${wholeDays}d` : `${wholeDays}d ${remainingHours}h`
+  }
+
+  return {
+    // Conversion rates
+    applicationRate,
+    interviewRate,
+    successRate,
+    rejectionRate,
+    // Velocity
+    jobsAddedPerWeek,
+    applicationsPerWeek,
+    interviewsPerWeek,
+    offersPerWeek,
+    // Time in stage
+    avgDaysInterested: calculateAvgDaysInStage('interested'),
+    avgDaysApplied: calculateAvgDaysInStage('applied'),
+    avgDaysInterview: calculateAvgDaysInStage('interview'),
+    avgDaysOffer: calculateAvgDaysInStage('offer')
+  }
 })
 
 const statusOptions = ['interested', 'applied', 'interview', 'offer', 'rejected']

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -45,8 +44,7 @@ func CreateInterview(interview Interviews) (int, error) {
 	).Scan(&id)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert interview: %v\n", err)
-		return -1, err
+		return -1, fmt.Errorf("Failed to create interview for job_id=%d round_type=%s: %w", interview.JobID, interview.RoundType, err)
 	}
 
 	// Activity tracking
@@ -56,8 +54,7 @@ func CreateInterview(interview Interviews) (int, error) {
 		Description:  fmt.Sprintf("Interview scheduled (%s)", interview.RoundType),
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert interview activity: %v\n", err)
-		return id, err
+		return id, fmt.Errorf("Failed to insert interview activity for job_id=%d interview_id=%d: %w", interview.JobID, id, err)
 	}
 
 	return id, nil
@@ -67,10 +64,10 @@ func DeleteInterview(interviewID int, jobID int, userID int) error {
 	// Ensure user owns the job before deleting interview
 	isOwner, err := IsJobOwner(jobID, userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to verify job ownership for job_id=%d user_id=%d: %w", jobID, userID, err)
 	}
 	if !isOwner {
-		return fmt.Errorf("user does not own this job")
+		return fmt.Errorf("Unauthorized delete attempt for interview_id=%d job_id=%d user_id=%d", interviewID, jobID, userID)
 	}
 
 	result, err := DbConn.Exec(
@@ -80,11 +77,11 @@ func DeleteInterview(interviewID int, jobID int, userID int) error {
 		jobID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to delete interview: %v", err)
+		return fmt.Errorf("Failed to delete interview_id=%d job_id=%d: %w", interviewID, jobID, err)
 	}
 
 	if result.RowsAffected() == 0 {
-		return fmt.Errorf("no rows affected (interview not found)")
+		return fmt.Errorf("No rows affected in interview deletion for interview_id=%d job_id=%d", interviewID, jobID)
 	}
 
 	// Activity tracking
@@ -94,8 +91,7 @@ func DeleteInterview(interviewID int, jobID int, userID int) error {
 		Description:  "Interview deleted",
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to insert interview delete activity: %v\n", err)
-		return err
+		return fmt.Errorf("Failed to insert interview deletion activity for job_id=%d interview_id=%d: %w", jobID, interviewID, err)
 	}
 
 	return nil
@@ -119,8 +115,7 @@ func GetInterviews(jobID int) ([]Interviews, error) {
 
 	rows, err := DbConn.Query(context.Background(), query, jobID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to query interviews: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("Interview query failed for job_id=%d: %w", jobID, err)
 	}
 	defer rows.Close()
 
@@ -142,8 +137,7 @@ func GetInterviews(jobID int) ([]Interviews, error) {
 			&i.UpdatedAt,
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to scan interview: %v\n", err)
-			return nil, err
+			return nil, fmt.Errorf("Interview scan failed for job_id=%d: %w", jobID, err)
 		}
 
 		// Handle nullable fields
@@ -158,8 +152,7 @@ func GetInterviews(jobID int) ([]Interviews, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Row iteration error: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("Interview row iteration failed for job_id=%d: %w", jobID, err)
 	}
 
 	return interviews, nil

@@ -66,7 +66,7 @@ const checkAuth = async () => {
 // ---------------- SIGN OUT ----------------
 const signOut = async () => {
   try {
-    await axios.post("/api/logout", {}, {
+    await axios.post("/api/auth/logout", {}, {
       withCredentials: true
     })
 
