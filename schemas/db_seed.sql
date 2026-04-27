@@ -405,35 +405,60 @@ VALUES
         NULL
     );
 
-
-    -- DOCUMENTS
+-- DOCUMENTS
 INSERT INTO documents (
     id,
     user_id,
     title,
     document_type,
-    file_path,
     is_archived
+)
+VALUES
+    (1, 1, 'Peter Griffin Resume', 'resume', FALSE),
+    (2, 1, 'Peter Griffin Cover Letter', 'cover_letter', FALSE)
+ON CONFLICT (id) DO NOTHING;
+
+-- DOCUMENT VERS
+INSERT INTO document_versions (
+    document_id,
+    version_number,
+    file_name,
+    file_path,
+    file_size_bytes,
+    tags,
+    is_current
 )
 VALUES
     (
         1,
         1,
-        'Peter Griffin Resume (Template)',
-        'resume',
-        './data/documents/ResumeTemplate.pdf',
+        'peter_resume_v1.pdf',
+        'data/documents/peter_resume_v1.pdf',
+        120000,
+        'backend,security,internship',
         FALSE
+    ),
+    (
+        1,
+        2,
+        'peter_resume_v2.pdf',
+        'data/documents/peter_resume_v2.pdf',
+        135000,
+        'backend,security,internship',
+        TRUE
     ),
     (
         2,
         1,
-        'Peter Griffin Resume (Final)',
-        'resume',
-        './data/documents/Resume1.pdf',
-        FALSE
-    )
-ON CONFLICT (id) DO NOTHING;
+        'peter_cover_letter_v1.pdf',
+        'data/documents/peter_cover_letter_v1.pdf',
+        90000,
+        'cover-letter,it-support',
+        TRUE
+    );
 
+
+-- ===========================================
 
 -- SECOND USER
 INSERT INTO users (id, email, password_hash)
