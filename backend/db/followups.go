@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -48,7 +49,11 @@ func CreateFollowUp(jobID int, f FollowUpTask) (FollowUpTask, error) {
 		&created.UpdatedAt,
 	)
 
-	return created, err
+	if err != nil {
+		return FollowUpTask{}, fmt.Errorf("Failed to create follow_up_task for job_id=%d title=%s: %w", jobID, f.Title, err)
+	}
+
+	return created, nil
 }
 
 // GET ALL
@@ -63,7 +68,7 @@ func GetFollowUps(jobID int) ([]FollowUpTask, error) {
 
 	rows, err := DbConn.Query(context.Background(), query, jobID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("FollowUpTask query failed for job_id=%d: %w", jobID, err)
 	}
 	defer rows.Close()
 
@@ -85,7 +90,7 @@ func GetFollowUps(jobID int) ([]FollowUpTask, error) {
 			&t.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("FollowUpTask scan failed for job_id=%d: %w", jobID, err)
 		}
 
 		tasks = append(tasks, t)
@@ -136,7 +141,11 @@ func UpdateFollowUp(id int, jobID int, f FollowUpTask) (FollowUpTask, error) {
 		&updated.UpdatedAt,
 	)
 
-	return updated, err
+	if err != nil {
+		return FollowUpTask{}, fmt.Errorf("Failed to update follow_up_task id=%d job_id=%d: %w", id, jobID, err)
+	}
+
+	return updated, nil
 }
 
 // DELETE
@@ -147,5 +156,9 @@ func DeleteFollowUp(id int, jobID int) error {
 	`
 
 	_, err := DbConn.Exec(context.Background(), query, id, jobID)
-	return err
+	if err != nil {
+		return fmt.Errorf("Failed to delete follow_up_task id=%d job_id=%d: %w", id, jobID, err)
+	}
+
+	return nil
 }
