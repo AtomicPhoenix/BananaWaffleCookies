@@ -84,7 +84,7 @@ async function handleLogin() {
     }
   } catch (err) {
     console.error(err)
-    alert('Server error during login')
+    alert('Login Failed')
   }
 }
 </script>
