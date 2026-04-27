@@ -150,6 +150,7 @@ func main() {
 
 			// Documents API
 			r.Route("/documents", func(r chi.Router) {
+				r.Get("/", handlers.GetAllDocuments)
 				r.Get("/{id}", handlers.GetDocument)
 				r.Get("/{id}/info", handlers.GetDocumentInfo)
 				r.Post("/", handlers.UploadDocument)

@@ -9,7 +9,6 @@ import DashboardPage from "@/pages/dashboard.vue";
 import CreateJobPage from "@/pages/create-job.vue";
 import JobWorkspacePage from "@/pages/job-workspace.vue";
 import SignupPage from "@/pages/signup.vue";
-import Chatbox from "@/pages/chatbox.vue";
 
 async function checkUserAuth(_) {
   try {
@@ -85,7 +84,12 @@ const router = createRouter({
       path: "/jobs",
       children: [
         { path: "create", name: "create-job", component: CreateJobPage },
-        { path: ":job_id", name: "job-workspace", component: JobWorkspacePage, props: true },
+        {
+          path: ":job_id",
+          name: "job-workspace",
+          component: JobWorkspacePage,
+          props: true,
+        },
       ],
       beforeEnter: checkUserAuth,
     },

@@ -110,7 +110,7 @@ input[type="file"] {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-
+  min-width: 700px;
   transition: transform 0.2s ease;
 }
 
