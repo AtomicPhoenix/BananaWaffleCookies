@@ -1,7 +1,20 @@
 <template>
 	<!-- Job Workspace Page -->
 	<div class="job-workspace">
-		<h1 class="workspace-title">{{ form.title || 'Job Workspace' }}</h1>
+		<div class="workspace-header">
+			<h1 class="workspace-title">{{ form.title || 'Job Workspace' }}</h1>
+			<div class="workspace-actions">
+				<BDropdown auto-close="outside" class="dropdown" no-caret toggle-class="job-menu-toggle">
+					<template #button-content>
+						<span aria-hidden="true">☰</span>
+						<span class="visually-hidden">Job actions</span>
+					</template>
+					<BDropdownItem @click="archiveJob">Archive</BDropdownItem>
+					<BDropdownItem @click="unArchiveJob">Restore</BDropdownItem>
+					<BDropdownItem @click="deleteJob">Delete</BDropdownItem>
+				</BDropdown>
+			</div>
+		</div>
 
 		<div class="workspace-tabs"> 
 			<button
@@ -226,6 +239,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
 
 const route = useRoute()
 const props = defineProps({
@@ -681,6 +695,71 @@ async function saveOutcome() {
 		error.value = 'Unable to save outcome right now.'
 		console.error(err)
 	}
+}
+
+const deleteJob = async () => {
+	const confirmed = window.confirm(
+		`Delete "${form.title}" at ${form.company_name}? This action cannot be undone.`
+	)
+
+	if (!confirmed) {
+		return
+	}
+
+	const typedConfirmation = window.prompt(
+		'To permanently delete this job, type "delete" below.'
+	)
+
+	if ((typedConfirmation || '').trim().toLowerCase() !== 'delete') {
+		window.alert('Delete cancelled. You must type "delete" exactly to confirm.')
+		return
+	}
+
+	try {
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}`, {
+			method: 'DELETE',
+			credentials: 'include',
+		})
+
+		if (!res.ok) {
+			return
+		}
+	} catch (err) {
+		window.alert('Unable to delete job, please try again later.')
+	}
+	location.reload()
+}
+
+const archiveJob = async () => {
+	try {
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}/archive`, {
+			method: 'POST',
+			credentials: 'include',
+		})
+
+		if (!res.ok) {
+			return
+		}
+	} catch (err) {
+		window.alert('Unable to archive job, please try again later.')
+	}
+	location.reload()
+}
+
+const unArchiveJob = async () => {
+	try {
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}/unarchive`, {
+			method: 'POST',
+			credentials: 'include',
+		})
+
+		if (!res.ok) {
+			return
+		}
+	} catch (err) {
+		window.alert('Unable to restore job, please try again later.')
+	}
+	location.reload()
 }
 
 watch(
