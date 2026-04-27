@@ -34,7 +34,24 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomePage,
+      beforeEnter: async () => {
+        try {
+          const response = await axios.get("/api/auth", {
+            withCredentials: true,
+          });
+
+          if (response.data.authenticated) {
+            return { name: "dashboard" }; // redirect if logged in
+          }
+
+          return true; // otherwise allow homepage
+        } catch (err) {
+          console.log(err);
+          return true; // fail open → show homepage
+        }
+      },
     },
+
     {
       path: "/library",
       name: "library",
