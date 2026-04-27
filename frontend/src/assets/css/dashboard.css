@@ -385,6 +385,17 @@ img {
     border-style: solid;
     background: #E3E3E3;
     position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.job-listing:hover{
+    background: #ECECEC;
+}
+
+.job-listing:focus-visible{
+    outline: 3px solid #1A73E8;
+    outline-offset: 2px;
 }
 .job-listing.left{
     background: #ccc;
@@ -422,6 +433,7 @@ img {
     }
     grid-row: 2; 
 }
+
 .bot {
      .right{
         grid-column: 1;
@@ -467,6 +479,54 @@ img {
 .job-list > h2{
     margin: 0 0 0.25rem;
     font-size: clamp(1rem, 1.3vw, 1.4rem);
+}
+
+.job-modal-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 10000;
+    padding-top: 96px;
+    overflow-y: auto;
+}
+
+.job-modal{
+    width: min(82vw, 980px);
+    max-height: calc(100vh - 112px);
+    background: #FFFFFF;
+    border: 1px solid #C7C7C7;
+    border-radius: 14px;
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+    padding: 1.1rem 1.2rem 1.25rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 10001;
+}
+
+.job-modal-close{
+    position: absolute;
+    top: 0.6rem;
+    right: 0.75rem;
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #424242;
+}
+
+.job-modal-title{
+    margin: 0;
+    font-size: clamp(1.35rem, 2.2vw, 2rem);
+    color: #1E1E1E;
+    text-align: center;
 }
 
 .listing-status-button{
@@ -604,6 +664,11 @@ img {
     .jdesc{
         font-size: 1rem;
     }
+
+    .job-modal{
+        min-height: 220px;
+    }
+
     .analytics-section{
         min-width: 0;
     }

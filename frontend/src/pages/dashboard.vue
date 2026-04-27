@@ -185,11 +185,7 @@
         
         <h2 v-if="isSearchMode">Search Results: {{ searchQuery }}</h2>
 
-        <div
-          v-for="job in displayedJobs"
-          :key="job.id"
-          class="job-listing"
-        >
+        <div v-for="job in displayedJobs" :key="job.id" class="job-listing" role="button" tabindex="0" @click="openJobModal(job)" @keydown.enter.prevent="openJobModal(job)" @keydown.space.prevent="openJobModal(job)">
           <div class="left top">
             {{ job.title }} | {{ job.company_name }} | {{ job.location_text }}
           </div>
@@ -204,6 +200,7 @@
               class="listing-status-button listing-status-select"
               :id="statusToCssId(job.status)"
               :value="job.status"
+              @click.stop
               @change="updateJobStatus(job, $event.target.value)"
             >
               <option v-for="status in statusOptions" :key="status" :value="status">
@@ -211,14 +208,12 @@
               </option>
             </select>
           </div>
-          <div class="job-actions">
+          <div class="job-actions" @click.stop>
             <BDropdown auto-close="outside" class="dropdown" no-caret toggle-class="job-menu-toggle">
               <template #button-content>
                 <span aria-hidden="true">☰</span>
                 <span class="visually-hidden">Job actions</span>
               </template>
-              <BDropdownItem :to="{ name: 'job-detail', params: { job_id: job.id } }">View</BDropdownItem>
-              <BDropdownItem :to="`/jobs/${job.id}/edit`">Modify</BDropdownItem>
               <BDropdownItem @click="archiveJob(job)">Archive</BDropdownItem>
               <BDropdownItem @click="unArchiveJob(job)">Restore</BDropdownItem>
               <BDropdownItem @click="deleteJob(job)">Delete</BDropdownItem>
@@ -226,6 +221,13 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <div v-if="selectedJobForModal" class="job-modal-overlay" @click="closeJobModal">
+      <div class="job-modal" role="dialog" aria-modal="true" aria-label="Job details" @click.stop>
+        <button type="button" class="job-modal-close" @click="closeJobModal">x</button>
+        <JobWorkspace :jobId="selectedJobForModal.id" />
       </div>
     </div>
   </div>
@@ -236,6 +238,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
+import JobWorkspace from './job-workspace.vue'
 
 /* ---------------- STATE ---------------- */
 const searchQuery = ref('')
@@ -246,6 +249,7 @@ const selectedStatuses = ref([])
 const selectedSalaryRanges = ref([])
 const firstName = ref('')
 const showArchived = ref(false)
+const selectedJobForModal = ref(null)
 
 const welcomeMessage = computed(() => {
   const name = String(firstName.value || '').trim()
@@ -461,6 +465,14 @@ const statusToCssId = (status) => {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')
+}
+
+const openJobModal = (job) => {
+  selectedJobForModal.value = job
+}
+
+const closeJobModal = () => {
+  selectedJobForModal.value = null
 }
 
 const updateJobStatus = async (job, newStatus) => {
