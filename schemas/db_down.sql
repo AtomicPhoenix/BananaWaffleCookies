@@ -4,14 +4,17 @@
 
 -- Drop child tables first (reverse dependency order)
 
--- Job-related children
-DROP TABLE IF EXISTS document_links;
-DROP TABLE IF EXISTS documents;
+DROP TABLE IF EXISTS job_document_links;
+DROP TABLE IF EXISTS document_versions;
 
+-- Current child tables
+DROP TABLE IF EXISTS document_links;
 DROP TABLE IF EXISTS interviews;
 DROP TABLE IF EXISTS follow_up_tasks;
-
 DROP TABLE IF EXISTS job_activities;
+
+-- Parent-like tables
+DROP TABLE IF EXISTS documents;
 DROP TABLE IF EXISTS jobs;
 
 -- Profile-related children
