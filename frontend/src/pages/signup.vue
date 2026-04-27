@@ -64,7 +64,7 @@ const router = useRouter()
 // Function that runs when the form is submitted //
 async function handleSignup() {
   try {
-    const res = await fetch(`/api/signup`, {
+    const res = await fetch(`/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: form.email, password: form.password })
