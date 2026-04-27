@@ -96,7 +96,7 @@ input[type="file"] {
 /* DOCUMENT GRID */
 .documents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: 1fr;
   gap: 20px;
 }
 
@@ -110,7 +110,6 @@ input[type="file"] {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-width: 700px;
   transition: transform 0.2s ease;
 }
 
