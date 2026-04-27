@@ -141,12 +141,21 @@
           <button @click="uploadFile(doc)">
             Upload New Version
           </button>
+
           <button @click="duplicateDocument(doc)">Duplicate</button>
+
           <button
-            @click="deleteDocument(doc.id)"
-            class="delete-btn"
+            v-if="doc.status === 'active'"
+            @click="archiveDocument(doc)"
           >
-            Delete
+            Archive
+          </button>
+
+          <button
+            v-else
+            @click="restoreDocument(doc)"
+          >
+            Restore
           </button>
         </div>
       </div>
@@ -156,6 +165,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+
 const activeDocumentName = ref('')
 
 function openVersion(v) {
@@ -184,6 +194,7 @@ const filterStatus = ref('')
 const filterTag = ref('')
 const sortBy = ref('newest')
 
+/* COMPUTED */
 const filteredDocuments = computed(() => {
   let docs = [...documents.value]
 
@@ -210,6 +221,7 @@ const filteredDocuments = computed(() => {
       new Date(b.updated_at || b.created_at)
     )
   }
+
   return docs
 })
 
@@ -396,23 +408,6 @@ async function updateStatus(doc) {
   }
 }
 
-async function deleteDocument(id) {
-  if (!confirm('Delete this document?')) return
-
-  try {
-    const res = await fetch(`/api/documents/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-
-    if (res.ok) {
-      documents.value = documents.value.filter(doc => doc.id !== id)
-    }
-  } catch (err) {
-    console.error(err)
-  }
-}
-
 async function downloadVersion(v) {
   try {
     const res = await fetch(v.file_url, {
@@ -479,6 +474,16 @@ async function saveTitle(doc) {
     console.error(err)
     error.value = 'Rename failed'
   }
+}
+
+async function archiveDocument(doc) {
+  doc.status = 'archived'
+  await updateStatus(doc)
+}
+
+async function restoreDocument(doc) {
+  doc.status = 'active'
+  await updateStatus(doc)
 }
 </script>
 
