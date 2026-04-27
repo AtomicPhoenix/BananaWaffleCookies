@@ -408,6 +408,20 @@ async function updateStatus(doc) {
   }
 }
 
+function downloadDocument(doc) {
+  if (!doc?.id) {
+    alert('No document available')
+    return
+  }
+
+  const link = document.createElement('a')
+  link.href = `/api/documents/${doc.id}`
+  link.download = doc.title || 'document.pdf'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 async function downloadVersion(v) {
   try {
     const res = await fetch(v.file_url, {
