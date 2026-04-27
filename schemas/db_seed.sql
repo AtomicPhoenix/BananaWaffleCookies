@@ -411,11 +411,12 @@ INSERT INTO documents (
     user_id,
     title,
     document_type,
+    tags,
     is_archived
 )
 VALUES
-    (1, 1, 'Peter Griffin Resume', 'resume', FALSE),
-    (2, 1, 'Peter Griffin Cover Letter', 'cover_letter', FALSE)
+    (1, 1, 'Peter Griffin Resume', 'resume', 'backend,security,internship', FALSE),
+    (2, 1, 'Peter Griffin Cover Letter', 'cover_letter', 'backend,security,internship', FALSE)
 ON CONFLICT (id) DO NOTHING;
 
 -- DOCUMENT VERS
@@ -425,7 +426,6 @@ INSERT INTO document_versions (
     file_name,
     file_path,
     file_size_bytes,
-    tags,
     is_current
 )
 VALUES
@@ -435,7 +435,6 @@ VALUES
         'peter_resume_v1.pdf',
         'data/documents/peter_resume_v1.pdf',
         120000,
-        'backend,security,internship',
         FALSE
     ),
     (
@@ -444,7 +443,6 @@ VALUES
         'peter_resume_v2.pdf',
         'data/documents/peter_resume_v2.pdf',
         135000,
-        'backend,security,internship',
         TRUE
     ),
     (
