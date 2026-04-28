@@ -136,7 +136,7 @@
 
         <!-- ACTIONS -->
         <div class="doc-actions">
-          <input type="file" @change="(e) => handleFileUpload(e, doc)" />
+          <input class="browse-input" type="file" @change="(e) => handleFileUpload(e, doc)" />
 
           <button @click="uploadFile(doc)">
             Upload New Version
