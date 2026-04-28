@@ -298,3 +298,67 @@ func GetDocumentInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(doc)
 }
+
+// Handler for /api/documents/{id}/versions (POST)
+func CreateDocumentVersion(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	docIDRaw := chi.URLParam(r, "id")
+	docID, err := strconv.Atoi(docIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid document id", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.AssertDocumentOwnership(docID, tokenInfo.Uid); err != nil {
+		http.Error(w, "Unauthroized", http.StatusForbidden)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Missing file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	if _, err := file.Read(buffer); err != nil {
+		http.Error(w, "Invalid file", http.StatusBadRequest)
+		return
+	}
+
+	if http.DetectContentType(buffer) != "application/pdf" {
+		http.Error(w, "Only PDF allowed", http.StatusBadRequest)
+		return
+	}
+
+	file.Seek(0, 0)
+
+	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		http.Error(w, "File write failed", http.StatusInternalServerError)
+		return
+	}
+	defer out.Close()
+
+	fileSize, err := io.Copy(out, file)
+	if err != nil {
+		http.Error(w, "File save failed", http.StatusInternalServerError)
+		return
+	}
+
+	err = db.CreateDocumentVersion(docID, fileHeader.Filename, filePath, fileSize)
+	if err != nil {
+		http.Error(w, "DB error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
