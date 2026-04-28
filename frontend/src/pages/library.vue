@@ -92,10 +92,7 @@
 
         <div class="doc-sub">
           {{ doc.type }} • Status:
-          <select v-model="doc.status" @change="updateStatus(doc)">
-            <option value="active">Active</option>
-            <option value="archived">Archived</option>
-          </select>
+          <button @click="toggleArchive(doc)"> {{ doc.is_archived ? 'Restore' : 'Archive' }} </button>
         </div>
 
         <p class="doc-sub">
@@ -132,12 +129,12 @@
 
           <button @click="duplicateDocument(doc)">Duplicate</button>
 
-          <button v-if="doc.status === 'active'" @click="archiveDocument(doc)">
-            Archive
+          <button v-if="getStatus(doc) === 'active'" @click="archiveDocument(doc)">
+Archive {{getStatus(doc)}}
           </button>
 
           <button v-else @click="restoreDocument(doc)">
-            Restore
+            Restore {{getStatus(doc)}}
           </button>
         </div>
       </div>
@@ -234,7 +231,7 @@ const filteredDocuments = computed(() => {
 
   if (statusFilter) {
     docs = docs.filter(d =>
-      String(d.status || '').toLowerCase() === statusFilter
+      String(getStatus(d) || '').toLowerCase() === statusFilter
     )
   }
 
@@ -273,16 +270,22 @@ async function fetchDocuments() {
   try {
     const res = await fetch('/api/documents', { credentials: 'include' })
     if (res.ok) {
-      documents.value = (await res.json()).map(doc => ({
-        ...doc,
-        status: doc.status || 'active',
-        tags: doc.tags || [],
-        versions: doc.versions || [],
-        updated_at: doc.updated_at || doc.created_at
-      }))
+      const data = await res.json()
+      documents.value = data.map(normalizeDoc)
     }
   } catch (err) {
     console.error(err)
+  }
+}
+
+function normalizeDoc(doc) {
+  return {
+    ...doc,
+    is_archived: !!doc.is_archived,
+    status: doc.is_archived ? 'archived' : 'active',
+    tags: doc.tags || [],
+    versions: doc.versions || [],
+    updated_at: doc.updated_at || doc.created_at
   }
 }
 
@@ -295,13 +298,7 @@ async function fetchDocument(id) {
 
   const doc = await res.json()
 
-  const normalized = {
-    ...doc,
-    status: doc.status || 'active',
-    tags: doc.tags || [],
-    versions: doc.versions || [],
-    updated_at: doc.updated_at || doc.created_at
-  }
+  const normalized = normalizeDoc(doc)
 
   const index = documents.value.findIndex(d => d.id === id)
 
@@ -426,24 +423,11 @@ async function uploadFile(existingDoc = null) {
   }
 }
 
-async function updateStatus(doc) {
-  const oldStatus = doc.status
-
-  try {
-    const res = await fetch(`/api/documents/${doc.id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ status: doc.status })
-    })
-
-    if (!res.ok) throw new Error()
-
-    await fetchDocument(doc.id)
-  } catch (err) {
-    console.error(err)
-    doc.status = oldStatus
-    error.value = 'Failed to update status'
+async function toggleArchive(doc) {
+  if (doc.is_archived) {
+    await restoreDocument(doc)
+  } else {
+    await archiveDocument(doc)
   }
 }
 
@@ -484,13 +468,25 @@ async function saveTitle(doc) {
 }
 
 async function archiveDocument(doc) {
-  doc.status = 'archived'
-  await updateStatus(doc)
+  await fetch(`/api/documents/${doc.id}/archive`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+
+  doc.is_archived = true
 }
 
 async function restoreDocument(doc) {
-  doc.status = 'active'
-  await updateStatus(doc)
+  await fetch(`/api/documents/${doc.id}/unarchive`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+
+  doc.is_archived = false
+}
+
+function getStatus(doc) {
+  return doc.is_archived ? 'archived' : 'active'
 }
 </script>
 

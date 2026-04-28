@@ -470,3 +470,27 @@ func UpdateDocumentTitle(docID int, userID int, title string) error {
 
 	return nil
 }
+
+func SetDocumentArchived(userID, docID int, archived bool) error {
+	query := `
+		UPDATE documents
+		SET is_archived = $1,
+		    updated_at = NOW()
+		WHERE id = $2 AND user_id = $3
+	`
+
+	res, err := DbConn.Exec(context.Background(), query, archived, docID, userID)
+	if err != nil {
+		return fmt.Errorf(
+			"Failed to update archive state for user_id=%d document_id=%d: %v",
+			userID, docID, err,
+		)
+	}
+
+	rows := res.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("Failed to set document archival status: No rows updated")
+	}
+
+	return err
+}

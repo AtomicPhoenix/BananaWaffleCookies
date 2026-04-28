@@ -650,3 +650,53 @@ func UpdateDocumentTitle(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// Handler for /api/documents/{id}/archive (POST)
+func ArchiveDocument(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		settings.Logger.Error("Archive failed; auth error", "err", err)
+		return
+	}
+
+	docIDRaw := chi.URLParam(r, "id")
+	docID, err := strconv.Atoi(docIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid document id", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.SetDocumentArchived(tokenInfo.Uid, docID, true); err != nil {
+		http.Error(w, "Failed to archive document", http.StatusInternalServerError)
+		settings.Logger.Error("Archive failed", "err", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// Handler for /api/documents/{id}/unarchive (POST)
+func UnarchiveDocument(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		settings.Logger.Error("Archive failed; auth error", "err", err)
+		return
+	}
+
+	docIDRaw := chi.URLParam(r, "id")
+	docID, err := strconv.Atoi(docIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid document id", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.SetDocumentArchived(tokenInfo.Uid, docID, false); err != nil {
+		http.Error(w, "Failed to archive document", http.StatusInternalServerError)
+		settings.Logger.Error("Archive failed", "err", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

@@ -158,6 +158,8 @@ func main() {
 					r.Patch("/", handlers.UpdateDocumentTitle)
 					r.Delete("/", handlers.DeleteDocument)
 					r.Get("/info", handlers.GetDocumentInfo)
+					r.Post("/archive", handlers.ArchiveDocument)
+					r.Post("/unarchive", handlers.UnarchiveDocument)
 					r.Post("/versions", handlers.CreateDocumentVersion)
 					r.Post("/duplicate", handlers.DuplicateDocument)
 				})
