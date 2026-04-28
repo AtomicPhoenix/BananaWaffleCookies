@@ -438,7 +438,7 @@ img {
 .archived-badge {
   position: absolute;
   top: 12px;
-  left: 14px;
+  right: 50px;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
