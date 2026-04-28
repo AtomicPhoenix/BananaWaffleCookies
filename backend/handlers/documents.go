@@ -599,14 +599,16 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 func UpdateDocumentTitle(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
-		http.Error(w, "Failed to update document", http.StatusBadRequest)
+		http.Error(w, "Failed to update document title", http.StatusBadRequest)
+		settings.Logger.Warn("Failed to update document title; Failed to authorize user", "err", err)
 		return
 	}
 
 	docIDRaw := chi.URLParam(r, "id")
 	docID, err := strconv.Atoi(docIDRaw)
 	if err != nil {
-		http.Error(w, "Failed to update document", http.StatusInternalServerError)
+		http.Error(w, "Failed to update document title", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to update document title; Failed to get document ID", "err", err)
 		return
 	}
 
@@ -616,19 +618,21 @@ func UpdateDocumentTitle(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		settings.Logger.Warn("Failed to update document title; Invalid Request Body", "err", err)
 		return
 	}
 
 	err = db.AssertDocumentOwnership(docID, tokenInfo.Uid)
 	if err != nil {
-		http.Error(w, "Failed to update document", http.StatusUnauthorized)
-		settings.Logger.Warn("Failed to update document; Failed to verify ownership", "err", err)
+		http.Error(w, "Failed to update document title", http.StatusUnauthorized)
+		settings.Logger.Warn("Failed to update document title; Failed to verify ownership", "err", err)
 		return
 	}
 
 	err = db.UpdateDocumentTitle(docID, tokenInfo.Uid, body.Title)
 	if err != nil {
-		http.Error(w, "Failed to update document", http.StatusInternalServerError)
+		http.Error(w, "Failed to update document title", http.StatusInternalServerError)
+		settings.Logger.Warn("Failed to update document title", "err", err)
 		return
 	}
 
