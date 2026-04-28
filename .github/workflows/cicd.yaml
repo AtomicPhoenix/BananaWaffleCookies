@@ -199,6 +199,6 @@ jobs:
             source .env
             git pull origin main
             systemctl restart bwc-server
-            PGPASSWORD=$DB_PASS psql -h $DB_ADDR -p $DB_PORT -U $DB_USER -d $DB_NAME schemas/db_down.sql
-            PGPASSWORD=$DB_PASS psql -h $DB_ADDR -p $DB_PORT -U $DB_USER -d $DB_NAME schemas/db_up.sql
-            PGPASSWORD=$DB_PASS psql -h $DB_ADDR -p $DB_PORT -U $DB_USER -d $DB_NAME schemas/db_seed.sql
+            PGPASSWORD=$DB_PASS psql -h $DB_ADDR -p $DB_PORT -U $DB_USER -d $DB_NAME -f schemas/db_down.sql
+            PGPASSWORD=$DB_PASS psql -h $DB_ADDR -p $DB_PORT -U $DB_USER -d $DB_NAME -f schemas/db_up.sql
+            PGPASSWORD=$DB_PASS psql -h $DB_ADDR -p $DB_PORT -U $DB_USER -d $DB_NAME -f schemas/db_seed.sql
