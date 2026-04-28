@@ -40,13 +40,14 @@ func CreateDocument(doc Document) (int, error) {
 
 	err = tx.QueryRow(
 		context.Background(),
-		`INSERT INTO documents (user_id, title, document_type, is_archived)
-		 VALUES ($1, $2, $3, $4)
+		`INSERT INTO documents (user_id, title, document_type, is_archived, tags)
+		 VALUES ($1, $2, $3, $4, $5)
 		 RETURNING id`,
 		doc.UserID,
 		doc.Title,
 		doc.DocumentType,
 		doc.IsArchived,
+		doc.Tags,
 	).Scan(&docID)
 
 	if err != nil {
@@ -241,7 +242,7 @@ func GetDocument(docID int, userID int) (Document, error) {
 	err := DbConn.QueryRow(
 		context.Background(),
 		`SELECT 
-			id, user_id, title, document_type, is_archived, current_version_id, created_at, updated_at
+			id, user_id, title, document_type, tags, is_archived, current_version_id, created_at, updated_at
 		 FROM documents
 		 WHERE id = $1 AND user_id = $2`,
 		docID,
@@ -251,6 +252,7 @@ func GetDocument(docID int, userID int) (Document, error) {
 		&doc.UserID,
 		&doc.Title,
 		&doc.DocumentType,
+		&doc.Tags,
 		&doc.IsArchived,
 		&doc.CurrentVersionID,
 		&doc.CreatedAt,
@@ -302,7 +304,7 @@ func GetDocument(docID int, userID int) (Document, error) {
 func GetAllDocuments(userID int) ([]Document, error) {
 	rows, err := DbConn.Query(
 		context.Background(),
-		`SELECT id, user_id, title, document_type, is_archived, current_version_id, created_at, updated_at
+		`SELECT id, user_id, title, document_type, tags, is_archived, current_version_id, created_at, updated_at
 		 FROM documents
 		 WHERE user_id = $1
 		 ORDER BY created_at DESC`,
@@ -323,6 +325,7 @@ func GetAllDocuments(userID int) ([]Document, error) {
 			&d.UserID,
 			&d.Title,
 			&d.DocumentType,
+			&d.Tags,
 			&d.IsArchived,
 			&d.CurrentVersionID,
 			&d.CreatedAt,
@@ -384,4 +387,110 @@ func AssertDocumentOwnership(docID, userID int) error {
 		docID,
 		userID,
 	).Scan(&id)
+}
+
+func GetNextVersionNumber(docID int) (int, error) {
+	var v int
+	err := DbConn.QueryRow(
+		context.Background(),
+		`SELECT COALESCE(MAX(version_number), 0) + 1
+		 FROM document_versions
+		 WHERE document_id = $1`,
+		docID,
+	).Scan(&v)
+
+	return v, err
+}
+
+func GetLatestDocumentVersion(docID int) (DocumentVersion, error) {
+	var v DocumentVersion
+
+	// Attempt to get latest doc version using current_version_id
+	err := DbConn.QueryRow(
+		context.Background(),
+		`SELECT dv.id, dv.document_id, dv.version_number, dv.file_name, dv.file_path, dv.file_size_bytes, dv.created_at
+		 FROM document_versions dv
+		 JOIN documents d ON d.current_version_id = dv.id
+		 WHERE d.id = $1`,
+		docID,
+	).Scan(
+		&v.ID,
+		&v.DocumentID,
+		&v.VersionNumber,
+		&v.FileName,
+		&v.FilePath,
+		&v.FileSizeBytes,
+		&v.CreatedAt,
+	)
+
+	if err == nil {
+		return v, nil
+	}
+
+	// Fallback: Attempt to get latest doc version using highest version number
+	err = DbConn.QueryRow(
+		context.Background(),
+		`SELECT id, document_id, version_number, file_name, file_path, file_size_bytes, created_at
+		 FROM document_versions
+		 WHERE document_id = $1
+		 ORDER BY version_number DESC
+		 LIMIT 1`,
+		docID,
+	).Scan(
+		&v.ID,
+		&v.DocumentID,
+		&v.VersionNumber,
+		&v.FileName,
+		&v.FilePath,
+		&v.FileSizeBytes,
+		&v.CreatedAt,
+	)
+
+	if err != nil {
+		return DocumentVersion{}, fmt.Errorf(
+			"Failed to get latest document version for document_id=%d: %v",
+			docID, err,
+		)
+	}
+
+	return v, nil
+}
+
+func UpdateDocumentTitle(docID int, userID int, title string) error {
+	query := `
+		UPDATE documents
+		SET title = $1
+		WHERE id = $2 AND user_id = $3
+	`
+
+	_, err := DbConn.Exec(context.Background(), query, title, docID, userID)
+	if err != nil {
+		return fmt.Errorf("Failed to rename document for user_id=%d document_id=%d: %v\n", userID, docID, err)
+	}
+
+	return nil
+}
+
+func SetDocumentArchived(userID, docID int, archived bool) error {
+	query := `
+		UPDATE documents
+		SET is_archived = $1,
+		    updated_at = NOW()
+		WHERE id = $2 AND user_id = $3
+	`
+
+	res, err := DbConn.Exec(context.Background(), query, archived, docID, userID)
+	if err != nil {
+		return fmt.Errorf(
+			"Failed to update archive state for user_id=%d document_id=%d: %v",
+			userID, docID, err,
+		)
+	}
+
+	rows := res.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("Failed to set document archival status: No rows updated")
+	}
+
+	return err
 }

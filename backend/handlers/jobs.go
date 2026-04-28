@@ -301,12 +301,27 @@ func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := fmt.Sprintf("./data/documents/%d.txt", docID)
+	versionNumber := 1
+	filePath := buildFilePath(token.Uid, docID, versionNumber)
 
 	if err := os.WriteFile(filePath, []byte(body.Content), 0644); err != nil {
 		_ = db.DeleteDocument(token.Uid, int(docID))
 		http.Error(w, "Failed to save file", http.StatusInternalServerError)
 		settings.Logger.Error("Failed to save AI document; Failed to write file", "err", err)
+		return
+	}
+
+	err = db.CreateDocumentVersion(
+		docID,
+		fmt.Sprintf("ai-%s.txt", body.Type),
+		filePath,
+		int64(len(body.Content)),
+	)
+
+	if err != nil {
+		_ = db.DeleteDocument(token.Uid, docID)
+		http.Error(w, "Failed to link document", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to save AI document; Failed to link document", "err", err)
 		return
 	}
 

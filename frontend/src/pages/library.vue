@@ -91,11 +91,8 @@
         </p>
 
         <div class="doc-sub">
-          {{ doc.type }} • Status:
-          <select v-model="doc.status" @change="updateStatus(doc)">
-            <option value="active">Active</option>
-            <option value="archived">Archived</option>
-          </select>
+          {{ doc.document_type }} • Status:
+          <button @click="toggleArchive(doc)"> {{ doc.is_archived ? 'Restore' : 'Archive' }} </button>
         </div>
 
         <p class="doc-sub">
@@ -132,12 +129,12 @@
 
           <button @click="duplicateDocument(doc)">Duplicate</button>
 
-          <button v-if="doc.status === 'active'" @click="archiveDocument(doc)">
-            Archive
+          <button v-if="getStatus(doc) === 'active'" @click="archiveDocument(doc)">
+Archive {{getStatus(doc)}}
           </button>
 
           <button v-else @click="restoreDocument(doc)">
-            Restore
+            Restore {{getStatus(doc)}}
           </button>
         </div>
       </div>
@@ -150,8 +147,50 @@ import { ref, onMounted, computed } from 'vue'
 
 const activeDocumentName = ref('')
 
-function openVersion(v) {
-  window.open(v.file_url, '_blank')
+async function openVersion(v) {
+  try {
+    const res = await fetch(`/api/documents/${v.document_id}`, {
+      credentials: 'include'
+    })
+
+    if (!res.ok) throw new Error('Failed to open document')
+
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+
+    window.open(url, '_blank')
+
+    // cleanup
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+  } catch (err) {
+    console.error(err)
+    error.value = 'Failed to open document'
+  }
+}
+
+async function downloadVersion(v) {
+  try {
+    const res = await fetch(`/api/documents/${v.document_id}`, {
+      credentials: 'include'
+    })
+
+    if (!res.ok) throw new Error('Download failed')
+
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'document.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error(err)
+    error.value = 'Download failed'
+  }
 }
 
 function formatDate(date) {
@@ -186,13 +225,13 @@ const filteredDocuments = computed(() => {
 
   if (typeFilter) {
     docs = docs.filter(d =>
-      String(d.type || '').toLowerCase() === typeFilter
+      String(d.document_type || '').toLowerCase() === typeFilter
     )
   }
 
   if (statusFilter) {
     docs = docs.filter(d =>
-      String(d.status || '').toLowerCase() === statusFilter
+      String(getStatus(d) || '').toLowerCase() === statusFilter
     )
   }
 
@@ -231,16 +270,22 @@ async function fetchDocuments() {
   try {
     const res = await fetch('/api/documents', { credentials: 'include' })
     if (res.ok) {
-      documents.value = (await res.json()).map(doc => ({
-        ...doc,
-        status: doc.status || 'active',
-        tags: doc.tags || [],
-        versions: doc.versions || [],
-        updated_at: doc.updated_at || doc.created_at
-      }))
+      const data = await res.json()
+      documents.value = data.map(normalizeDoc)
     }
   } catch (err) {
     console.error(err)
+  }
+}
+
+function normalizeDoc(doc) {
+  return {
+    ...doc,
+    is_archived: !!doc.is_archived,
+    status: doc.is_archived ? 'archived' : 'active',
+    tags: doc.tags || [],
+    versions: doc.versions || [],
+    updated_at: doc.updated_at || doc.created_at
   }
 }
 
@@ -253,13 +298,7 @@ async function fetchDocument(id) {
 
   const doc = await res.json()
 
-  const normalized = {
-    ...doc,
-    status: doc.status || 'active',
-    tags: doc.tags || [],
-    versions: doc.versions || [],
-    updated_at: doc.updated_at || doc.created_at
-  }
+  const normalized = normalizeDoc(doc)
 
   const index = documents.value.findIndex(d => d.id === id)
 
@@ -384,24 +423,11 @@ async function uploadFile(existingDoc = null) {
   }
 }
 
-async function updateStatus(doc) {
-  const oldStatus = doc.status
-
-  try {
-    const res = await fetch(`/api/documents/${doc.id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ status: doc.status })
-    })
-
-    if (!res.ok) throw new Error()
-
-    await fetchDocument(doc.id)
-  } catch (err) {
-    console.error(err)
-    doc.status = oldStatus
-    error.value = 'Failed to update status'
+async function toggleArchive(doc) {
+  if (doc.is_archived) {
+    await restoreDocument(doc)
+  } else {
+    await archiveDocument(doc)
   }
 }
 
@@ -442,13 +468,25 @@ async function saveTitle(doc) {
 }
 
 async function archiveDocument(doc) {
-  doc.status = 'archived'
-  await updateStatus(doc)
+  await fetch(`/api/documents/${doc.id}/archive`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+
+  doc.is_archived = true
 }
 
 async function restoreDocument(doc) {
-  doc.status = 'active'
-  await updateStatus(doc)
+  await fetch(`/api/documents/${doc.id}/unarchive`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+
+  doc.is_archived = false
+}
+
+function getStatus(doc) {
+  return doc.is_archived ? 'archived' : 'active'
 }
 </script>
 
