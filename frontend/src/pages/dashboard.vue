@@ -186,6 +186,9 @@
         <h2 v-if="isSearchMode">Search Results: {{ searchQuery }}</h2>
 
         <div v-for="job in displayedJobs" :key="job.id" class="job-listing" role="button" tabindex="0" @click="openJobModal(job)" @keydown.enter.prevent="openJobModal(job)" @keydown.space.prevent="openJobModal(job)">
+          <div v-if="job.is_archived" class="archived-badge">
+            Archived
+          </div>
           <div class="left top">
             {{ job.title }} | {{ job.company_name }} | {{ job.location_text }}
           </div>

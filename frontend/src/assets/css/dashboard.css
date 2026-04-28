@@ -413,6 +413,24 @@ img {
     
 }
 
+.archived-badge {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #e75e5e;
+  border: 1px solid #e35656;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f8f8f8;
+  text-decoration: line-through;
+  pointer-events: none;
+  user-select: none;
+}
+
 .top { 
     .right{
         grid-column: 1;
@@ -589,11 +607,14 @@ img {
     outline: none;
 }
 
+/* DEPRECATED ID TAG not in use
+
 #archived {
     text-transform: capitalize;
     background: #6F6F73;
     outline: none;
 }
+*/
 
 @media (max-width: 700px){
     .search-box{
