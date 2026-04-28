@@ -594,7 +594,7 @@ async function saveCompanyNotes() {
 		error.value = ''
 
 		const res = await fetch(`/api/jobs/${resolvedJobId.value}/company-notes`, {
-			method: 'PUT',
+			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
 			},

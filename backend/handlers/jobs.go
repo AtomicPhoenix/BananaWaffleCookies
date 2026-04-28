@@ -365,3 +365,38 @@ func generatePDFBytes(content string) ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
+
+// Handler for /api/jobs/{id}/company-notes {PATCH}
+func UpdateCompanyNotes(w http.ResponseWriter, r *http.Request) {
+	err, token := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		return
+	}
+
+	var body struct {
+		CompanyNotes string `json:"company_notes"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "Invalid body", http.StatusBadRequest)
+		return
+	}
+
+	err = db.UpdateJobCompanyNotes(jobID, token.Uid, body.CompanyNotes)
+	if err != nil {
+		http.Error(w, "Failed to update notes", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+	})
+}

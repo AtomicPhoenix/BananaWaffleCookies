@@ -19,6 +19,7 @@ type Job struct {
 	Salary       int       `json:"salary"`
 	Status       string    `json:"status"`
 	DeadlineDate time.Time `json:"deadline_date"`
+	Notes        string    `json:"notes"`
 	Description  string    `json:"description"`
 	IsArchived   bool      `json:"is_archived"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -54,10 +55,10 @@ const (
 
 func CreateJob(job Job) (int, error) {
 	var id int
-	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived) 
+	sql_query := `INSERT INTO jobs (user_id, company_name, title, location_text, salary, status, deadline_date, notes, description, is_archived) 
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 				RETURNING id`
-	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, false).Scan(&id)
+	err := DbConn.QueryRow(context.Background(), sql_query, job.UserID, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Notes, job.Description, false).Scan(&id)
 	if err != nil {
 		return -1, fmt.Errorf("Failed to insert job for user_id=%d: %w", job.UserID, err)
 
@@ -77,7 +78,7 @@ func CreateJob(job Job) (int, error) {
 
 func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 	sqlQuery := `
-		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived, created_at, updated_at FROM jobs WHERE user_id = $1 `
+		SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, notes, description, is_archived, created_at, updated_at FROM jobs WHERE user_id = $1 `
 
 	var (
 		rows pgx.Rows
@@ -106,11 +107,11 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 	for rows.Next() {
 		var j Job
 
-		var locationText, description sql.NullString
+		var locationText, description, notes sql.NullString
 		var deadlineDate sql.NullTime
 		var salary sql.NullInt64
 
-		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &description, &j.IsArchived, &j.CreatedAt, &j.UpdatedAt)
+		err := rows.Scan(&j.ID, &j.UserID, &j.CompanyName, &j.Title, &locationText, &salary, &j.Status, &deadlineDate, &notes, &description, &j.IsArchived, &j.CreatedAt, &j.UpdatedAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to scan jobs for user_id=%d: %w", user_id, err)
@@ -126,6 +127,9 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 		if deadlineDate.Valid {
 			j.DeadlineDate = deadlineDate.Time
 		}
+		if notes.Valid {
+			j.Notes = notes.String
+		}
 		if description.Valid {
 			j.Description = description.String
 		}
@@ -139,10 +143,10 @@ func GetJobs(user_id int, searchQuery string) ([]Job, error) {
 }
 
 func GetJob(job_id int, user_id int) (Job, error) {
-	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, description, is_archived, created_at, updated_at FROM jobs WHERE id = $1 AND user_id = $2;`
+	sql_query := `SELECT id, user_id, company_name, title, location_text, salary, status, deadline_date, notes, description, is_archived, created_at, updated_at FROM jobs WHERE id = $1 AND user_id = $2;`
 
 	var job Job
-	err := DbConn.QueryRow(context.Background(), sql_query, job_id, user_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Description, &job.IsArchived, &job.CreatedAt, &job.UpdatedAt)
+	err := DbConn.QueryRow(context.Background(), sql_query, job_id, user_id).Scan(&job.ID, &job.UserID, &job.CompanyName, &job.Title, &job.LocationText, &job.Salary, &job.Status, &job.DeadlineDate, &job.Notes, &job.Description, &job.IsArchived, &job.CreatedAt, &job.UpdatedAt)
 
 	if err != nil {
 		return Job{}, fmt.Errorf("Failed to get job job_id=%d user_id=%d: %w", job_id, user_id, err)
@@ -157,9 +161,9 @@ func UpdateJob(job Job) error {
 	}
 
 	sql_query := `UPDATE jobs 
-				SET company_name = $1, title = $2, location_text = $3, salary = $4, status = $5, deadline_date = $6, description = $7
-				WHERE id = $8 AND user_id = $9`
-	result, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Description, job.ID, job.UserID)
+				SET company_name = $1, title = $2, location_text = $3, salary = $4, status = $5, deadline_date = $6, notes = $7, description = $8
+				WHERE id = $9 AND user_id = $10`
+	result, err := DbConn.Exec(context.Background(), sql_query, job.CompanyName, job.Title, job.LocationText, job.Salary, job.Status, job.DeadlineDate, job.Notes, job.Description, job.ID, job.UserID)
 	if err != nil {
 		return fmt.Errorf("Failed to update job job_id=%d user_id=%d: %w", job.ID, job.UserID, err)
 	}
@@ -392,4 +396,23 @@ func IsJobOwner(jobID int, userID int) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+func UpdateJobCompanyNotes(jobID int, userID int, notes string) error {
+	query := `
+		UPDATE jobs
+		SET notes = $1
+		WHERE id = $2 AND user_id = $3
+	`
+
+	res, err := DbConn.Exec(context.Background(), query, notes, jobID, userID)
+	if err != nil {
+		return err
+	}
+
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("no rows updated")
+	}
+
+	return nil
 }
