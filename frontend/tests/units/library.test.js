@@ -1,129 +1,323 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
-import DocumentLibrary from '@/pages/library.vue'
+// library.test.js
 
-// Mock fetch
-global.fetch = vi.fn()
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mount, flushPromises } from "@vue/test-utils";
+import LibraryPage from "@/pages/library.vue";
 
-describe('DocumentLibrary.vue', () => {
+const mockDocuments = [
+	{
+		id: 1,
+		title: "Resume.pdf",
+		type: "resume",
+		status: "active",
+		tags: ["frontend"],
+		created_at: "2026-04-01T00:00:00.000Z",
+		updated_at: "2026-04-02T00:00:00.000Z",
+		versions: [],
+	},
+];
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+const mockJobs = [
+	{
+		id: 1,
+		title: "Software Engineer",
+		company_name: "OpenAI",
+	},
+];
 
-  // ---------------------------- //
-  // RENDER TEST                  //
-  // ---------------------------- //
+function successfulFetch(data = {}) {
+	return Promise.resolve({
+		ok: true,
+		json: () => Promise.resolve(data),
+		text: () => Promise.resolve(""),
+		blob: () => Promise.resolve(new Blob()),
+	});
+}
 
-  it('renders document library page', async () => {
-    fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // documents
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // jobs
+function failedFetch(message = "Upload failed") {
+	return Promise.resolve({
+		ok: false,
+		text: () => Promise.resolve(message),
+	});
+}
 
-    const wrapper = mount(DocumentLibrary)
-    await flushPromises()
+describe("Library Upload + Error Handling Tests", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
 
-    expect(wrapper.text()).toContain('Document Library')
-    expect(wrapper.text()).toContain('Upload Documents')
-  })
+		global.fetch = vi.fn((url) => {
+			if (url === "/api/documents") {
+				return successfulFetch(mockDocuments);
+			}
 
-  // ---------------------------- //
-  // FETCH DOCUMENTS (onMounted)  //
-  // ---------------------------- //
+			if (url === "/api/jobs") {
+				return successfulFetch(mockJobs);
+			}
 
-  it('loads documents from API on mount', async () => {
-    const mockDocs = [{ id: 1, title: 'Resume', type: 'PDF' }]
+			if (url.includes("/info")) {
+				return successfulFetch(mockDocuments[0]);
+			}
 
-    fetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockDocs
-      }) // documents
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => []
-      }) // jobs
+			return successfulFetch({});
+		});
+	});
 
-    const wrapper = mount(DocumentLibrary)
-    await flushPromises()
+	/*
+	TEST 1
+	Reject unsupported file type
+	*/
+  
+	it("rejects non-PDF uploads", async () => {
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
 
-    expect(wrapper.vm.documents.length).toBe(1)
-    expect(wrapper.vm.documents[0].title).toBe('Resume')
-  })
+		const fileInput = wrapper.find('input[type="file"]');
 
-  // ---------------------------- //
-  // UPLOAD WITHOUT FILE          //
-  // ---------------------------- //
+		const badFile = new File(["bad"], "image.png", {
+			type: "image/png",
+		});
 
-  it('shows error if upload attempted without file', async () => {
-    fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // documents
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // jobs
+		Object.defineProperty(fileInput.element, "files", {
+			value: [badFile],
+		});
 
-    const wrapper = mount(DocumentLibrary)
-    await flushPromises()
+		await fileInput.trigger("change");
 
-    const uploadBtn = wrapper.findAll('button')
-      .find(btn => btn.text().includes('Upload File'))
+		expect(wrapper.text()).toContain("Only PDF files are allowed");
+	});
 
-    await uploadBtn.trigger('click')
+	/*
+	TEST 2
+	Reject oversized file
+	*/
 
-    expect(wrapper.vm.error).toBe('Please select a file')
-  })
+	it("rejects files larger than 5MB", async () => {
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
 
-  // ---------------------------- //
-  // SUCCESSFUL UPLOAD            //
-  // ---------------------------- //
+		const fileInput = wrapper.find('input[type="file"]');
 
-  it('uploads file and updates document list', async () => {
-    fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // documents
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // jobs
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 1,
-          name: 'Resume.pdf',
-          document_type: 'PDF',
-          url: 'test-url'
-        })
-      })
+		const largeFile = new File(
+			[new Array(6 * 1024 * 1024).fill("a").join("")],
+			"large.pdf",
+			{
+				type: "application/pdf",
+			}
+		);
 
-    const wrapper = mount(DocumentLibrary)
-    await flushPromises()
+		Object.defineProperty(fileInput.element, "files", {
+			value: [largeFile],
+		});
 
-    const file = new File(['test'], 'Resume.pdf', { type: 'application/pdf' })
+		await fileInput.trigger("change");
 
-    wrapper.vm.selectedFile = file
-    wrapper.vm.selectedJobId = 1 // REQUIRED now
+		expect(wrapper.text()).toContain("File must be under 5MB");
+	});
 
-    await wrapper.vm.uploadFile()
-    await flushPromises()
+	/*
+	TEST 3
+	Attempt upload with no file selected
+	*/
 
-    expect(wrapper.vm.documents.length).toBe(1)
-    expect(wrapper.vm.uploadMessage).toBe('Upload successful!')
-  })
+	it("prevents upload when no file is selected", async () => {
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
 
-  // ---------------------------- //
-  // FAILED UPLOAD (API ERROR)    //
-  // ---------------------------- //
+		const uploadButton = wrapper
+			.findAll("button")
+			.find((btn) => btn.text() === "Upload File");
 
-  it('handles failed upload response', async () => {
-    fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // documents
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // jobs
-      .mockResolvedValueOnce({ ok: false })
+		await uploadButton.trigger("click");
+		await flushPromises();
 
-    const wrapper = mount(DocumentLibrary)
-    await flushPromises()
+		expect(wrapper.text()).toContain("Please select a file");
+	});
 
-    wrapper.vm.selectedFile = new File(['test'], 'file.pdf')
-    wrapper.vm.selectedJobId = 1
+	/*
+	TEST 4
+	Successful valid PDF selection
+	*/
 
-    await wrapper.vm.uploadFile()
-    await flushPromises()
+	it("accepts valid PDF upload selection", async () => {
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
 
-    expect(wrapper.vm.error).toBe('Only PDF files allowed')
-  })
+		const fileInput = wrapper.find('input[type="file"]');
 
-})
+		const validFile = new File(["pdf"], "resume.pdf", {
+			type: "application/pdf",
+		});
+
+		Object.defineProperty(fileInput.element, "files", {
+			value: [validFile],
+		});
+
+		await fileInput.trigger("change");
+
+		expect(wrapper.text()).toContain("Selected: resume.pdf");
+	});
+
+	/*
+	TEST 5
+	Successful upload triggers API + success message
+	*/
+
+	it("uploads valid document successfully", async () => {
+		global.fetch = vi.fn((url) => {
+			if (url === "/api/documents") {
+				return successfulFetch(mockDocuments);
+			}
+
+			if (url === "/api/jobs") {
+				return successfulFetch(mockJobs);
+			}
+
+			return successfulFetch({});
+		});
+
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
+
+		const fileInput = wrapper.find('input[type="file"]');
+
+		const validFile = new File(["pdf"], "resume.pdf", {
+			type: "application/pdf",
+		});
+
+		Object.defineProperty(fileInput.element, "files", {
+			value: [validFile],
+		});
+
+		await fileInput.trigger("change");
+
+		const uploadButton = wrapper
+			.findAll("button")
+			.find((btn) => btn.text() === "Upload File");
+
+		await uploadButton.trigger("click");
+		await flushPromises();
+
+		expect(wrapper.text()).toContain("Upload successful!");
+	});
+
+	/*
+	TEST 6
+	API upload failure catch
+	*/
+
+	it("handles upload API failure gracefully", async () => {
+		global.fetch = vi.fn((url) => {
+			if (url === "/api/documents") {
+				return failedFetch("Server upload failed");
+			}
+
+			if (url === "/api/jobs") {
+				return successfulFetch(mockJobs);
+			}
+
+			return successfulFetch({});
+		});
+
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
+
+		const fileInput = wrapper.find('input[type="file"]');
+
+		const validFile = new File(["pdf"], "resume.pdf", {
+			type: "application/pdf",
+		});
+
+		Object.defineProperty(fileInput.element, "files", {
+			value: [validFile],
+		});
+
+		await fileInput.trigger("change");
+
+		const uploadButton = wrapper
+			.findAll("button")
+			.find((btn) => btn.text() === "Upload File");
+
+		await uploadButton.trigger("click");
+		await flushPromises();
+
+		expect(wrapper.text()).toContain("Server upload failed");
+	});
+
+	/*
+	TEST 7
+	New version upload for existing document
+	*/
+
+	it("uploads new version for existing document", async () => {
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
+
+		const versionFileInput = wrapper.findAll('input[type="file"]')[1];
+
+		const validFile = new File(["pdf"], "updated.pdf", {
+			type: "application/pdf",
+		});
+
+		Object.defineProperty(versionFileInput.element, "files", {
+			value: [validFile],
+		});
+
+		await versionFileInput.trigger("change");
+
+		const versionButton = wrapper
+			.findAll("button")
+			.find((btn) => btn.text().includes("Upload New Version"));
+
+		await versionButton.trigger("click");
+		await flushPromises();
+
+		expect(global.fetch).toHaveBeenCalled();
+		expect(wrapper.text()).toContain("Upload successful!");
+	});
+
+	/*
+	TEST 8
+	Failed version upload API catch
+	*/
+
+	it("handles failed version upload correctly", async () => {
+		global.fetch = vi.fn((url) => {
+			if (url.includes("/versions")) {
+				return failedFetch("Version upload failed");
+			}
+
+			if (url === "/api/documents") {
+				return successfulFetch(mockDocuments);
+			}
+
+			if (url === "/api/jobs") {
+				return successfulFetch(mockJobs);
+			}
+
+			return successfulFetch({});
+		});
+
+		const wrapper = mount(LibraryPage);
+		await flushPromises();
+
+		const versionFileInput = wrapper.findAll('input[type="file"]')[1];
+
+		const validFile = new File(["pdf"], "updated.pdf", {
+			type: "application/pdf",
+		});
+		Object.defineProperty(versionFileInput.element, "files", {
+			value: [validFile],
+		});
+
+		await versionFileInput.trigger("change");
+
+		const versionButton = wrapper
+			.findAll("button")
+			.find((btn) => btn.text().includes("Upload New Version"));
+
+		await versionButton.trigger("click");
+		await flushPromises();
+
+		expect(wrapper.text()).toContain("Version upload failed");
+	});
+});
