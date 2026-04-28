@@ -528,16 +528,17 @@ img {
     z-index: 10001;
 }
 
-.job-modal-close{
-    position: absolute;
-    top: 0.6rem;
-    right: 0.75rem;
-    border: none;
-    background: transparent;
-    font-size: 1.4rem;
-    line-height: 1;
-    cursor: pointer;
-    color: #424242;
+.job-modal-close {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	width: 2rem;
+	height: 2rem;
+	border: none;
+	background: transparent;
+	font-size: 1.2rem;
+	cursor: pointer;
+	z-index: 10;
 }
 
 .job-modal-title{
