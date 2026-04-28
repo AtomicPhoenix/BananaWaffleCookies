@@ -30,10 +30,23 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	buffer := make([]byte, 512)
-	if _, err = file.Read(buffer); err != nil {
-		http.Error(w, "Failed to parse document type", http.StatusBadRequest)
-		settings.Logger.Error("Failed to upload document; Failed to parse document type", "err", err)
+	buf := make([]byte, 512)
+	n, err := file.Read(buf)
+	if err != nil {
+		http.Error(w, "Failed to upload document", http.StatusBadRequest)
+		settings.Logger.Error("Failed to upload document; Failed to read file", "err", err)
+		return
+	}
+	buf = buf[:n]
+
+	if http.DetectContentType(buf) != "application/pdf" {
+		http.Error(w, "Only PDF files allowed", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := file.Seek(0, 0); err != nil {
+		http.Error(w, "Failed to reset file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to upload document; Failed to reset file reader", "err", err)
 		return
 	}
 
@@ -44,36 +57,45 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 		IsArchived:   false,
 	}
 
-	id, err := db.CreateDocument(doc)
-	doc.ID = id
+	docID, err := db.CreateDocument(doc)
 	if err != nil {
-		http.Error(w, "Failed to upload document", http.StatusBadRequest)
-		settings.Logger.Error("Failed to upload document; Failed to create document entry in DB", "err", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to upload document; Failed to create document", "err", err)
 		return
 	}
 
-	dst := fmt.Sprintf("./data/documents/%d.pdf", id)
-	out, err := os.Create(dst)
-	if err != nil {
-		http.Error(w, "Failed to upload document", http.StatusInternalServerError)
-		settings.Logger.Error("Failed to upload document; Failed to create file destination", "err", err)
+	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
 
+	out, err := os.Create(filePath)
+	if err != nil {
 		if err = db.DeleteDocument(tokenInfo.Uid, doc.ID); err != nil {
 			settings.Logger.Error("Failed to upload document; Failed cleanup delete document", "err", err)
 		}
+		http.Error(w, "File creation failed", http.StatusInternalServerError)
 		return
 	}
 	defer out.Close()
 
-	if _, err = io.Copy(out, file); err != nil {
-		http.Error(w, "Failed to upload document", http.StatusInternalServerError)
-		settings.Logger.Error("Failed to upload document; Failed to copy file to destination", "err", err)
-
+	fileSize, err := io.Copy(out, file)
+	if err != nil {
 		if err = db.DeleteDocument(tokenInfo.Uid, doc.ID); err != nil {
 			settings.Logger.Error("Failed to upload document; Failed cleanup delete document", "err", err)
 		}
+		http.Error(w, "File write failed", http.StatusInternalServerError)
 		return
 	}
+
+	err = db.CreateDocumentVersion(docID, fileHeader.Filename, filePath, fileSize)
+	if err != nil {
+		settings.Logger.Error("Failed to upload document; Failed to create version", "err", err)
+		if err = db.DeleteDocument(tokenInfo.Uid, doc.ID); err != nil {
+			settings.Logger.Error("Failed to upload document; Failed cleanup delete document", "err", err)
+		}
+		http.Error(w, "Version creation failed", http.StatusInternalServerError)
+		return
+	}
+
+	doc.ID = docID
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(doc)
@@ -109,27 +131,25 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
-		http.Error(w, "Failed to update document", http.StatusBadRequest)
-		settings.Logger.Error("Failed to update document; Failed to grab auth token information", "err", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	docIDRaw := chi.URLParam(r, "id")
 	docID, err := strconv.Atoi(docIDRaw)
 	if err != nil {
-		http.Error(w, "Failed to delete document", http.StatusInternalServerError)
-		settings.Logger.Error("Failed to delete document; Failed to convert document id to int", "err", err)
+		http.Error(w, "Invalid document id", http.StatusBadRequest)
 		return
 	}
 
 	file, fileHeader, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Failed to update document", http.StatusBadRequest)
-		settings.Logger.Error("Failed to update document; Failed to grab file from request", "err", err)
+		http.Error(w, "Missing file", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
+	// Read first 512 bytes for MIME detection
 	buffer := make([]byte, 512)
 	if _, err = file.Read(buffer); err != nil {
 		http.Error(w, "Failed to parse document type", http.StatusBadRequest)
@@ -137,16 +157,41 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doc := db.Document{
-		ID:           docID,
-		UserID:       tokenInfo.Uid,
-		Title:        fileHeader.Filename,
-		DocumentType: "resume",
-		IsArchived:   false,
+	fileType := http.DetectContentType(buffer)
+	if fileType != "application/pdf" {
+		http.Error(w, "Only PDF allowed", http.StatusBadRequest)
+		return
 	}
 
-	if err := db.UpdateDocument(doc); err != nil {
-		http.Error(w, "Failed to update document", http.StatusBadRequest)
+	// Reset file reader
+	if _, err := file.Seek(0, 0); err != nil {
+		http.Error(w, "Failed to reset document reader", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to update document; Failed to reset document reader", "err", err)
+		return
+	}
+
+	// Save file to disk
+	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to update document; Failed to create file", "err", err)
+		return
+	}
+	defer out.Close()
+
+	fileSize, err := io.Copy(out, file)
+	if err != nil {
+		http.Error(w, "Failed to write file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to update document; Failed to write file", "err", err)
+		return
+	}
+
+	err = db.UpdateDocument(tokenInfo.Uid, docID, fileHeader.Filename, filePath, fileSize)
+
+	if err != nil {
+		http.Error(w, "Failed to update document", http.StatusInternalServerError)
 		settings.Logger.Error("Failed to update document", "err", err)
 		return
 	}
@@ -179,6 +224,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		http.Error(w, "Failed to get document", http.StatusNotFound)
@@ -207,14 +253,14 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 func GetAllDocuments(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
-		http.Error(w, "Failed to get documents", http.StatusBadRequest)
+		http.Error(w, "Unauthorized", http.StatusBadRequest)
 		settings.Logger.Error("Failed to get documents; Failed to grab auth token information", "err", err)
 		return
 	}
 
 	docs, err := db.GetAllDocuments(tokenInfo.Uid)
 	if err != nil {
-		http.Error(w, "Failed to get documents", http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		settings.Logger.Error("Failed to get documents; DB query failed", "err", err)
 		return
 	}

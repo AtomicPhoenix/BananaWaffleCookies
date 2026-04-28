@@ -29,8 +29,7 @@ type DocumentVersion struct {
 	CreatedAt     time.Time `json:"created_at"`
 }
 
-func CreateDocument(doc Document, fileName, filePath string, fileSize int64) (int, error) {
-	// Begin transaction
+func CreateDocument(doc Document) (int, error) {
 	tx, err := DbConn.Begin(context.Background())
 	if err != nil {
 		return -1, err
@@ -39,7 +38,6 @@ func CreateDocument(doc Document, fileName, filePath string, fileSize int64) (in
 
 	var docID int
 
-	// Create document
 	err = tx.QueryRow(
 		context.Background(),
 		`INSERT INTO documents (user_id, title, document_type, is_archived)
@@ -48,20 +46,40 @@ func CreateDocument(doc Document, fileName, filePath string, fileSize int64) (in
 		doc.UserID,
 		doc.Title,
 		doc.DocumentType,
-		false,
+		doc.IsArchived,
 	).Scan(&docID)
 
 	if err != nil {
 		return -1, fmt.Errorf("Failed to insert document for user_id=%d title=%s; Creating document failed: %v\n", doc.UserID, doc.Title, err)
 	}
 
-	// Create document version 1
+	err = tx.Commit(context.Background())
+	if err != nil {
+		return -1, fmt.Errorf("Failed to insert document for user_id=%d title=%s; Transaction Failed: %v\n", doc.UserID, doc.Title, err)
+	}
+	return docID, err
+}
+
+func CreateDocumentVersion(docID int, fileName, filePath string, fileSize int64) error {
+	tx, err := DbConn.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
 	var versionID int
+
 	err = tx.QueryRow(
 		context.Background(),
 		`INSERT INTO document_versions
 		 (document_id, version_number, file_name, file_path, file_size_bytes)
-		 VALUES ($1, 1, $2, $3, $4)
+		 VALUES (
+			$1,
+			COALESCE((SELECT MAX(version_number) + 1 FROM document_versions WHERE document_id = $1), 1),
+			$2,
+			$3,
+			$4
+		 )
 		 RETURNING id`,
 		docID,
 		fileName,
@@ -70,28 +88,31 @@ func CreateDocument(doc Document, fileName, filePath string, fileSize int64) (in
 	).Scan(&versionID)
 
 	if err != nil {
-		return -1, fmt.Errorf("Failed to insert document for user_id=%d title=%s; Creating current document version failed: %v\n", doc.UserID, doc.Title, err)
+		return fmt.Errorf("Failed to create document version for document_id=%d; Insert version failed: %v\n",
+			docID, err)
 	}
 
-	// Set current version of document to version 1
 	_, err = tx.Exec(
 		context.Background(),
 		`UPDATE documents
-		 SET current_version_id = $1
+		 SET current_version_id = $1, updated_at = NOW()
 		 WHERE id = $2`,
 		versionID,
 		docID,
 	)
 
 	if err != nil {
-		return -1, fmt.Errorf("Failed to insert document for user_id=%d title=%s; Setting current document version failed: %v\n", doc.UserID, doc.Title, err)
+		return fmt.Errorf("Failed to create document version for document_id=%d; Updating current version failed: %v\n",
+			docID, err)
 	}
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return -1, fmt.Errorf("Failed to insert document for user_id=%d title=%s; Transaction Failed: %v\n", doc.UserID, doc.Title, err)
+		return fmt.Errorf("Failed to create document version for document_id=%d; Transaction failed: %v\n",
+			docID, err)
 	}
-	return docID, err
+
+	return nil
 }
 
 func DeleteDocument(user_id int, doc_id int) error {
@@ -106,65 +127,54 @@ func DeleteDocument(user_id int, doc_id int) error {
 }
 
 func UpdateDocument(userID, docID int, fileName, filePath string, fileSize int64) error {
-	// Bein transaction
 	tx, err := DbConn.Begin(context.Background())
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(context.Background())
 
-	// Confirm ownership
 	var tmp int
 
 	err = tx.QueryRow(
 		context.Background(),
 		`SELECT id
-			FROM documents
-     			WHERE id = $1 AND user_id = $2
-     			FOR UPDATE`,
+		 FROM documents
+		 WHERE id = $1 AND user_id = $2
+		 FOR UPDATE`,
 		docID,
 		userID,
 	).Scan(&tmp)
 
 	if err != nil {
-		return fmt.Errorf("Failed to update document for user_id=%d document_id=%d; User does not own document or document does not exist: %v\n", userID, docID, err)
+		return fmt.Errorf("Failed to update document for user_id=%d document_id=%d; User does not own document or document does not exist: %v\n",
+			userID, docID, err)
 	}
 
-	// Get next version number
-	var nextVersion int
-	err = tx.QueryRow(
-		context.Background(),
-		`SELECT COALESCE(MAX(version_number), 0) + 1
-		 FROM document_versions
-		 WHERE document_id = $1
-		 FOR UPDATE`,
-		docID,
-	).Scan(&nextVersion)
-
-	if err != nil {
-		return fmt.Errorf("Failed to update document for user_id=%d document_id=%d; Could not get next version number: %v\n", userID, docID, err)
-	}
-
-	// Insert new version
 	var versionID int
+
 	err = tx.QueryRow(
 		context.Background(),
 		`INSERT INTO document_versions
 		 (document_id, version_number, file_name, file_path, file_size_bytes)
-		 VALUES ($1, $2, $3, $4, $5)
+		 VALUES (
+			$1,
+			COALESCE((SELECT MAX(version_number) + 1 FROM document_versions WHERE document_id = $1), 1),
+			$2,
+			$3,
+			$4
+		 )
 		 RETURNING id`,
 		docID,
-		nextVersion,
 		fileName,
 		filePath,
 		fileSize,
 	).Scan(&versionID)
 
 	if err != nil {
-		return fmt.Errorf("Failed to update document for user_id=%d document_id=%d; Could not insert new version into DB: %v\n", userID, docID, err)
+		return fmt.Errorf("Failed to update document for user_id=%d document_id=%d; Could not insert new version into DB: %v\n",
+			userID, docID, err)
 	}
 
-	// Update current version
 	_, err = tx.Exec(
 		context.Background(),
 		`UPDATE documents
@@ -175,7 +185,8 @@ func UpdateDocument(userID, docID int, fileName, filePath string, fileSize int64
 	)
 
 	if err != nil {
-		return fmt.Errorf("Failed to update document for user_id=%d document_id=%d; Could not update current version: %v\n", userID, docID, err)
+		return fmt.Errorf("Failed to update document for user_id=%d document_id=%d; Could not update current version: %v\n",
+			userID, docID, err)
 	}
 
 	return tx.Commit(context.Background())
