@@ -155,6 +155,7 @@ func main() {
 				r.Get("/{id}/info", handlers.GetDocumentInfo)
 				r.Post("/", handlers.UploadDocument)
 				r.Put("/{id}", handlers.UpdateDocument)
+				r.Post("/{id}/versions", handlers.CreateDocumentVersion)
 				r.Delete("/{id}", handlers.DeleteDocument)
 			})
 
@@ -167,11 +168,6 @@ func main() {
 	})
 
 	// Frontend / Static Routes
-	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./frontend/dist/index.html")
-	})
-
-	// Serve frontend for Vue routes
 	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./frontend/dist/index.html")
 	})

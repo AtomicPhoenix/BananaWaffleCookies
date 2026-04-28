@@ -10,7 +10,6 @@
     <div class="upload-card">
       <h3 class="section-title">Upload Documents</h3>
 
-      <!-- JOB SELECT -->
       <div class="form-group">
         <label>Select Job</label>
         <select v-model="selectedJobId">
@@ -21,7 +20,6 @@
         </select>
       </div>
 
-      <!-- DOC TYPE -->
       <div class="form-group">
         <label>Document Type</label>
         <select v-model="documentType">
@@ -31,7 +29,6 @@
         </select>
       </div>
 
-      <!-- TAG INPUT -->
       <div class="form-group">
         <label>Tags</label>
 
@@ -47,7 +44,6 @@
         </div>
       </div>
 
-      <!-- FILE INPUT -->
       <input type="file" @change="handleFileUpload" />
       <button @click="uploadFile()">Upload File</button>
 
@@ -79,12 +75,7 @@
 
     <!-- DOCUMENTS GRID -->
     <div class="documents-grid">
-      <div
-        v-for="doc in filteredDocuments"
-        :key="doc.id"
-        class="document-card"
-      >
-        <!-- TITLE / RENAME -->
+      <div v-for="doc in filteredDocuments" :key="doc.id" class="document-card">
         <div v-if="doc.isEditing">
           <input v-model="doc.title" />
           <button @click="saveTitle(doc)">Save</button>
@@ -92,7 +83,7 @@
 
         <div v-else>
           <h4>{{ doc.title }}</h4>
-          <button @click="doc.isEditing = true">Rename</button>
+          <button class="text-button" @click="doc.isEditing = true">Rename</button>
         </div>
 
         <p class="doc-sub">
@@ -111,14 +102,12 @@
           Last Updated: {{ formatDate(doc.updated_at || doc.created_at) }}
         </p>
 
-        <!-- TAGS -->
         <div class="doc-tags" v-if="doc.tags?.length">
           <span v-for="tag in doc.tags" :key="tag" class="tag">
             {{ tag }}
           </span>
         </div>
 
-        <!-- VERSION HISTORY -->
         <div class="versions" v-if="doc.versions?.length">
           <p><strong>Versions:</strong></p>
 
@@ -134,7 +123,6 @@
           </div>
         </div>
 
-        <!-- ACTIONS -->
         <div class="doc-actions">
           <input class="browse-input" type="file" @change="(e) => handleFileUpload(e, doc)" />
 
@@ -144,17 +132,11 @@
 
           <button @click="duplicateDocument(doc)">Duplicate</button>
 
-          <button
-            v-if="doc.status === 'active'"
-            @click="archiveDocument(doc)"
-          >
+          <button v-if="doc.status === 'active'" @click="archiveDocument(doc)">
             Archive
           </button>
 
-          <button
-            v-else
-            @click="restoreDocument(doc)"
-          >
+          <button v-else @click="restoreDocument(doc)">
             Restore
           </button>
         </div>
@@ -196,29 +178,43 @@ const sortBy = ref('newest')
 
 /* COMPUTED */
 const filteredDocuments = computed(() => {
-  let docs = [...documents.value]
+  let docs = Array.isArray(documents.value) ? [...documents.value] : []
 
-  if (filterType.value) {
-    docs = docs.filter(d => d.type === filterType.value)
+  const typeFilter = filterType.value?.toLowerCase()
+  const statusFilter = filterStatus.value?.toLowerCase()
+  const tagFilter = filterTag.value?.toLowerCase()
+
+  if (typeFilter) {
+    docs = docs.filter(d =>
+      String(d.type || '').toLowerCase() === typeFilter
+    )
   }
 
-  if (filterStatus.value) {
-    docs = docs.filter(d => d.status === filterStatus.value)
+  if (statusFilter) {
+    docs = docs.filter(d =>
+      String(d.status || '').toLowerCase() === statusFilter
+    )
   }
 
-  if (filterTag.value) {
-    docs = docs.filter(d => d.tags?.includes(filterTag.value))
+  if (tagFilter) {
+    docs = docs.filter(d =>
+      (d.tags || []).some(tag =>
+        String(tag).toLowerCase().includes(tagFilter)
+      )
+    )
   }
 
   if (sortBy.value === 'newest') {
-    docs.sort((a, b) =>
-      new Date(b.updated_at || b.created_at) -
-      new Date(a.updated_at || a.created_at)
+    docs.sort(
+      (a, b) =>
+        new Date(b.updated_at || b.created_at) -
+        new Date(a.updated_at || a.created_at)
     )
   } else if (sortBy.value === 'oldest') {
-    docs.sort((a, b) =>
-      new Date(a.updated_at || a.created_at) -
-      new Date(b.updated_at || b.created_at)
+    docs.sort(
+      (a, b) =>
+        new Date(a.updated_at || a.created_at) -
+        new Date(b.updated_at || b.created_at)
     )
   }
 
@@ -246,6 +242,34 @@ async function fetchDocuments() {
   } catch (err) {
     console.error(err)
   }
+}
+
+async function fetchDocument(id) {
+  const res = await fetch(`/api/documents/${id}/info`, {
+    credentials: 'include'
+  })
+
+  if (!res.ok) throw new Error('Failed to fetch document')
+
+  const doc = await res.json()
+
+  const normalized = {
+    ...doc,
+    status: doc.status || 'active',
+    tags: doc.tags || [],
+    versions: doc.versions || [],
+    updated_at: doc.updated_at || doc.created_at
+  }
+
+  const index = documents.value.findIndex(d => d.id === id)
+
+  if (index !== -1) {
+    documents.value[index] = normalized
+  } else {
+    documents.value.unshift(normalized)
+  }
+
+  return normalized
 }
 
 async function fetchJobs() {
@@ -304,9 +328,7 @@ async function uploadFile(existingDoc = null) {
   uploadMessage.value = ''
   error.value = ''
 
-  const isNewVersion = !!existingDoc
-
-  const fileToUpload = isNewVersion
+  const fileToUpload = existingDoc
     ? existingDoc._newFile
     : selectedFile.value
 
@@ -315,64 +337,41 @@ async function uploadFile(existingDoc = null) {
     return
   }
 
-  const allowedTypes = ['application/pdf']
-  const maxSize = 5 * 1024 * 1024
-
-  if (!allowedTypes.includes(fileToUpload.type)) {
-    error.value = 'Only PDF files allowed'
-    return
-  }
-
-  if (fileToUpload.size > maxSize) {
-    error.value = 'File must be under 5MB'
-    return
-  }
-
-  if (!isNewVersion && !selectedJobId.value) {
-    error.value = 'Please select a job'
-    return
-  }
+  const formData = new FormData()
+  formData.append('file', fileToUpload)
 
   try {
-    const formData = new FormData()
-    formData.append('file', fileToUpload)
-    formData.append('type', documentType.value)
-    formData.append('status', 'active')
+    let res
 
-    if (isNewVersion) {
-      formData.append('document_id', existingDoc.id)
+    if (existingDoc) {
+      res = await fetch(`/api/documents/${existingDoc.id}/versions`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
     } else {
+      formData.append('type', documentType.value)
+      formData.append('status', 'active')
       formData.append('job_id', selectedJobId.value)
       formData.append('tags', JSON.stringify(selectedTags.value))
       formData.append('title', fileToUpload.name)
-    }
 
-    const res = await fetch('/api/documents', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
-    })
+      res = await fetch('/api/documents', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
+    }
 
     if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || 'Upload failed')
+      throw new Error(await res.text())
     }
 
-    const data = await res.json()
+    await fetchDocuments()
 
-    if (isNewVersion) {
-      if (!existingDoc.versions) {
-        existingDoc.versions = []
-      }
-
-      existingDoc.versions.push(data.version)
+    if (existingDoc) {
       existingDoc._newFile = null
     } else {
-      documents.value.unshift({
-        ...data,
-        versions: data.version ? [data.version] : []
-      })
-
       selectedFile.value = null
       selectedTags.value = []
       selectedJobId.value = ''
@@ -391,59 +390,18 @@ async function updateStatus(doc) {
   try {
     const res = await fetch(`/api/documents/${doc.id}/status`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({
-        status: doc.status
-      })
+      body: JSON.stringify({ status: doc.status })
     })
 
     if (!res.ok) throw new Error()
+
+    await fetchDocument(doc.id)
   } catch (err) {
     console.error(err)
     doc.status = oldStatus
     error.value = 'Failed to update status'
-  }
-}
-
-function downloadDocument(doc) {
-  if (!doc?.id) {
-    alert('No document available')
-    return
-  }
-
-  const link = document.createElement('a')
-  link.href = `/api/documents/${doc.id}`
-  link.download = doc.title || 'document.pdf'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
-
-async function downloadVersion(v) {
-  try {
-    const res = await fetch(v.file_url, {
-      credentials: 'include'
-    })
-
-    if (!res.ok) throw new Error()
-
-    const blob = await res.blob()
-    const url = window.URL.createObjectURL(blob)
-
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `document_v${v.version_number}.pdf`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-
-    window.URL.revokeObjectURL(url)
-  } catch (err) {
-    console.error(err)
-    error.value = 'Download failed'
   }
 }
 
@@ -456,12 +414,7 @@ async function duplicateDocument(doc) {
 
     if (!res.ok) throw new Error()
 
-    const newDoc = await res.json()
-
-    documents.value.unshift({
-      ...newDoc,
-      versions: newDoc.version ? [newDoc.version] : []
-    })
+    await fetchDocuments()
   } catch (err) {
     console.error(err)
     error.value = 'Duplicate failed'
@@ -472,18 +425,16 @@ async function saveTitle(doc) {
   try {
     const res = await fetch(`/api/documents/${doc.id}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({
-        title: doc.title
-      })
+      body: JSON.stringify({ title: doc.title })
     })
 
     if (!res.ok) throw new Error()
 
     doc.isEditing = false
+
+    await fetchDocument(doc.id)
   } catch (err) {
     console.error(err)
     error.value = 'Rename failed'
