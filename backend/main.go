@@ -155,6 +155,7 @@ func main() {
 				r.Route("/{id}", func(r chi.Router) {
 					r.Get("/", handlers.GetDocument)
 					r.Put("/", handlers.UpdateDocument)
+					r.Patch("/", handlers.UpdateDocumentTitle)
 					r.Delete("/", handlers.DeleteDocument)
 					r.Get("/info", handlers.GetDocumentInfo)
 					r.Post("/versions", handlers.CreateDocumentVersion)

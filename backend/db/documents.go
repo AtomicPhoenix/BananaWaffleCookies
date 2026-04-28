@@ -452,3 +452,18 @@ func GetLatestDocumentVersion(docID int) (DocumentVersion, error) {
 
 	return v, nil
 }
+
+func UpdateDocumentTitle(docID int, userID int, title string) error {
+	query := `
+		UPDATE documents
+		SET title = $1
+		WHERE id = $2 AND user_id = $3
+	`
+
+	_, err := DbConn.Exec(context.Background(), query, title, docID, userID)
+	if err != nil {
+		return fmt.Errorf("Failed to rename document for user_id=%d document_id=%d: %v\n", userID, docID, err)
+	}
+
+	return nil
+}

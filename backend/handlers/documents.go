@@ -594,3 +594,43 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(doc)
 }
+
+// Handler for /api/documents/{id} (PUT)
+func UpdateDocumentTitle(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Failed to update document", http.StatusBadRequest)
+		return
+	}
+
+	docIDRaw := chi.URLParam(r, "id")
+	docID, err := strconv.Atoi(docIDRaw)
+	if err != nil {
+		http.Error(w, "Failed to update document", http.StatusInternalServerError)
+		return
+	}
+
+	var body struct {
+		Title string `json:"title"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err = db.AssertDocumentOwnership(docID, tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to update document", http.StatusUnauthorized)
+		settings.Logger.Warn("Failed to update document; Failed to verify ownership", "err", err)
+		return
+	}
+
+	err = db.UpdateDocumentTitle(docID, tokenInfo.Uid, body.Title)
+	if err != nil {
+		http.Error(w, "Failed to update document", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
