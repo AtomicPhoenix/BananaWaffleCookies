@@ -71,10 +71,15 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	docType := r.FormValue("type")
+	if docType == "" {
+		docType = "other"
+	}
+
 	doc := db.Document{
 		UserID:       tokenInfo.Uid,
 		Title:        fileHeader.Filename,
-		DocumentType: "resume",
+		DocumentType: docType,
 		IsArchived:   false,
 		Tags:         tags,
 	}
