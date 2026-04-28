@@ -248,6 +248,34 @@ async function fetchDocuments() {
   }
 }
 
+async function fetchDocument(id) {
+  const res = await fetch(`/api/documents/${id}/info`, {
+    credentials: 'include'
+  })
+
+  if (!res.ok) throw new Error('Failed to fetch document')
+
+  const doc = await res.json()
+
+  const normalized = {
+    ...doc,
+    status: doc.status || 'active',
+    tags: doc.tags || [],
+    versions: doc.versions || [],
+    updated_at: doc.updated_at || doc.created_at
+  }
+
+  const index = documents.value.findIndex(d => d.id === id)
+
+  if (index !== -1) {
+    documents.value[index] = normalized
+  } else {
+    documents.value.unshift(normalized)
+  }
+
+  return normalized
+}
+
 async function fetchJobs() {
   try {
     const res = await fetch('/api/jobs', { credentials: 'include' })
@@ -304,9 +332,7 @@ async function uploadFile(existingDoc = null) {
   uploadMessage.value = ''
   error.value = ''
 
-  const isNewVersion = !!existingDoc
-
-  const fileToUpload = isNewVersion
+  const fileToUpload = existingDoc
     ? existingDoc._newFile
     : selectedFile.value
 
@@ -315,64 +341,44 @@ async function uploadFile(existingDoc = null) {
     return
   }
 
-  const allowedTypes = ['application/pdf']
-  const maxSize = 5 * 1024 * 1024
-
-  if (!allowedTypes.includes(fileToUpload.type)) {
-    error.value = 'Only PDF files allowed'
-    return
-  }
-
-  if (fileToUpload.size > maxSize) {
-    error.value = 'File must be under 5MB'
-    return
-  }
-
-  if (!isNewVersion && !selectedJobId.value) {
-    error.value = 'Please select a job'
-    return
-  }
+  const formData = new FormData()
+  formData.append('file', fileToUpload)
 
   try {
-    const formData = new FormData()
-    formData.append('file', fileToUpload)
-    formData.append('type', documentType.value)
-    formData.append('status', 'active')
+    let res
 
-    if (isNewVersion) {
-      formData.append('document_id', existingDoc.id)
+    if (existingDoc) {
+      // Upload new document version
+      res = await fetch(`/api/documents/${existingDoc.id}/versions`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
     } else {
+      // Upload new document
+      formData.append('type', documentType.value)
+      formData.append('status', 'active')
       formData.append('job_id', selectedJobId.value)
       formData.append('tags', JSON.stringify(selectedTags.value))
       formData.append('title', fileToUpload.name)
-    }
 
-    const res = await fetch('/api/documents', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
-    })
+      res = await fetch('/api/documents', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
+    }
 
     if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || 'Upload failed')
+      throw new Error(await res.text())
     }
 
-    const data = await res.json()
+    // Sync to server
+    await fetchDocuments()
 
-    if (isNewVersion) {
-      if (!existingDoc.versions) {
-        existingDoc.versions = []
-      }
-
-      existingDoc.versions.push(data.version)
+    if (existingDoc) {
       existingDoc._newFile = null
     } else {
-      documents.value.unshift({
-        ...data,
-        versions: data.version ? [data.version] : []
-      })
-
       selectedFile.value = null
       selectedTags.value = []
       selectedJobId.value = ''
@@ -401,6 +407,8 @@ async function updateStatus(doc) {
     })
 
     if (!res.ok) throw new Error()
+
+    await fetchDocument(doc.id)
   } catch (err) {
     console.error(err)
     doc.status = oldStatus
@@ -458,10 +466,9 @@ async function duplicateDocument(doc) {
 
     const newDoc = await res.json()
 
-    documents.value.unshift({
-      ...newDoc,
-      versions: newDoc.version ? [newDoc.version] : []
-    })
+    await fetchDocuments()
+
+    return newDoc
   } catch (err) {
     console.error(err)
     error.value = 'Duplicate failed'
@@ -484,6 +491,8 @@ async function saveTitle(doc) {
     if (!res.ok) throw new Error()
 
     doc.isEditing = false
+
+    await fetchDocument(doc.id)
   } catch (err) {
     console.error(err)
     error.value = 'Rename failed'
