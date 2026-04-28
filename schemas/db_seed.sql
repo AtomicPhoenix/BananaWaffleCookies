@@ -450,6 +450,9 @@ VALUES
         90000
     );
 
+UPDATE documents SET current_version_id = 2 WHERE id = 1;
+UPDATE documents SET current_version_id = 3 WHERE id = 2;
+
 
 -- ===========================================
 
