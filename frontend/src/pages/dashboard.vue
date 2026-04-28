@@ -230,7 +230,11 @@
     <div v-if="selectedJobForModal" class="job-modal-overlay" @click="closeJobModal">
       <div class="job-modal" role="dialog" aria-modal="true" aria-label="Job details" @click.stop>
         <button type="button" class="job-modal-close" @click="closeJobModal">x</button>
-        <JobWorkspace :jobId="selectedJobForModal.id" />
+        <JobWorkspace
+          :jobId="selectedJobForModal.id"
+          :initialOutcome="selectedJobForModal.outcome"
+          @job-updated="handleJobUpdated"
+        />
       </div>
     </div>
   </div>
@@ -476,6 +480,25 @@ const openJobModal = (job) => {
 
 const closeJobModal = () => {
   selectedJobForModal.value = null
+}
+
+const handleJobUpdated = (updatedJob) => {
+  if (!updatedJob?.id) {
+    return
+  }
+
+  const jobId = updatedJob.id
+  const matchingUserJob = userJobs.value.find((item) => item.id === jobId)
+
+  if (matchingUserJob) {
+    Object.assign(matchingUserJob, updatedJob)
+  }
+
+  if (selectedJobForModal.value?.id === jobId) {
+    Object.assign(selectedJobForModal.value, updatedJob)
+  }
+
+  computeStats(userJobs.value)
 }
 
 const updateJobStatus = async (job, newStatus) => {
