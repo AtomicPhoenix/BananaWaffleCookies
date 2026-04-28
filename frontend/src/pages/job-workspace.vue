@@ -228,7 +228,6 @@
 						<option value="rejected">Rejected</option>
 						<option value="ghosted">Ghosted</option>
 					</select>
-					<input v-model="outcome.notes" placeholder="Notes" />
 					<button type="button" class="action-button" @click="saveOutcome">Save Outcome</button>
 				</div>
 			</div>
@@ -394,7 +393,6 @@ async function refreshJobState() {
 			...refreshedJob,
 			outcome: {
 				status: outcome.status,
-				notes: outcome.notes
 			}
 		})
 	}
