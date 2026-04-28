@@ -397,3 +397,22 @@ func IsJobOwner(jobID int, userID int) (bool, error) {
 
 	return exists, nil
 }
+
+func UpdateJobCompanyNotes(jobID int, userID int, notes string) error {
+	query := `
+		UPDATE jobs
+		SET notes = $1
+		WHERE id = $2 AND user_id = $3
+	`
+
+	res, err := DbConn.Exec(context.Background(), query, notes, jobID, userID)
+	if err != nil {
+		return err
+	}
+
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("no rows updated")
+	}
+
+	return nil
+}
