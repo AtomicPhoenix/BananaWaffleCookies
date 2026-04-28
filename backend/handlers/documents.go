@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -361,4 +362,172 @@ func CreateDocumentVersion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// Handler for /api/documents/{id}/duplicate (POST)
+func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
+	err, tokenInfo := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	docIDRaw := chi.URLParam(r, "id")
+	docID, err := strconv.Atoi(docIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid document id", http.StatusBadRequest)
+		return
+	}
+
+	tx, err := db.DbConn.Begin(context.Background())
+	if err != nil {
+		http.Error(w, "DB error", http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback(context.Background())
+
+	// Grab current document
+	var existing db.Document
+
+	err = tx.QueryRow(
+		context.Background(),
+		`SELECT id, user_id, title, document_type, is_archived, current_version_id
+		 FROM documents
+		 WHERE id = $1 AND user_id = $2
+		 FOR UPDATE`,
+		docID,
+		tokenInfo.Uid,
+	).Scan(
+		&existing.ID,
+		&existing.UserID,
+		&existing.Title,
+		&existing.DocumentType,
+		&existing.IsArchived,
+		&existing.CurrentVersionID,
+	)
+
+	if err != nil {
+		http.Error(w, "Document not found or not owned by user", http.StatusForbidden)
+		return
+	}
+
+	// Grab latest document version
+	var v db.DocumentVersion
+
+	err = tx.QueryRow(
+		context.Background(),
+		`SELECT id, document_id, version_number, file_name, file_path, file_size_bytes
+		 FROM document_versions
+		 WHERE document_id = $1
+		 ORDER BY version_number DESC
+		 LIMIT 1`,
+		docID,
+	).Scan(
+		&v.ID,
+		&v.DocumentID,
+		&v.VersionNumber,
+		&v.FileName,
+		&v.FilePath,
+		&v.FileSizeBytes,
+	)
+
+	if err != nil {
+		http.Error(w, "No version to duplicate", http.StatusBadRequest)
+		return
+	}
+
+	// Create new document row in database
+	var newDocID int
+
+	err = tx.QueryRow(
+		context.Background(),
+		`INSERT INTO documents (user_id, title, document_type, is_archived)
+		 VALUES ($1, $2, $3, FALSE)
+		 RETURNING id`,
+		tokenInfo.Uid,
+		existing.Title+" (Copy)",
+		existing.DocumentType,
+	).Scan(&newDocID)
+
+	if err != nil {
+		http.Error(w, "Failed to create duplicate document", http.StatusInternalServerError)
+		return
+	}
+
+	// Copy file on disk
+	newFilePath := fmt.Sprintf("./data/documents/%d.pdf", newDocID)
+
+	src, err := os.Open(v.FilePath)
+	if err != nil {
+		http.Error(w, "Failed to read source file", http.StatusInternalServerError)
+		return
+	}
+	defer src.Close()
+
+	dst, err := os.Create(newFilePath)
+	if err != nil {
+		http.Error(w, "Failed to create file", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	fileSize, err := io.Copy(dst, src)
+	if err != nil {
+		http.Error(w, "Failed to copy file", http.StatusInternalServerError)
+		return
+	}
+
+	// Create document version row in database for new document
+	var newVersionID int
+
+	err = tx.QueryRow(
+		context.Background(),
+		`INSERT INTO document_versions
+		 (document_id, version_number, file_name, file_path, file_size_bytes)
+		 VALUES (
+			$1,
+			1,
+			$2,
+			$3,
+			$4
+		 )
+		 RETURNING id`,
+		newDocID,
+		v.FileName,
+		newFilePath,
+		fileSize,
+	).Scan(&newVersionID)
+
+	if err != nil {
+		http.Error(w, "Failed to create version", http.StatusInternalServerError)
+		return
+	}
+
+	// Set current document version in database
+	_, err = tx.Exec(
+		context.Background(),
+		`UPDATE documents
+		 SET current_version_id = $1, updated_at = NOW()
+		 WHERE id = $2`,
+		newVersionID,
+		newDocID,
+	)
+
+	if err != nil {
+		http.Error(w, "Failed to finalize document", http.StatusInternalServerError)
+		return
+	}
+
+	if err := tx.Commit(context.Background()); err != nil {
+		http.Error(w, "Transaction failed", http.StatusInternalServerError)
+		return
+	}
+
+	// Return new document
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"id":                 newDocID,
+		"title":              existing.Title + " (Copy)",
+		"current_version_id": newVersionID,
+	})
 }

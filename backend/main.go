@@ -151,12 +151,15 @@ func main() {
 			// Documents API
 			r.Route("/documents", func(r chi.Router) {
 				r.Get("/", handlers.GetAllDocuments)
-				r.Get("/{id}", handlers.GetDocument)
-				r.Get("/{id}/info", handlers.GetDocumentInfo)
 				r.Post("/", handlers.UploadDocument)
-				r.Put("/{id}", handlers.UpdateDocument)
-				r.Post("/{id}/versions", handlers.CreateDocumentVersion)
-				r.Delete("/{id}", handlers.DeleteDocument)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/", handlers.GetDocument)
+					r.Put("/", handlers.UpdateDocument)
+					r.Delete("/", handlers.DeleteDocument)
+					r.Get("/info", handlers.GetDocumentInfo)
+					r.Post("/versions", handlers.CreateDocumentVersion)
+					r.Post("/duplicate", handlers.DuplicateDocument)
+				})
 			})
 
 			// Settings API
