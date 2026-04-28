@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"bananawafflecookies.com/m/v2/ai"
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
@@ -398,5 +399,49 @@ func UpdateCompanyNotes(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(map[string]any{
 		"success": true,
+	})
+}
+
+func GenerateCompanyNotes(w http.ResponseWriter, r *http.Request) {
+	err, token := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		return
+	}
+
+	// Verify ownership
+	isOwner, err := db.IsJobOwner(jobID, token.Uid)
+	if err != nil || !isOwner {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get job
+	job, err := db.GetJob(jobID, token.Uid)
+	if err != nil {
+		http.Error(w, "Failed to fetch job", http.StatusInternalServerError)
+		return
+	}
+
+	// Generate notes
+	notes, err := ai.GenerateJobNotes(job)
+	if err != nil {
+		http.Error(w, "Failed to generate notes", http.StatusInternalServerError)
+		return
+	}
+
+	job.Notes = notes
+	db.UpdateJobCompanyNotes(job.ID, job.UserID, notes)
+
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"notes":   notes,
 	})
 }

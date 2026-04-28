@@ -125,6 +125,7 @@ func main() {
 					r.Post("/cover-letter", handlers.GetCoverLetterDraft)
 
 					r.Patch("/company-notes", handlers.UpdateCompanyNotes)
+					r.Post("/company-notes", handlers.GenerateCompanyNotes)
 
 					r.Get("/activities", handlers.GetJobActivities)
 

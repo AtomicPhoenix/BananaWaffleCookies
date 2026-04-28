@@ -258,80 +258,27 @@ Description:
 	return queryModel(query)
 }
 
-func GenerateJobNotes(job db.Job, profile db.Profile) (string, error) {
-	fullName := strings.TrimSpace(profile.FirstName + " " + profile.LastName)
-
-	experiences, _ := db.GetProfileExperiences(profile.UserID)
-	skills, _ := db.GetProfileSkills(profile.UserID)
-
-	var expText strings.Builder
-	for _, e := range experiences {
-		expText.WriteString(fmt.Sprintf("- %s at %s\n", e.Title, e.Organization))
-	}
-
-	var skillText strings.Builder
-	for _, s := range skills {
-		skillText.WriteString(fmt.Sprintf("- %s\n", s.SkillName))
-	}
-
-	userQuery := strings.TrimSpace(job.Notes)
-	if userQuery == "" {
-		userQuery = "General job and company analysis"
-	}
-
+func GenerateJobNotes(job db.Job) (string, error) {
 	query := fmt.Sprintf(`
-You are generating structured notes to help a candidate evaluate BOTH the job and the company.
-
-IMPORTANT:
-- The user provided a custom query/focus — prioritize answering it
-- Include BOTH job insights AND company insights
-- If company info is limited, infer cautiously from job description and say "Not specified" when needed
-
-USER QUERY / FOCUS:
-%s
+You are generating structured notes about a company for a job application tracker.
 
 STRICT RULES:
-- Be concise
-- Use bullet points only
-- Do NOT invent specific facts about the company
-- You MAY infer general patterns (e.g., startup vs enterprise) but label them clearly
-- Max 250 words
+- Focus ONLY on the company (not the candidate)
+- Use job description + user notes as hints
+- Do NOT invent unknown facts
+- If information is missing, infer carefully or leave general
+- Keep it concise and useful for interview prep
 
 OUTPUT FORMAT:
-
-1. Direct Answer to User Query
-- (Focus specifically on the user's question)
-
-2. Job Insights
-- (Key responsibilities, expectations, priorities)
-
-3. Company Insights
-- (What kind of company this appears to be: size, culture, industry hints, stability)
-- (Any signals from job description: fast-paced, growth stage, etc.)
-
-4. Fit Assessment
-- (Candidate vs role + company alignment)
-
-5. Preparation Tips
-- (What to study for THIS company + role)
-
-6. Potential Questions
-- (Interview questions tailored to company + role)
-
-7. Red Flags (Job or Company)
-- (Compensation clarity, vague role, unrealistic expectations, etc.)
+1. Company Overview
+2. Role Context (how this role fits the company)
+3. Key Insights (products, culture, mission, etc.)
+4. Interview Talking Points
+5. Questions to Ask
 
 ------------------------
-CANDIDATE
+USER NOTES (IMPORTANT CONTEXT)
 ------------------------
-Name: %s
-Headline: %s
-Summary: %s
-
-Experience:
-%s
-
-Skills:
 %s
 
 ------------------------
@@ -340,22 +287,13 @@ JOB
 Company: %s
 Title: %s
 Location: %s
-Salary: %d
-Status: %s
 Description:
 %s
 `,
-		userQuery,
-		fullName,
-		profile.Headline,
-		profile.Summary,
-		expText.String(),
-		skillText.String(),
+		job.Notes,
 		job.CompanyName,
 		job.Title,
 		job.LocationText,
-		job.Salary,
-		job.Status,
 		job.Description,
 	)
 
