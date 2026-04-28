@@ -431,22 +431,22 @@ VALUES
     (
         1,
         1,
-        'peter_resume_v1.pdf',
-        'data/documents/peter_resume_v1.pdf',
+        'u1_d1_v1.pdf',
+        'data/documents/u1_d1_v1.pdf',
         120000
     ),
     (
         1,
         2,
-        'peter_resume_v2.pdf',
-        'data/documents/peter_resume_v2.pdf',
+        'u1_d1_v2.pdf',
+        'data/documents/u1_d1_v2.pdf',
         135000
     ),
     (
         2,
         1,
-        'peter_cover_letter_v1.pdf',
-        'data/documents/peter_cover_letter_v1.pdf',
+        'u1_d2_v1.pdf',
+        'data/documents/u1_d2_v1.pdf',
         90000
     );
 
