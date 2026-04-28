@@ -196,8 +196,12 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /root/BananaWaffleCookies
+            source .env
             git pull origin main
             systemctl restart bwc-server
+            psql -U $DB_USER -d $DB_NAME -f schemas/db_down.sql
+            psql -U $DB_USER -d $DB_NAME -f schemas/db_up.sql
+            psql -U $DB_USER -d $DB_NAME -f schemas/db_seed.sql
       - name: Deployment Test
          run: |
           for i in {1..20}; do
