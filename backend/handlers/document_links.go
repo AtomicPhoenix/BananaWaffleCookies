@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/settings"
@@ -52,7 +53,16 @@ func LinkDocumentToJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := db.CreateDocumentLink(jobID, body.DocumentID, body.LinkType)
+	linkType := strings.TrimSpace(body.LinkType)
+
+	switch linkType {
+	case "resume", "cover_letter", "attachment", "other":
+		// valid
+	default:
+		linkType = "other"
+	}
+
+	id, err := db.CreateDocumentLink(jobID, body.DocumentID, linkType)
 	if err != nil {
 		http.Error(w, "Failed to link document to job", http.StatusInternalServerError)
 		settings.Logger.Error("Failed to link document to job", "err", err)

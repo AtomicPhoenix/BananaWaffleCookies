@@ -291,6 +291,15 @@ func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	linkType := strings.TrimSpace(body.Type)
+
+	switch linkType {
+	case "resume", "cover_letter", "attachment", "other":
+		// Valid type
+	default:
+		linkType = "other" // Fallback
+	}
+
 	doc := db.Document{
 		UserID:       token.Uid,
 		Title:        fmt.Sprintf("AI %s - Job %d", body.Type, jobID),
