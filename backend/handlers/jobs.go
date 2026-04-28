@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"bananawafflecookies.com/m/v2/ai"
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
@@ -348,6 +349,24 @@ func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func generatePDFBytes(content string) ([]byte, error) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "", 12)
+
+	for _, line := range strings.Split(content, "\n") {
+		pdf.MultiCell(0, 5, line, "", "", false)
+	}
+
+	var buf bytes.Buffer
+	err := pdf.Output(&buf)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
 // Handler for /api/jobs/{id}/company-notes {PATCH}
 func UpdateCompanyNotes(w http.ResponseWriter, r *http.Request) {
 	err, token := GrabToken(r)
@@ -383,20 +402,46 @@ func UpdateCompanyNotes(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func generatePDFBytes(content string) ([]byte, error) {
-	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.AddPage()
-	pdf.SetFont("Arial", "", 12)
-
-	for _, line := range strings.Split(content, "\n") {
-		pdf.MultiCell(0, 5, line, "", "", false)
-	}
-
-	var buf bytes.Buffer
-	err := pdf.Output(&buf)
+func GenerateCompanyNotes(w http.ResponseWriter, r *http.Request) {
+	err, token := GrabToken(r)
 	if err != nil {
-		return nil, err
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
 
-	return buf.Bytes(), nil
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		return
+	}
+
+	// Verify ownership
+	isOwner, err := db.IsJobOwner(jobID, token.Uid)
+	if err != nil || !isOwner {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get job
+	job, err := db.GetJob(jobID, token.Uid)
+	if err != nil {
+		http.Error(w, "Failed to fetch job", http.StatusInternalServerError)
+		return
+	}
+
+	// Generate notes
+	notes, err := ai.GenerateJobNotes(job)
+	if err != nil {
+		http.Error(w, "Failed to generate notes", http.StatusInternalServerError)
+		return
+	}
+
+	job.Notes = notes
+	db.UpdateJobCompanyNotes(job.ID, job.UserID, notes)
+
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"notes":   notes,
+	})
 }

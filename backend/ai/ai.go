@@ -258,6 +258,48 @@ Description:
 	return queryModel(query)
 }
 
+func GenerateJobNotes(job db.Job) (string, error) {
+	query := fmt.Sprintf(`
+You are generating structured notes about a company for a job application tracker.
+
+STRICT RULES:
+- Focus ONLY on the company (not the candidate)
+- Use job description + user notes as hints
+- Do NOT invent unknown facts
+- If information is missing, infer carefully or leave general
+- Keep it concise and useful for interview prep
+
+OUTPUT FORMAT:
+1. Company Overview
+2. Role Context (how this role fits the company)
+3. Key Insights (products, culture, mission, etc.)
+4. Interview Talking Points
+5. Questions to Ask
+
+------------------------
+USER NOTES (IMPORTANT CONTEXT)
+------------------------
+%s
+
+------------------------
+JOB
+------------------------
+Company: %s
+Title: %s
+Location: %s
+Description:
+%s
+`,
+		job.Notes,
+		job.CompanyName,
+		job.Title,
+		job.LocationText,
+		job.Description,
+	)
+
+	return queryModel(query)
+}
+
 func queryModel(query string) (string, error) {
 	ctx := context.Background()
 

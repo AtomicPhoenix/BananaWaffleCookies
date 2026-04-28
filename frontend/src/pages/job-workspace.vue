@@ -409,6 +409,8 @@ async function fetchJob() {
 
 		const data = await res.json()
 
+		console.log(data)
+
 		form.id = data.id
 		form.company_name = data.company_name || ''
 		form.title = data.title || ''
@@ -418,9 +420,9 @@ async function fetchJob() {
 		form.deadline_date = toDateInput(data.deadline_date)
 		form.status = data.status || ''
 		form.description = data.description || ''
-		company_notes.value = data.company_notes || ''
+		company_notes.value = data.notes || ''
 		createdAt.value = data.created_at || ''
-
+	
 		if (data.outcome) {
 			Object.assign(outcome, data.outcome)
 		}
@@ -621,44 +623,40 @@ async function saveCompanyNotes() {
 	}
 }
 
-async function enhanceCompanyNotes() {
-	if (!resolvedJobId.value || !company_notes.value.trim()) return
+const enhanceCompanyNotes = async () => {
+  if (!resolvedJobId.value) return
 
-	try {
-		enhancingAI.value = true
-		error.value = ''
+  await saveCompanyNotes()
 
-		const res = await fetch(`/api/jobs/${resolvedJobId.value}/enhance-notes`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			credentials: 'include',
-			body: JSON.stringify({
-				type: 'enhance_company_notes', //idk
-				content: company_notes.value
-			})
-		})
+  try {
+    enhancingAI.value = true
+    error.value = ''
 
-		if (!res.ok) {
-			throw new Error('AI enhancement failed, try again later')
-		}
+    const res = await fetch(`/api/jobs/${resolvedJobId.value}/company-notes`, {
+      method: 'POST',
+      credentials: 'include'
+    })
 
-		const data = await res.json()
+    if (!res.ok) {
+      throw new Error('Failed to generate company notes')
+    }
 
-		// expecting something like: { enhanced_text: "..." }
-		if (data?.enhanced_text) {
-			company_notes.value = data.enhanced_text
-		} else {
-			throw new Error('Invalid AI response format')
-		}
+    const data = await res.json()
 
-	} catch (err) {
-		error.value = 'Unable to enhance notes right now.'
-		console.error(err)
-	} finally {
-		enhancingAI.value = false
-	}
+    if (data?.success && data?.notes) {
+      company_notes.value = data.notes
+
+      await saveCompanyNotes()
+    } else {
+      throw new Error('Invalid response format')
+    }
+
+  } catch (err) {
+    error.value = 'Unable to generate company notes right now.'
+    console.error(err)
+  } finally {
+    enhancingAI.value = false
+  }
 }
 
 // Get resume draft
