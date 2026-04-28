@@ -60,11 +60,23 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tagsRaw := r.FormValue("tags")
+
+	var tags []string
+	if tagsRaw != "" {
+		err := json.Unmarshal([]byte(tagsRaw), &tags)
+		if err != nil {
+			http.Error(w, "Invalid tags format", http.StatusBadRequest)
+			return
+		}
+	}
+
 	doc := db.Document{
 		UserID:       tokenInfo.Uid,
 		Title:        fileHeader.Filename,
 		DocumentType: "resume",
 		IsArchived:   false,
+		Tags:         tags,
 	}
 
 	docID, err := db.CreateDocument(doc)

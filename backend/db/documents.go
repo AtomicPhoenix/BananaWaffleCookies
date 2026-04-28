@@ -40,13 +40,14 @@ func CreateDocument(doc Document) (int, error) {
 
 	err = tx.QueryRow(
 		context.Background(),
-		`INSERT INTO documents (user_id, title, document_type, is_archived)
-		 VALUES ($1, $2, $3, $4)
+		`INSERT INTO documents (user_id, title, document_type, is_archived, tags)
+		 VALUES ($1, $2, $3, $4, $5)
 		 RETURNING id`,
 		doc.UserID,
 		doc.Title,
 		doc.DocumentType,
 		doc.IsArchived,
+		doc.Tags,
 	).Scan(&docID)
 
 	if err != nil {
@@ -241,7 +242,7 @@ func GetDocument(docID int, userID int) (Document, error) {
 	err := DbConn.QueryRow(
 		context.Background(),
 		`SELECT 
-			id, user_id, title, document_type, is_archived, current_version_id, created_at, updated_at
+			id, user_id, title, document_type, tags, is_archived, current_version_id, created_at, updated_at
 		 FROM documents
 		 WHERE id = $1 AND user_id = $2`,
 		docID,
@@ -251,6 +252,7 @@ func GetDocument(docID int, userID int) (Document, error) {
 		&doc.UserID,
 		&doc.Title,
 		&doc.DocumentType,
+		&doc.Tags,
 		&doc.IsArchived,
 		&doc.CurrentVersionID,
 		&doc.CreatedAt,
@@ -302,7 +304,7 @@ func GetDocument(docID int, userID int) (Document, error) {
 func GetAllDocuments(userID int) ([]Document, error) {
 	rows, err := DbConn.Query(
 		context.Background(),
-		`SELECT id, user_id, title, document_type, is_archived, current_version_id, created_at, updated_at
+		`SELECT id, user_id, title, document_type, tags, is_archived, current_version_id, created_at, updated_at
 		 FROM documents
 		 WHERE user_id = $1
 		 ORDER BY created_at DESC`,
@@ -323,6 +325,7 @@ func GetAllDocuments(userID int) ([]Document, error) {
 			&d.UserID,
 			&d.Title,
 			&d.DocumentType,
+			&d.Tags,
 			&d.IsArchived,
 			&d.CurrentVersionID,
 			&d.CreatedAt,
