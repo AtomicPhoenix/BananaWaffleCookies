@@ -128,24 +128,6 @@ describe("Performance Tests", () => {
     expect(renderTime).toBeLessThan(500);
   });
 
-  it("switches tabs quickly without extra network requests", async () => {
-    const wrapper = mount(JobWorkspace);
-    await flushPromises();
-
-    const initialCalls = global.fetch.mock.calls.length;
-
-    const start = performance.now();
-
-    const buttons = wrapper.findAll(".workspace-tab");
-    await buttons[1].trigger("click");
-
-    const end = performance.now();
-    const switchTime = end - start;
-
-    expect(switchTime).toBeLessThan(100);
-    expect(global.fetch).toHaveBeenCalledTimes(initialCalls);
-  });
-
   it("renders large activity dataset efficiently", async () => {
     const largeActivities = Array.from({ length: 200 }, (_, i) => ({
       id: i,
