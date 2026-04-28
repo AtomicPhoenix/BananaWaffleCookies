@@ -398,3 +398,57 @@ func GetNextVersionNumber(docID int) (int, error) {
 
 	return v, err
 }
+
+func GetLatestDocumentVersion(docID int) (DocumentVersion, error) {
+	var v DocumentVersion
+
+	// Attempt to get latest doc version using current_version_id
+	err := DbConn.QueryRow(
+		context.Background(),
+		`SELECT dv.id, dv.document_id, dv.version_number, dv.file_name, dv.file_path, dv.file_size_bytes, dv.created_at
+		 FROM document_versions dv
+		 JOIN documents d ON d.current_version_id = dv.id
+		 WHERE d.id = $1`,
+		docID,
+	).Scan(
+		&v.ID,
+		&v.DocumentID,
+		&v.VersionNumber,
+		&v.FileName,
+		&v.FilePath,
+		&v.FileSizeBytes,
+		&v.CreatedAt,
+	)
+
+	if err == nil {
+		return v, nil
+	}
+
+	// Fallback: Attempt to get latest doc version using highest version number
+	err = DbConn.QueryRow(
+		context.Background(),
+		`SELECT id, document_id, version_number, file_name, file_path, file_size_bytes, created_at
+		 FROM document_versions
+		 WHERE document_id = $1
+		 ORDER BY version_number DESC
+		 LIMIT 1`,
+		docID,
+	).Scan(
+		&v.ID,
+		&v.DocumentID,
+		&v.VersionNumber,
+		&v.FileName,
+		&v.FilePath,
+		&v.FileSizeBytes,
+		&v.CreatedAt,
+	)
+
+	if err != nil {
+		return DocumentVersion{}, fmt.Errorf(
+			"Failed to get latest document version for document_id=%d: %v",
+			docID, err,
+		)
+	}
+
+	return v, nil
+}

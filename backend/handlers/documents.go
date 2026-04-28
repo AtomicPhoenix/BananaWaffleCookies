@@ -7,36 +7,18 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"regexp"
 	"strconv"
-	"strings"
 
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
 )
 
-var invalidChars = regexp.MustCompile(`[^a-zA-Z0-9-_]+`)
-
-func sanitizeFileName(name string) string {
-	name = strings.ToLower(strings.TrimSpace(name))
-	name = strings.ReplaceAll(name, " ", "-")
-	name = invalidChars.ReplaceAllString(name, "")
-
-	if name == "" {
-		return "document"
-	}
-	return name
-}
-
-func buildFilePath(userID, docID, version int, title string) string {
-	safeTitle := sanitizeFileName(title)
-
+func buildFilePath(userID, docID, version int) string {
 	return fmt.Sprintf(
-		"./data/documents/u%d_d%d_%s_v%d.pdf",
+		"./data/documents/u%d_d%d_v%d.pdf",
 		userID,
 		docID,
-		safeTitle,
 		version,
 	)
 }
@@ -96,14 +78,13 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 
 	filePath := buildFilePath(
 		tokenInfo.Uid,
-		doc.ID,
+		docID,
 		versionNumber,
-		doc.Title,
 	)
 
-	out, err = os.Create(filePath)
+	out, err := os.Create(filePath)
 	if err != nil {
-		if err = db.DeleteDocument(tokenInfo.Uid, doc.ID); err != nil {
+		if err = db.DeleteDocument(tokenInfo.Uid, docID); err != nil {
 			settings.Logger.Error("Failed to upload document; Failed cleanup delete document", "err", err)
 		}
 		http.Error(w, "File creation failed", http.StatusInternalServerError)
@@ -207,7 +188,13 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save file to disk
-	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
+	versionNumber, err := db.GetNextVersionNumber(docID)
+	if err != nil {
+		http.Error(w, "Failed to get version", http.StatusInternalServerError)
+		return
+	}
+
+	filePath := buildFilePath(tokenInfo.Uid, docID, versionNumber)
 
 	out, err := os.Create(filePath)
 	if err != nil {
@@ -259,19 +246,13 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	versionNumber, err := db.GetNextVersionNumber(docID)
+	v, err := db.GetLatestDocumentVersion(docID)
 	if err != nil {
 		http.Error(w, "Failed to get document", http.StatusInternalServerError)
 		settings.Logger.Error("Failed to get document; Failed to get version number", "err", err)
 		return
 	}
-
-	filePath := buildFilePath(
-		tokenInfo.Uid,
-		docID,
-		versionNumber,
-		doc.Title,
-	)
+	filePath := v.FilePath
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -397,7 +378,13 @@ func CreateDocumentVersion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
+	versionNumber, err := db.GetNextVersionNumber(docID)
+	if err != nil {
+		http.Error(w, "Failed to get version", http.StatusInternalServerError)
+		return
+	}
+
+	filePath := buildFilePath(tokenInfo.Uid, docID, versionNumber)
 
 	out, err := os.Create(filePath)
 	if err != nil {
@@ -522,7 +509,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Copy file on disk
-	newFilePath := fmt.Sprintf("./data/documents/%d.pdf", newDocID)
+	newFilePath := buildFilePath(tokenInfo.Uid, newDocID, 1)
 
 	src, err := os.Open(v.FilePath)
 	if err != nil {
