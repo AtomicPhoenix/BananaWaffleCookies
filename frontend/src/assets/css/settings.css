@@ -1,36 +1,46 @@
 @import './main.css';
 
 .page-container {
+    width: 100%;
     max-width: 800px;
     margin: 0 auto;
-    padding: 120px 20px 20px;
+  padding: 0.5rem 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   .page-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: var(--accent-ink);
+    width: 100%;
+    text-align: center;
   }
   
   .form-card {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    max-width: 600px;
+    background: var(--surface);
+    padding: 1.75rem 2.25rem 1.85rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    width: min(100%, 600px);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(18px);
   }
   
   .section-title {
     font-weight: 600;
     margin-bottom: 10px;
+    color: var(--accent-ink);
   }
 
   .section {
-    padding-bottom: 15px;
-    border-bottom: 1px solid #ddd;
+    padding: 0 1rem 15px 0.95rem;
+    border-bottom: 1px solid var(--border);
   }
   
   .section:last-child {
@@ -41,49 +51,63 @@
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
+    padding-left: 0.35rem;
   }
 
   label {
     font-size: 14px;
     margin-bottom: 4px;
-    color: #000;
+    color: var(--text);
   }
   
   input,
   textarea {
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
     transition: border 0.2s, box-shadow 0.2s;
+    background: rgba(255, 255, 255, 0.92);
   }
 
   input:focus,
   textarea:focus {
     outline: none;
-    border: 1px solid #000;
-    box-shadow: 0 0 4px rgba(0,0,0,0.2);
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 0 3px rgba(239, 125, 50, 0.18);
   }
   
   .checkbox-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.45rem;
     font-size: 14px;
+    padding: 0.1rem 0;
+    margin-left: 0.35rem;
+    cursor: pointer;
+  }
+
+  .checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    flex: 0 0 auto;
+    accent-color: var(--accent);
   }
   
   button {
-    padding: 12px;
-    border: 1px solid #000;
-    background: #B8B8B8;
-    color: #000;
-    border-radius: 6px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-strong);
+    background: linear-gradient(135deg, var(--accent) 0%, #ff9b52 100%);
+    color: #fffaf5;
+    border-radius: 999px;
     cursor: pointer;
     font-weight: 500;
     transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 12px 24px rgba(239, 125, 50, 0.24);
   }
   
   button:hover {
-    background: #E3E3E3;
+    background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
   }
   
   button:active {

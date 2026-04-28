@@ -7,14 +7,14 @@
   width: 320px;
   height: 400px;
 
-  background: #ffffff;
-  border: 3px solid #ccc;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 18px;
 
   display: flex;
   flex-direction: column;
 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-lg);
   z-index: 10;
 }
 
@@ -25,7 +25,7 @@
   align-items: center;
 
   padding: 10px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--border);
 }
 
 .chatbox-title {
@@ -35,8 +35,8 @@
 
 /* CLOSE BUTTON */
 .close-btn {
-  background: #f8d7da;
-  border: 1px solid #c82333;
+  background: #fce6e5;
+  border: 1px solid var(--danger);
   padding: 4px 8px;
   cursor: pointer;
   border-radius: 4px;
@@ -67,12 +67,12 @@
 
 .message.user {
   align-self: flex-end;
-  background: #E3E3E3;
+  background: rgba(239, 125, 50, 0.14);
 }
 
 .message.ai {
   align-self: flex-start;
-  background: #f1f1f1;
+  background: rgba(35, 24, 16, 0.06);
 }
 
 /* INPUT AREA */
@@ -86,21 +86,22 @@
 .chatbox-input input {
   flex: 1;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
 }
 
 /* BUTTON */
 .chatbox-input button {
   padding: 8px;
-  background: #B8B8B8;
-  border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent) 0%, #ff9b52 100%);
+  border-radius: 12px;
   cursor: pointer;
+  border: none;
+  color: #fffaf5;
 }
 
 .chatbox-input button:hover {
-  background: linear-gradient(to right, #ffa946,#fc5b2e);
-  border-style: none;
+  background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
 }
 
 .message.loading {
@@ -114,11 +115,11 @@
 }
 
 .chatbox-input input:disabled {
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.72);
   cursor: not-allowed;
 }
 
 .chatbox-input button:disabled {
-  background: #ddd;
+  background: rgba(120, 120, 120, 0.2);
   cursor: not-allowed;
 }

@@ -1,56 +1,82 @@
-/*                  */
-/* Footer Class     */
-/*                  */
-
-footer{
-  background: linear-gradient(#E3E3E3,#B8B8B8);
-  height:250px;
-  padding-top: 20px;
-  width:100%;
-}
-
-footer hr{
-  position: relative;
-  left: 0;
-  top: 100;
+footer {
   width: 100%;
-  margin: 0;  
-  border: none;
-  border-top: 2px solid black;
+  margin-top: auto;
+  background: linear-gradient(180deg, rgba(35, 24, 16, 0.92) 0%, rgba(25, 18, 12, 0.98) 100%);
+  color: #fff7ef;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -10px 30px rgba(35, 24, 16, 0.16);
 }
 
-
-/*            */
-/* Footer CSS */
-/*            */
+footer hr {
+  width: min(var(--content-width), calc(100% - 2rem));
+  margin: 0 auto;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
 
 .footer-row {
-  display: flex;
-  flex-direction: row;
-  margin: 1rem;
-  justify-content:space-between;
+  width: min(var(--content-width), calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.6rem 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.footer-row h1 {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+  line-height: 1.2;
 }
 
 .footer-column {
-  display: flex; 
+  display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-column span:first-child,
+.footer-header {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 247, 239, 0.68);
 }
 
 .footer-logo {
-    display: flex;
-    align-items: center;
-    min-width: 50px;
-    width: 50px;
-    img {
-      height: auto;
-      height: 70px;
-      width: 70px;
-      object-fit: contain;
-    }
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-info,
+.footer-link {
+  color: rgba(255, 247, 239, 0.82);
+  text-decoration: none;
+}
+
+.footer-info:hover,
+.footer-link:hover {
+  color: #fff;
 }
 
 .copyright {
+  width: min(var(--content-width), calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 0 0 1.4rem;
   text-align: center;
+  color: rgba(255, 247, 239, 0.62);
+  font-size: 0.92rem;
 }
 
-/* Footer CSS */
+@media (max-width: 760px) {
+  .footer-row {
+    grid-template-columns: 1fr;
+  }
+}

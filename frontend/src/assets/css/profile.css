@@ -2,21 +2,28 @@
 
 /* ================= PAGE ================= */
 .page-container {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: 120px 20px 40px;
+  padding: 0.5rem 1.5rem 2rem;
 }
 
 .page-title {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #000;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: var(--accent-ink);
 }
 
 /* ================= COMPLETION ================= */
 .completion-section {
   margin-bottom: 25px;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
 }
 
 .completion-header {
@@ -28,35 +35,37 @@
 
 .progress-bar {
   width: 100%;
-  height: 10px;
-  background: #e3e3e3;
-  border-radius: 5px;
+  height: 12px;
+  background: rgba(239, 125, 50, 0.14);
+  border-radius: 999px;
 }
 
 .progress-fill {
-  height: 10px;
-  background: #b8b8b8;
-  border-radius: 5px;
+  height: 12px;
+  background: linear-gradient(135deg, var(--accent) 0%, #ff9b52 100%);
+  border-radius: 999px;
   transition: width 0.3s ease;
 }
 
 /* ================= CARD ================= */
 .form-card {
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
+  background: var(--surface);
+  padding: 1.55rem 1.7rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 25px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
 }
 
 /* ================= ITEM CARD ================= */
 .item-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 12px;
-  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.15rem;
+  background: rgba(255, 255, 255, 0.82);
 
   display: flex;
   flex-direction: column;
@@ -66,7 +75,8 @@
 }
 
 .item-card:hover {
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 20px rgba(73, 46, 20, 0.08);
 }
 
 /* ================= SECTIONS ================= */
@@ -75,7 +85,7 @@
   flex-direction: column;
   gap: 10px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border);
 }
 
 .section:last-child {
@@ -86,6 +96,7 @@
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 5px;
+  color: var(--accent-ink);
 }
 
 /* ================= ROWS ================= */
@@ -135,7 +146,7 @@
 label {
   font-size: 13px;
   margin-bottom: 4px;
-  color: #000;
+  color: var(--text);
 }
 
 input,
@@ -143,10 +154,10 @@ textarea,
 select {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
   font-size: 14px;
-  background: white;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 /* Focus UX */
@@ -154,23 +165,23 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #000;
-  box-shadow: 0 0 0 1px #000;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(239, 125, 50, 0.18);
 }
 
 /* ================= BUTTONS ================= */
 button {
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
-  border: 1px solid #000;
+  border: 1px solid var(--border-strong);
 }
 
 /* Hover + click */
 button:hover {
-  opacity: 0.9;
+  opacity: 0.96;
 }
 
 button:active {
@@ -186,12 +197,13 @@ button:disabled {
 /* Primary (Save buttons) */
 .section > button {
   align-self: flex-start;
-  background: #000;
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent) 0%, #ff9b52 100%);
+  color: #fffaf5;
+  border: none;
 }
 
 .section > button:hover {
-  background: #333;
+  background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
 }
 
 /* Action buttons (edit, reorder) */
@@ -204,30 +216,30 @@ button:disabled {
 .actions button {
   padding: 6px 10px;
   font-size: 12px;
-  background: #eee;
-  border-color: #ccc;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--border-strong);
 }
 
 /* Reorder buttons */
 .actions button:nth-child(2),
 .actions button:nth-child(3) {
-  background: #eee;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 /* Danger (delete) */
 .actions button:last-child {
-  background: #ffdddd;
-  border-color: #cc0000;
+  background: #fce6e5;
+  border-color: var(--danger);
 }
 
 .actions button:last-child:hover {
-  background: #ffcccc;
+  background: #f8d6d5;
 }
 
 /* ================= TEXT ================= */
 .sub-text {
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -237,12 +249,12 @@ button:disabled {
 
 /* ================= FEEDBACK ================= */
 .success {
-  color: green;
+  color: var(--success);
   font-size: 13px;
 }
 
 .error {
-  color: red;
+  color: var(--danger);
   font-size: 13px;
 }
 

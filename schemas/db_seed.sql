@@ -181,6 +181,7 @@ INSERT INTO jobs (
     last_activity_at,
     notes,
     description,
+    company_notes, --adding company notes
     is_archived
 )
 VALUES
@@ -197,6 +198,7 @@ VALUES
         NOW() - INTERVAL '15 days',
         'Need to tailor resume toward backend experience.',
         'Internship focused on backend systems and developer tooling.',
+        NULL,
         FALSE
     ),
     (
@@ -212,6 +214,7 @@ VALUES
         NOW() - INTERVAL '10 days',
         'Applied through referral portal.',
         'Support role involving endpoint deployment and troubleshooting.',
+        NULL,
         FALSE
     ),
     (
@@ -227,6 +230,7 @@ VALUES
         NOW() - INTERVAL '4 days',
         'Technical screening completed.',
         'Entry-level analyst role focused on defensive security operations.',
+        'Strong focus on Azure security stack, Sentinel SIEM, and incident response workflows. Review Microsoft security blogs and recent CVEs.',
         FALSE
     ),
     (
@@ -242,6 +246,7 @@ VALUES
         NOW() - INTERVAL '2 days',
         'Received verbal offer, waiting on written details.',
         'Cloud support role working with customer infrastructure issues.',
+        NULL,
         FALSE
     ),
     (
@@ -257,6 +262,7 @@ VALUES
         NOW() - INTERVAL '8 days',
         'Good interview practice. Rejected after final round.',
         'Security operations center analyst position.',
+        NULL,
         FALSE
     ),
     (
@@ -272,6 +278,7 @@ VALUES
         NOW() - INTERVAL '30 days',
         'Archived because role no longer aligns with current goals.',
         'Backend engineering role in internal platform systems.',
+        NULL,
         TRUE
     ),
     (
@@ -287,6 +294,7 @@ VALUES
         NOW() - INTERVAL '6 days',
         'Need follow-up if no response by next week.',
         'Technical customer support for monitoring and cloud tooling.',
+        NULL,
         FALSE
     ),
     (
@@ -302,6 +310,7 @@ VALUES
         NOW() - INTERVAL '1 day',
         'Behavioral interview scheduled.',
         'Associate-level security engineering role.',
+        'Company is a leader in network security and zero trust. Review Prisma Cloud and Cortex XDR products before interview.',
         FALSE
     )
 ON CONFLICT (id) DO NOTHING;
@@ -338,7 +347,9 @@ VALUES
 
     (8, 'created', NOW() - INTERVAL '5 days', 'Job saved to tracker.'),
     (8, 'applied', NOW() - INTERVAL '4 days', 'Applied on careers page.'),
-    (8, 'interview_scheduled', NOW() - INTERVAL '1 day', 'Behavioral interview scheduled.');
+    (8, 'interview_scheduled', NOW() - INTERVAL '1 day', 'Behavioral interview scheduled.'),
+    (8, 'note_added', NOW() - INTERVAL '1 day', 'Added interview prep notes.');
+    
 
 -- INTERVIEWS
 INSERT INTO interviews (
@@ -361,7 +372,7 @@ VALUES
         'behavioral',
         NOW() + INTERVAL '2 days',
         NULL,
-        'Prepare STAR stories and security project examples.'
+        'Prepare STAR stories focusing on incident response, teamwork, and problem-solving. Review past security projects, be ready to discuss tools (Wireshark, SIEMs), and align answers with Palo Alto’s mission.'
     );
 
 -- FOLLOW-UP TASKS
@@ -393,6 +404,57 @@ VALUES
         FALSE,
         NULL
     );
+
+-- DOCUMENTS
+INSERT INTO documents (
+    id,
+    user_id,
+    title,
+    document_type,
+    tags,
+    is_archived
+)
+VALUES
+    (1, 1, 'Peter Griffin Resume', 'resume', ARRAY['backend','security','internship'], FALSE),
+    (2, 1, 'Peter Griffin Cover Letter', 'cover_letter', ARRAY['backend','security','internship'], FALSE)
+ON CONFLICT (id) DO NOTHING;
+
+-- DOCUMENT VERS
+INSERT INTO document_versions (
+    document_id,
+    version_number,
+    file_name,
+    file_path,
+    file_size_bytes
+)
+VALUES
+    (
+        1,
+        1,
+        'peter_resume_v1.pdf',
+        'data/documents/peter_resume_v1.pdf',
+        120000
+    ),
+    (
+        1,
+        2,
+        'peter_resume_v2.pdf',
+        'data/documents/peter_resume_v2.pdf',
+        135000
+    ),
+    (
+        2,
+        1,
+        'peter_cover_letter_v1.pdf',
+        'data/documents/peter_cover_letter_v1.pdf',
+        90000
+    );
+
+UPDATE documents SET current_version_id = 2 WHERE id = 1;
+UPDATE documents SET current_version_id = 3 WHERE id = 2;
+
+
+-- ===========================================
 
 -- SECOND USER
 INSERT INTO users (id, email, password_hash)
@@ -475,3 +537,9 @@ VALUES
         FALSE
     )
 ON CONFLICT (id) DO NOTHING;
+
+-- Reset id sequences
+SELECT setval('documents_id_seq', (SELECT MAX(id) FROM documents));
+SELECT setval('document_versions_id_seq', (SELECT MAX(id) FROM document_versions));
+SELECT setval('jobs_id_seq', (SELECT MAX(id) FROM jobs));
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));

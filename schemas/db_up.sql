@@ -125,12 +125,13 @@ CREATE TABLE IF NOT EXISTS jobs (
     posting_url TEXT,
     salary INT,
     status TEXT NOT NULL CHECK (
-        status IN ('interested', 'applied', 'interview', 'offer', 'rejected')
+        status IN ('interested', 'applied', 'interview', 'offer', 'rejected', 'ghosted')
     ),
     deadline_date DATE,
     last_activity_at TIMESTAMPTZ,
     notes TEXT,
     description TEXT,
+    company_notes TEXT,
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -153,7 +154,9 @@ CREATE TABLE IF NOT EXISTS job_activities (
         'interview_completed',
         'follow_up_created',
         'follow_up_completed',
-        'outcome'
+        'outcome',
+        'rejected',
+        'ghosted'
     )
     ),
     activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -196,10 +199,32 @@ CREATE TABLE IF NOT EXISTS documents (
     document_type TEXT NOT NULL CHECK (
         document_type IN ('resume', 'cover_letter', 'other')
     ),
+    tags TEXT[],
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    current_version_id BIGINT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS document_versions (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    version_number INT NOT NULL,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size_bytes BIGINT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_document_version UNIQUE (document_id, version_number)
+);
+
+CREATE UNIQUE INDEX uq_doc_versions_docid_id
+    ON document_versions(document_id, id);
+
+ALTER TABLE documents
+    ADD CONSTRAINT fk_doc_current_version_match
+    FOREIGN KEY (id, current_version_id)
+    REFERENCES document_versions(document_id, id);
 
 -- JOB <-> DOCUMENT LINKS
 CREATE TABLE IF NOT EXISTS document_links (
@@ -265,7 +290,11 @@ CREATE INDEX IF NOT EXISTS idx_follow_up_tasks_job_id
 CREATE INDEX IF NOT EXISTS idx_follow_up_tasks_due_at
     ON follow_up_tasks(job_id, due_at);
 
-
-
 CREATE INDEX IF NOT EXISTS idx_document_links_job_id
     ON document_links(job_id);
+
+CREATE INDEX IF NOT EXISTS idx_doc_versions_doc_id_version
+    ON document_versions(document_id, version_number DESC);
+
+CREATE INDEX IF NOT EXISTS idx_documents_current_version_id
+    ON documents(current_version_id);

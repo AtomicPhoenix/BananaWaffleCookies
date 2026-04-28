@@ -2,8 +2,8 @@
 
 /* PAGE LAYOUT */
 .job-page {
-    padding-top: 80px;
-    margin-bottom: 10rem;
+    padding-top: 0.5rem;
+    margin-bottom: 6rem;
 
     display: flex;
     flex-direction: column;
@@ -13,11 +13,11 @@
 /* TITLE */
 .job-page h1 {
     font-size: clamp(2rem, 1vw, 4rem);
-    color: rgb(191, 99, 0);
-    background: #fffdfd;
+    color: var(--accent-ink);
+    background: rgba(255, 255, 255, 0.9);
 
-    border: 5px solid #B8B8B8;
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
 
     width: 100%;
     max-width: 700px;
@@ -36,11 +36,11 @@
     width: 100%;
     max-width: 700px;
 
-    background: #D9D9D9;
-    border: 5px solid #B8B8B8;
-    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
 
-    padding: 1.5rem;
+    padding: 1.65rem 1.75rem;
     font-size: clamp(1rem, 1vw, 2rem);
 }
 
@@ -55,6 +55,7 @@
 .form-group label {
     margin-bottom: 0.4rem;
     font-weight: 600;
+    color: var(--text);
 }
 
 /* INPUT / SELECT / TEXTAREA */
@@ -62,8 +63,8 @@
     width: 100%; /* FIXED: full width */
     padding: 0.5rem;
 
-    border-radius: 5px;
-    border: 1px solid #B8B8B8;
+    border-radius: 14px;
+    border: 1px solid var(--border-strong);
 
     font-size: 1rem;
     box-sizing: border-box; /* prevents overflow issues */
@@ -78,8 +79,8 @@ textarea.status-bar {
 /* BUTTONS */
 .submit-job-button,
 .edit-job-button {
-    background: linear-gradient(to right, #ffa946, #fc5b2e);
-    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent) 0%, #ff9b52 100%);
+    border-radius: 999px;
     border: none;
 
     margin-top: 1rem;
@@ -93,9 +94,9 @@ textarea.status-bar {
 }
 
 .cancel-job-button {
-    background: #B8B8B8;
-    border-radius: 10px;
-    border: none;
+    background: rgba(255, 255, 255, 0.84);
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
 
     margin-top: 0.5rem;
     padding: 0.75rem;
@@ -120,14 +121,13 @@ textarea.status-bar {
     display: flex;
     flex-direction: column;
     width: 700px;
-    background: #D9D9D9;
-    border-color: #B8B8B8;
-    border-width: 5px;
+    background: var(--surface);
+    border-color: var(--border);
+    border-width: 1px;
     border-style: solid;
-    border-radius: 5px;
+    border-radius: var(--radius-xl);
     font-size: clamp(1rem, 1vw, 2rem);
-    padding-left: 5px;
-    padding-bottom: 20px;
+    padding: 0.85rem 1rem 1.1rem;
 }
 .job-list-column{
     list-style-type: none;
@@ -136,6 +136,7 @@ textarea.status-bar {
 .job-notes{
     font-size: clamp(1rem, 1vw, 2rem);
     font-weight: 700;
+    color: var(--accent-ink);
 }
 
 .edit-button-view{

@@ -150,11 +150,19 @@ func main() {
 
 			// Documents API
 			r.Route("/documents", func(r chi.Router) {
-				r.Get("/{id}", handlers.GetDocument)
-				r.Get("/{id}/info", handlers.GetDocumentInfo)
+				r.Get("/", handlers.GetAllDocuments)
 				r.Post("/", handlers.UploadDocument)
-				r.Put("/{id}", handlers.UpdateDocument)
-				r.Delete("/{id}", handlers.DeleteDocument)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/", handlers.GetDocument)
+					r.Put("/", handlers.UpdateDocument)
+					r.Patch("/", handlers.UpdateDocumentTitle)
+					r.Delete("/", handlers.DeleteDocument)
+					r.Get("/info", handlers.GetDocumentInfo)
+					r.Post("/archive", handlers.ArchiveDocument)
+					r.Post("/unarchive", handlers.UnarchiveDocument)
+					r.Post("/versions", handlers.CreateDocumentVersion)
+					r.Post("/duplicate", handlers.DuplicateDocument)
+				})
 			})
 
 			// Settings API
@@ -166,11 +174,6 @@ func main() {
 	})
 
 	// Frontend / Static Routes
-	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./frontend/dist/index.html")
-	})
-
-	// Serve frontend for Vue routes
 	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./frontend/dist/index.html")
 	})

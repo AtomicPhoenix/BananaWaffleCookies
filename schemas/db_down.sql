@@ -2,16 +2,26 @@
 -- DOWN SCRIPT
 -- =========================
 
+-- Remove FK constraints
+ALTER TABLE documents
+DROP CONSTRAINT IF EXISTS fk_doc_current_version_match;
+
+ALTER TABLE document_versions
+DROP CONSTRAINT IF EXISTS document_versions_document_id_fkey;
+
 -- Drop child tables first (reverse dependency order)
 
--- Job-related children
 DROP TABLE IF EXISTS document_links;
-DROP TABLE IF EXISTS documents;
+DROP TABLE IF EXISTS document_versions;
 
+-- Current child tables
+DROP TABLE IF EXISTS document_links;
 DROP TABLE IF EXISTS interviews;
 DROP TABLE IF EXISTS follow_up_tasks;
-
 DROP TABLE IF EXISTS job_activities;
+
+-- Parent-like tables
+DROP TABLE IF EXISTS documents;
 DROP TABLE IF EXISTS jobs;
 
 -- Profile-related children

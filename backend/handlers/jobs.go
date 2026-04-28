@@ -1,15 +1,18 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
+	"github.com/jung-kurt/gofpdf"
 )
 
 // Handler for /api/jobs (POST)
@@ -301,12 +304,35 @@ func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := fmt.Sprintf("./data/documents/%d.txt", docID)
+	versionNumber := 1
+	filePath := buildFilePath(token.Uid, docID, versionNumber)
 
-	if err := os.WriteFile(filePath, []byte(body.Content), 0644); err != nil {
+	pdfBytes, err := generatePDFBytes(body.Content)
+	if err != nil {
+		_ = db.DeleteDocument(token.Uid, int(docID))
+		http.Error(w, "Failed to generate PDF", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to generate PDF", "err", err)
+		return
+	}
+
+	if err := os.WriteFile(filePath, pdfBytes, 0644); err != nil {
 		_ = db.DeleteDocument(token.Uid, int(docID))
 		http.Error(w, "Failed to save file", http.StatusInternalServerError)
 		settings.Logger.Error("Failed to save AI document; Failed to write file", "err", err)
+		return
+	}
+
+	err = db.CreateDocumentVersion(
+		docID,
+		fmt.Sprintf("ai-%s.txt", body.Type),
+		filePath,
+		int64(len(body.Content)),
+	)
+
+	if err != nil {
+		_ = db.DeleteDocument(token.Uid, docID)
+		http.Error(w, "Failed to link document", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to save AI document; Failed to link document", "err", err)
 		return
 	}
 
@@ -320,4 +346,22 @@ func SaveAIDocumentToJob(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"id":      docID,
 	})
+}
+
+func generatePDFBytes(content string) ([]byte, error) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "", 12)
+
+	for _, line := range strings.Split(content, "\n") {
+		pdf.MultiCell(0, 5, line, "", "", false)
+	}
+
+	var buf bytes.Buffer
+	err := pdf.Output(&buf)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
