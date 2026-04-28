@@ -171,11 +171,6 @@ func main() {
 		http.ServeFile(w, r, "./frontend/dist/index.html")
 	})
 
-	// Serve frontend for Vue routes
-	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./frontend/dist/index.html")
-	})
-
 	// Serve static images
 	router.Handle("/images/*", http.StripPrefix("/images/", http.FileServer(http.Dir("./frontend/dist/images"))))
 	router.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("./frontend/dist/assets"))))
