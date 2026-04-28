@@ -127,3 +127,16 @@ func GetAllDocuments(user_id int) ([]Document, error) {
 
 	return docs, nil
 }
+
+func GetNextVersionNumber(docID int) (int, error) {
+	var v int
+	err := DbConn.QueryRow(
+		context.Background(),
+		`SELECT COALESCE(MAX(version_number), 0) + 1
+		 FROM document_versions
+		 WHERE document_id = $1`,
+		docID,
+	).Scan(&v)
+
+	return v, err
+}

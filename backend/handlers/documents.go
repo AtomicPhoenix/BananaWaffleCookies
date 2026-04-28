@@ -6,12 +6,39 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
 )
+
+var invalidChars = regexp.MustCompile(`[^a-zA-Z0-9-_]+`)
+
+func sanitizeFileName(name string) string {
+	name = strings.ToLower(strings.TrimSpace(name))
+	name = strings.ReplaceAll(name, " ", "-")
+	name = invalidChars.ReplaceAllString(name, "")
+
+	if name == "" {
+		return "document"
+	}
+	return name
+}
+
+func buildFilePath(userID, docID, version int, title string) string {
+	safeTitle := sanitizeFileName(title)
+
+	return fmt.Sprintf(
+		"./data/documents/u%d_d%d_%s_v%d.pdf",
+		userID,
+		docID,
+		safeTitle,
+		version,
+	)
+}
 
 // Handler for /api/documents (POST)
 func UploadDocument(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +79,15 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dst := fmt.Sprintf("./data/documents/%d.pdf", id)
-	out, err := os.Create(dst)
+	versionNumber := 1
+
+	filePath := buildFilePath(
+		tokenInfo.Uid,
+		doc.ID,
+		versionNumber,
+		doc.Title,
+	)
+	out, err := os.Create(filePath)
 	if err != nil {
 		http.Error(w, "Failed to upload document", http.StatusInternalServerError)
 		settings.Logger.Error("Failed to upload document; Failed to create file destination", "err", err)
@@ -178,7 +212,19 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
+	versionNumber, err := db.GetNextVersionNumber(docID)
+	if err != nil {
+		http.Error(w, "Failed to get document", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to get document; Failed to get version number", "err", err)
+		return
+	}
+
+	filePath := buildFilePath(
+		tokenInfo.Uid,
+		docID,
+		versionNumber,
+		doc.Title,
+	)
 	file, err := os.Open(filePath)
 	if err != nil {
 		http.Error(w, "Failed to get document", http.StatusNotFound)
