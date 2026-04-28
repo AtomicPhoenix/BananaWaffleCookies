@@ -92,7 +92,7 @@
 
         <div v-else>
           <h4>{{ doc.title }}</h4>
-          <button @click="doc.isEditing = true">Rename</button>
+          <button class="text-button" @click="doc.isEditing = true">Rename</button>
         </div>
 
         <p class="doc-sub">

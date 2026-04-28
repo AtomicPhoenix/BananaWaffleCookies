@@ -159,29 +159,94 @@ h4 {
   margin-bottom: 10px;
 }
 
-/* ACTION BUTTONS */
+/* VERSION HISTORY */
+.version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.version-row:last-child {
+  border-bottom: none;
+}
+
+/* VERSION ACTION BUTTONS */
+.version-row button {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #d5d5d5;
+  min-width: auto;
+}
+
+/* MAIN ACTION AREA */
 .doc-actions {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #eeeeee;
 }
 
+/* FILE INPUT ROW */
+.browse-input {
+  width: 100%;
+  font-size: 13px;
+  padding: 8px;
+  height: auto;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+/* ACTION BUTTON GROUP */
 .doc-actions button {
-  flex: 1;
-  width:50px;
+  width: 100%;
+  flex: unset;
 }
 
-/* BUTTON STYLE */
+/* PRIMARY ACTION */
+.doc-actions button:first-of-type {
+  background: linear-gradient(to right, #ffa946, #fc5b2e);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+/* SECONDARY ACTIONS */
+.doc-actions button:not(:first-of-type) {
+  background: #ffffff;
+  border: 1px solid #d5d5d5;
+  color: #333;
+  font-weight: 500;
+}
+
+/* GLOBAL BUTTON STYLE */
 button {
-  padding: 10px;
-  border: 1px solid #000;
-  background: #B8B8B8;
-  color: #000;
-  border-radius: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 14px;
 }
 
 button:hover {
-  background: #E3E3E3;
+  transform: translateY(-1px);
+}
+
+.text-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #fc5b2e;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 /* DELETE BUTTON */
