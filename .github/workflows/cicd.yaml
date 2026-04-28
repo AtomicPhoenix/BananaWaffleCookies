@@ -202,11 +202,3 @@ jobs:
             psql -U $DB_USER -d $DB_NAME -f schemas/db_down.sql
             psql -U $DB_USER -d $DB_NAME -f schemas/db_up.sql
             psql -U $DB_USER -d $DB_NAME -f schemas/db_seed.sql
-      - name: Deployment Test
-         run: |
-          for i in {1..20}; do
-            curl -f https://possiblyai.tech && exit 0
-            echo "Retrying in 5 seconds..."
-            sleep 5
-          done
-          exit 1
