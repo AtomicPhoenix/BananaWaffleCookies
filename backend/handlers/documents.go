@@ -79,6 +79,7 @@ func UploadDocument(w http.ResponseWriter, r *http.Request) {
 
 	fileSize, err := io.Copy(out, file)
 	if err != nil {
+		settings.Logger.Error("Failed to upload document; Failed to copy file", "err", err)
 		if err = db.DeleteDocument(tokenInfo.Uid, doc.ID); err != nil {
 			settings.Logger.Error("Failed to upload document; Failed cleanup delete document", "err", err)
 		}
@@ -305,6 +306,7 @@ func CreateDocumentVersion(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		settings.Logger.Error("Failed to create document version; Failed to grab auth token", "err", err)
 		return
 	}
 
@@ -312,17 +314,20 @@ func CreateDocumentVersion(w http.ResponseWriter, r *http.Request) {
 	docID, err := strconv.Atoi(docIDRaw)
 	if err != nil {
 		http.Error(w, "Invalid document id", http.StatusBadRequest)
+		settings.Logger.Error("Failed to create document version; Invalid document id", "err", err)
 		return
 	}
 
 	if err := db.AssertDocumentOwnership(docID, tokenInfo.Uid); err != nil {
 		http.Error(w, "Unauthroized", http.StatusForbidden)
+		settings.Logger.Error("Failed to create document version; Ownership check failed", "err", err)
 		return
 	}
 
 	file, fileHeader, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "Missing file", http.StatusBadRequest)
+		settings.Logger.Error("Failed to create document version; Missing file", "err", err)
 		return
 	}
 	defer file.Close()
@@ -330,21 +335,28 @@ func CreateDocumentVersion(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, 512)
 	if _, err := file.Read(buffer); err != nil {
 		http.Error(w, "Invalid file", http.StatusBadRequest)
+		settings.Logger.Error("Failed to create document version; Failed to read file", "err", err)
 		return
 	}
 
 	if http.DetectContentType(buffer) != "application/pdf" {
 		http.Error(w, "Only PDF allowed", http.StatusBadRequest)
+		settings.Logger.Warn("Failed to create document version; Only PDFs allowed", "err", "User attempted to upload non-PDF file")
 		return
 	}
 
-	file.Seek(0, 0)
+	if _, err := file.Seek(0, 0); err != nil {
+		http.Error(w, "Failed to reset file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to create document version; Failed to reset file reader", "err", err)
+		return
+	}
 
 	filePath := fmt.Sprintf("./data/documents/%d.pdf", docID)
 
 	out, err := os.Create(filePath)
 	if err != nil {
 		http.Error(w, "File write failed", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to create document version; Failed to create file", "err", err)
 		return
 	}
 	defer out.Close()
@@ -352,12 +364,14 @@ func CreateDocumentVersion(w http.ResponseWriter, r *http.Request) {
 	fileSize, err := io.Copy(out, file)
 	if err != nil {
 		http.Error(w, "File save failed", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to create document version; Failed to write file", "err", err)
 		return
 	}
 
 	err = db.CreateDocumentVersion(docID, fileHeader.Filename, filePath, fileSize)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to create document version; DB insert failed", "err", err)
 		return
 	}
 
@@ -369,6 +383,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	err, tokenInfo := GrabToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		settings.Logger.Error("Failed to duplicate document; Failed to grab auth token", "err", err)
 		return
 	}
 
@@ -376,12 +391,14 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	docID, err := strconv.Atoi(docIDRaw)
 	if err != nil {
 		http.Error(w, "Invalid document id", http.StatusBadRequest)
+		settings.Logger.Error("Failed to duplicate document; Invalid document id", "err", err)
 		return
 	}
 
 	tx, err := db.DbConn.Begin(context.Background())
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Failed to start transaction", "err", err)
 		return
 	}
 	defer tx.Rollback(context.Background())
@@ -408,6 +425,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Document not found or not owned by user", http.StatusForbidden)
+		settings.Logger.Error("Failed to duplicate document; Ownership or fetch failed", "err", err)
 		return
 	}
 
@@ -433,11 +451,13 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "No version to duplicate", http.StatusBadRequest)
+		settings.Logger.Error("Failed to duplicate document; No version found", "err", err)
 		return
 	}
 
 	// Create new document row in database
 	var newDocID int
+	var newDocTitle string
 
 	err = tx.QueryRow(
 		context.Background(),
@@ -445,12 +465,13 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 		 VALUES ($1, $2, $3, FALSE)
 		 RETURNING id`,
 		tokenInfo.Uid,
-		existing.Title+" (Copy)",
+		newDocTitle,
 		existing.DocumentType,
 	).Scan(&newDocID)
 
 	if err != nil {
 		http.Error(w, "Failed to create duplicate document", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Insert document failed", "err", err)
 		return
 	}
 
@@ -460,6 +481,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	src, err := os.Open(v.FilePath)
 	if err != nil {
 		http.Error(w, "Failed to read source file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Failed to open source file", "err", err)
 		return
 	}
 	defer src.Close()
@@ -467,6 +489,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	dst, err := os.Create(newFilePath)
 	if err != nil {
 		http.Error(w, "Failed to create file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Failed to create destination file", "err", err)
 		return
 	}
 	defer dst.Close()
@@ -474,6 +497,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	fileSize, err := io.Copy(dst, src)
 	if err != nil {
 		http.Error(w, "Failed to copy file", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; File copy failed", "err", err)
 		return
 	}
 
@@ -500,6 +524,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Failed to create version", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Insert version failed", "err", err)
 		return
 	}
 
@@ -514,12 +539,14 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		http.Error(w, "Failed to finalize document", http.StatusInternalServerError)
+		http.Error(w, "Failed to update document version", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Failed to update current version", "err", err)
 		return
 	}
 
 	if err := tx.Commit(context.Background()); err != nil {
 		http.Error(w, "Transaction failed", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Transaction commit failed", "err", err)
 		return
 	}
 
@@ -527,7 +554,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{
 		"id":                 newDocID,
-		"title":              existing.Title + " (Copy)",
+		"title":              newDocTitle,
 		"current_version_id": newVersionID,
 	})
 }
