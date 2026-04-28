@@ -150,8 +150,50 @@ import { ref, onMounted, computed } from 'vue'
 
 const activeDocumentName = ref('')
 
-function openVersion(v) {
-  window.open(v.file_url, '_blank')
+async function openVersion(v) {
+  try {
+    const res = await fetch(`/api/documents/${v.document_id}`, {
+      credentials: 'include'
+    })
+
+    if (!res.ok) throw new Error('Failed to open document')
+
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+
+    window.open(url, '_blank')
+
+    // cleanup
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+  } catch (err) {
+    console.error(err)
+    error.value = 'Failed to open document'
+  }
+}
+
+async function downloadVersion(v) {
+  try {
+    const res = await fetch(`/api/documents/${v.document_id}`, {
+      credentials: 'include'
+    })
+
+    if (!res.ok) throw new Error('Download failed')
+
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'document.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error(err)
+    error.value = 'Download failed'
+  }
 }
 
 function formatDate(date) {
