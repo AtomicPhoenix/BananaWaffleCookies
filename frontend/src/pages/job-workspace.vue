@@ -185,7 +185,7 @@
       		<button @click="saveGeneratedCoverLetter">
         		Save to Job
       		</button>
-			
+
 			<div v-if="!availableDocuments.length" class="empty-state">No documents available.</div>
 		</div>
 
@@ -589,19 +589,13 @@ async function enhanceCompanyNotes() {
 	}
 }
 
-// ================= HELPERS =================
-function reset(section) {
-  messages[section].success = false
-  messages[section].error = ''
-}
-
 // Get resume draft
 const generateResume = async () => {
   isGeneratingResume.value = true
   resumeResponse.value = ''
 
   try {
-    const path = `/api/jobs/${route.params.job_id}/resume`
+    const path = `/api/jobs/${resolvedJobId.value}/resume`
 
     const res = await fetch(path, {
       method: 'POST',
@@ -629,7 +623,7 @@ const generateCoverLetter = async () => {
   coverLetterResponse.value = ''
 
   try {
-    const path = `/api/jobs/${route.params.job_id}/cover-letter`
+    const path = `/api/jobs/${resolvedJobId.value}/cover-letter`
 
     const res = await fetch(path, {
       method: 'POST',
@@ -653,7 +647,7 @@ const generateCoverLetter = async () => {
 
 async function saveGeneratedResume() {
   try {
-    const res = await fetch(`/api/jobs/${job.id}/documents/ai-save`, {
+    const res = await fetch(`/api/jobs/${resolvedJobId.value}/documents/ai-save`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -678,7 +672,7 @@ async function saveGeneratedResume() {
 
 async function saveGeneratedCoverLetter() {
   try {
-    const res = await fetch(`/api/jobs/${job.id}/documents/ai-save`, {
+    const res = await fetch(`/api/jobs/${resolvedJobId.value}/documents/ai-save`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
