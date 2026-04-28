@@ -148,6 +148,25 @@
 				</div>
 			</div>
 
+			<!-- ================= LINKED DOCUMENTS ================= -->
+			<div class="section">
+				<h3>Documents Linked to This Job</h3>
+				<div v-if="loadingDocuments" class="feedback">Loading linked documents...</div>
+				<div v-else-if="!linkedDocuments.length" class="empty-state">No documents linked to this job yet.</div>
+				<div v-else class="documents-list">
+					<div v-for="doc in linkedDocuments" :key="doc.id" class="item-card row-between">
+						<div>
+							<strong>{{ doc.title }}</strong>
+							<p class="sub-text">Type: {{ doc.document_type }}</p>
+							<p class="sub-text">Created: {{ formatDateTime(doc.created_at) }}</p>
+						</div>
+						<button type="button" class="danger-button" @click="unlinkDocument(doc.id)">
+							Unlink
+						</button>
+					</div>
+				</div>
+			</div>
+
 			<!-- ================= RESUME GENERATION ================= -->
       		<div class="section">
         		<h3 class="section-title">AI Resume Generator</h3>
@@ -320,6 +339,11 @@ const isGeneratingResume = ref(false)
 const coverLetterResponse = ref('')
 const isGeneratingCoverLetter = ref(false)
 
+const linkedDocuments = ref([])
+const loadingDocuments = ref(false)
+const linkingDocuments = ref(false)
+
+
 
 const form = reactive({
 	id: null,
@@ -414,28 +438,39 @@ function formatActivityType(type) {
 }
 
 async function addSelectedDocument() {
-  if (!selectedDocumentId.value) return
+	if (!selectedDocumentId.value) return
 
-  try {
-    const res = await fetch(`/api/jobs/${resolvedJobId.value}/documents`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        document_id: selectedDocumentId.value
-      })
-    })
+	try {
+		linkingDocuments.value = true
+		error.value = ''
 
-    if (!res.ok) {
-      throw new Error('Failed to link document')
-    }
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}/documents`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				document_id: selectedDocumentId.value
+			})
+		})
 
-    alert('Document added to job!')
-    selectedDocumentId.value = ''
+		if (!res.ok) {
+			throw new Error('Failed to link document')
+		}
 
-  } catch (err) {
-    console.error(err)
-  }
+		selectedDocumentId.value = ''
+
+		// refresh linked docs immediately
+		await fetchLinkedDocuments()
+
+		alert('Document added to job!')
+	} catch (err) {
+		error.value = 'Failed to link document.'
+		console.error(err)
+	} finally {
+		linkingDocuments.value = false
+	}
 }
 
 async function fetchJob() {
@@ -564,7 +599,14 @@ async function fetchFollowUps() {
 
 async function hydrateAll() {
 	await fetchJob()
-	await Promise.all([fetchActivities(), fetchInterviews(), fetchFollowUps(), fetchDocuments()])
+
+	await Promise.all([
+		fetchActivities(),
+		fetchInterviews(),
+		fetchFollowUps(),
+		fetchDocuments(),
+		fetchLinkedDocuments() // ADD THIS
+	])
 }
 
 async function saveJobDetails() {
@@ -666,6 +708,54 @@ async function saveCompanyNotes() {
 		console.error(err)
 	} finally {
 		savingCompanyNotes.value = false
+	}
+}
+async function fetchLinkedDocuments() {
+	if (!resolvedJobId.value) return
+
+	try {
+		loadingDocuments.value = true
+
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}/documents`, {
+			method: 'GET',
+			credentials: 'include'
+		})
+
+		if (!res.ok) {
+			linkedDocuments.value = []
+			return
+		}
+
+		const data = await res.json()
+
+		linkedDocuments.value = data || []
+	} catch (err) {
+		console.error('Failed to fetch linked documents:', err)
+		linkedDocuments.value = []
+	} finally {
+		loadingDocuments.value = false
+	}
+}
+
+async function unlinkDocument(docId) {
+	if (!resolvedJobId.value) return
+
+	try {
+		const res = await fetch(`/api/jobs/${resolvedJobId.value}/documents/${docId}`, {
+			method: 'DELETE',
+			credentials: 'include'
+		})
+
+		if (!res.ok) {
+			throw new Error('Failed to unlink document')
+		}
+
+		// ONLY this is needed
+		await fetchLinkedDocuments()
+
+	} catch (err) {
+		error.value = 'Failed to unlink document.'
+		console.error(err)
 	}
 }
 
