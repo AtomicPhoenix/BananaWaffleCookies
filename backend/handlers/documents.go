@@ -457,7 +457,7 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 
 	// Create new document row in database
 	var newDocID int
-	var newDocTitle string
+	var newDocTitle string = existing.Title + " (Copy)"
 
 	err = tx.QueryRow(
 		context.Background(),
@@ -550,11 +550,14 @@ func DuplicateDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return new document
+	// Fetch and return new document
+	doc, err := db.GetDocument(newDocID, tokenInfo.Uid)
+	if err != nil {
+		http.Error(w, "Failed to fetch duplicated document", http.StatusInternalServerError)
+		settings.Logger.Error("Failed to duplicate document; Fetching new document failed", "err", err)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"id":                 newDocID,
-		"title":              newDocTitle,
-		"current_version_id": newVersionID,
-	})
+	json.NewEncoder(w).Encode(doc)
 }
