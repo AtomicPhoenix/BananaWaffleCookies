@@ -142,8 +142,51 @@
 						</button>
 					</div>
 				</div>
-				<div v-if="!availableDocuments.length" class="empty-state">No documents available.</div>
 			</div>
+
+			<!-- ================= RESUME GENERATION ================= -->
+      		<div class="section">
+        		<h3 class="section-title">AI Resume Generator</h3>
+        			<button @click="generateResume" :disabled="isGeneratingResume">
+          				{{ isGeneratingResume ? 'Generating...' : 'Generate Resume' }}
+        			</button>
+        		<div v-if="resumeResponse" class="item-card">
+
+          		<h4>Generated Resume</h4>
+          		<pre class="sub-text" style="white-space: pre-wrap;">
+      				{{ resumeResponse }}
+          		</pre>
+        		</div>
+      		</div>
+
+      		<!-- ================= SAVE RESUME ================= -->
+        	<button @click="saveGeneratedResume">
+          		Save to Job
+        	</button>
+
+      		<!-- ================= COVER LETTER GENERATION ================= -->
+      		<div class="section">
+        		<h3 class="section-title">AI Cover Letter Generator</h3>
+
+        		<button @click="generateCoverLetter" :disabled="isGeneratingCoverLetter">
+          		{{ isGeneratingCoverLetter ? 'Generating...' : 'Generate Cover Letter' }}
+        		</button>
+
+        		<div v-if="coverLetterResponse" class="item-card">
+
+          			<h4>Generated Cover Letter</h4>
+          			<pre class="sub-text" style="white-space: pre-wrap;">
+      				{{ coverLetterResponse }}
+          			</pre>
+
+        		</div>
+      		</div>
+
+      		<button @click="saveGeneratedCoverLetter">
+        		Save to Job
+      		</button>
+			
+			<div v-if="!availableDocuments.length" class="empty-state">No documents available.</div>
 		</div>
 
 		<div v-else class="workspace-panel">
@@ -260,6 +303,11 @@ const company_notes = ref('')
 const enhancingAI = ref(false)
 const selectedDocumentId = ref('')
 const availableDocuments = ref([])
+
+const resumeResponse = ref('')
+const isGeneratingResume = ref(false)
+const coverLetterResponse = ref('')
+const isGeneratingCoverLetter = ref(false)
 
 
 const form = reactive({
@@ -541,6 +589,117 @@ async function enhanceCompanyNotes() {
 	}
 }
 
+// ================= HELPERS =================
+function reset(section) {
+  messages[section].success = false
+  messages[section].error = ''
+}
+
+// Get resume draft
+const generateResume = async () => {
+  isGeneratingResume.value = true
+  resumeResponse.value = ''
+
+  try {
+    const path = `/api/jobs/${route.params.job_id}/resume`
+
+    const res = await fetch(path, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    const data = await res.json()
+
+    if (data?.success) {
+      resumeResponse.value = data.response
+    } else {
+      resumeResponse.value = 'Failed to generate resume.'
+    }
+  } catch (err) {
+    console.error('Failed to generate job resume:', err)
+    resumeResponse.value = 'Error generating resume.'
+  } finally {
+    isGeneratingResume.value = false
+  }
+}
+
+// Get cover letter draft
+const generateCoverLetter = async () => {
+  isGeneratingCoverLetter.value = true
+  coverLetterResponse.value = ''
+
+  try {
+    const path = `/api/jobs/${route.params.job_id}/cover-letter`
+
+    const res = await fetch(path, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    const data = await res.json()
+
+    if (data?.success) {
+      coverLetterResponse.value = data.response
+    } else {
+      coverLetterResponse.value = 'Failed to generate cover letter.'
+    }
+  } catch (err) {
+    console.error('Failed to generate cover letter:', err)
+    coverLetterResponse.value = 'Error generating cover letter.'
+  } finally {
+    isGeneratingCoverLetter.value = false
+  }
+}
+
+async function saveGeneratedResume() {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/documents/ai-save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        type: 'resume',
+        content: resumeResponse.value
+      })
+    })
+
+    const data = await res.json()
+
+    if (!data.success) {
+      alert('Failed to save resume')
+      return
+    }
+
+    alert('Resume saved to job!')
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function saveGeneratedCoverLetter() {
+  try {
+    const res = await fetch(`/api/jobs/${job.id}/documents/ai-save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        type: 'cover_letter',
+        content: coverLetterResponse.value
+      })
+    })
+
+    const data = await res.json()
+
+    if (!data.success) {
+      alert('Failed to save cover letter')
+      return
+    }
+
+    alert('Cover letter saved to job!')
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 async function addInterview() {
 	if (!resolvedJobId.value) return
