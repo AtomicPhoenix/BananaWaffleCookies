@@ -1,92 +1,80 @@
 @import './main.css';
 
-h1{
-    font-size: 3rem;
-    color: #421603;
-}
-
 .signup-page{
     display: flex;
     flex-direction: column;
-    padding-top: 50px;
-    padding-bottom: 50px;
+    padding: 2rem 0;
     justify-content: center;
     align-items: center;
-    min-height: 70vh;
+    min-height: calc(100vh - var(--header-height) - 6rem);
+}
+
+.signup-page h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    color: var(--accent-ink);
+    text-align: center;
 }
 
 .signup-form{
-    background: #D9D9D9;
-    border-color: #B8B8B8;
-    border-radius: 4px;
-    border-style: solid;
-    padding: 1rem;
+    width: min(100%, 460px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.65rem 1.75rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 0.95rem;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(18px);
 }
 
 .input-field{
-    padding-bottom: 1rem;
-    font-weight: 600;
-    align-items: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
     width: 100%;
-    font-size: 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .input-text{
-    font-size: 2rem;
-}
-.login{
-    margin: 1rem;
-}
-.submit{
-    margin: 1rem;
-}
-
-.register-button{
-    background: linear-gradient(to right, #ffa946,#fc5b2e);
-    padding: 0.5rem 1rem 0.5rem;
-    text-decoration: none;
-    border-radius: 5px;
-    color: #000;
-    border-style: none;
-    font-size: 1.75rem;
-    cursor: pointer;
-}
-
-.login-text{
-    background: white;
-    padding: 0.5rem 1rem 0.5rem;
-    text-decoration: none;
-    border-radius: 2px;
-    color: #000;
-    border-color: #B8B8B8;
-    border-style: solid;
     font-size: 1rem;
 }
 
-.github-logo{
-    width: 25px;
-    height: auto;
+.register-button{
+    background: linear-gradient(135deg, var(--accent) 0%, #ff9b52 100%);
+    padding: 0.85rem 1.4rem;
+    text-decoration: none;
+    border-radius: 999px;
+    color: #fffaf5;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 12px 24px rgba(239, 125, 50, 0.24);
+}
+
+.login-text{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.78);
+    padding: 0.65rem 1rem;
+    text-decoration: none;
+    border-radius: 999px;
+    color: var(--accent-ink);
+    border: 1px solid var(--border);
+    font-size: 1rem;
 }
 
 @media (max-width: 700px){
-    h1{
-        font-size: 1.5rem;
+    .signup-page{
+        min-height: auto;
+        padding-top: 1rem;
     }
-    .login-page{
-        min-height: 30vh;
-    }
-    .login-form{
-        padding: 0.5rem;
-    }
-    .input-field{
-        font-size: 1rem;
-    }
-    .input-text{
-        font-size: 1.5rem;
-        width: 200px;
+    .signup-form{
+        padding: 1.2rem 1.25rem;
     }
 }

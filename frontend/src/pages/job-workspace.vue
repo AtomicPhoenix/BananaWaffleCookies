@@ -267,11 +267,10 @@
 				<div class="inline-form">
 					<select v-model="outcome.status">
 						<option value="">Select Status</option>
-						<option>Offer</option>
-						<option>Rejected</option>
-						<option>Ghosted</option>
+						<option value="offer">Offer</option>
+						<option value="rejected">Rejected</option>
+						<option value="ghosted">Ghosted</option>
 					</select>
-					<input v-model="outcome.notes" placeholder="Notes" />
 					<button type="button" class="action-button" @click="saveOutcome">Save Outcome</button>
 				</div>
 			</div>
@@ -289,8 +288,16 @@ const props = defineProps({
 	jobId: {
 		type: [String, Number],
 		default: null
+	},
+	initialOutcome: {
+		type: Object,
+		default: () => ({
+			status: '',
+			notes: ''
+		})
 	}
 })
+const emit = defineEmits(['job-updated'])
 
 const resolvedJobId = computed(() => props.jobId ?? route.params.job_id)
 
@@ -329,7 +336,22 @@ const followUps = ref([])
 
 const newInterview = reactive({ round: '', datetime: '', notes: '' })
 const newFollow = reactive({ title: '', due_at: '', notes: '' })
-const outcome = reactive({ status: '', notes: '' })
+const outcome = reactive({
+	status: props.initialOutcome?.status || '',
+	notes: props.initialOutcome?.notes || ''
+})
+
+watch(
+	() => props.initialOutcome,
+	(value) => {
+		if (!value) return
+		Object.assign(outcome, {
+			status: value.status || '',
+			notes: value.notes || ''
+		})
+	},
+	{ immediate: true, deep: true }
+)
 
 const sortedActivities = computed(() =>
 	[...activities.value].sort(
@@ -399,13 +421,30 @@ async function fetchJob() {
 		company_notes.value = data.company_notes || ''
 		createdAt.value = data.created_at || ''
 
-		Object.assign(outcome, data.outcome || { status: '', notes: '' })
+		if (data.outcome) {
+			Object.assign(outcome, data.outcome)
+		}
+		return data
 	} catch (err) {
 		error.value = 'Failed to fetch job information.'
 		console.error('Failed to fetch job:', err)
+		return null
 	} finally {
 		loading.value = false
 	}
+}
+
+async function refreshJobState() {
+	const refreshedJob = await fetchJob()
+	if (refreshedJob) {
+		emit('job-updated', {
+			...refreshedJob,
+			outcome: {
+				status: outcome.status,
+			}
+		})
+	}
+	return refreshedJob
 }
 
 async function fetchActivities() {
@@ -511,13 +550,40 @@ async function saveJobDetails() {
 			throw new Error('Failed to update job')
 		}
 
-		await fetchJob()
+		await refreshJobState()
 	} catch (err) {
 		error.value = 'Error saving job details.'
 		console.error(err)
 	} finally {
 		saving.value = false
 	}
+}
+
+async function persistJobStatus(nextStatus) {
+	if (!resolvedJobId.value) return
+
+	const payload = {
+		...form,
+		id: form.id || Number(resolvedJobId.value),
+		status: nextStatus,
+		deadline_date: form.deadline_date ? new Date(form.deadline_date).toISOString() : null
+	}
+
+	const res = await fetch('/api/jobs', {
+		method: 'PUT',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		credentials: 'include',
+		body: JSON.stringify(payload)
+	})
+
+	if (!res.ok) {
+		throw new Error('Failed to update job status')
+	}
+
+	form.status = nextStatus
+	await Promise.all([refreshJobState(), fetchActivities()])
 }
 
 async function saveCompanyNotes() {
@@ -721,6 +787,8 @@ async function addInterview() {
 			throw new Error('Failed to add interview')
 		}
 
+		await persistJobStatus('interview')
+
 		newInterview.round = ''
 		newInterview.datetime = ''
 		newInterview.notes = ''
@@ -832,18 +900,9 @@ async function saveOutcome() {
 			return
 		}
 
-		const res = await fetch(`/api/jobs/${resolvedJobId.value}/outcome`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include',
-			body: JSON.stringify(outcome)
-		})
+		await persistJobStatus(outcome.status)
 
-		if (!res.ok) {
-			throw new Error('Failed to save outcome')
-		}
-
-		await Promise.all([fetchJob(), fetchActivities()])
+		await Promise.all([refreshJobState(), fetchActivities()])
 	} catch (err) {
 		error.value = 'Unable to save outcome right now.'
 		console.error(err)

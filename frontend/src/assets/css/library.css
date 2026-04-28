@@ -2,35 +2,38 @@
 
 /* PAGE LAYOUT */
 .page-container {
-  max-width: 1000px;
+  width: 100%;
   margin: 0 auto;
-  padding: 120px 20px 20px; 
+  padding: 0.5rem 1.5rem 2rem;
   min-height: 70vh;
 }
 
 .page-title {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #000;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 800;
+  margin: 0 0 1rem;
+  color: var(--accent-ink);
 }
 
 /* UPLOAD CARD */
 .upload-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
+  background: var(--surface);
+  padding: 1.55rem 1.7rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   margin-bottom: 30px;
 
   display: flex;
   flex-direction: column;
   gap: 15px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
 }
 
 .section-title {
   font-weight: 600;
   margin-bottom: 5px;
+  color: var(--accent-ink);
 }
 
 /* FORM GROUP */
@@ -42,19 +45,19 @@
 
 label {
   font-size: 13px;
-  color: #000;
+  color: var(--text);
 }
 
 /* INPUTS */
 input,
 select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 0.82rem 0.95rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
 }
 
 input[type="file"] {
-  padding: 6px;
+  padding: 0.65rem;
 }
 
 /* TAG INPUT ROW */
@@ -76,9 +79,10 @@ input[type="file"] {
 }
 
 .tag {
-  background: #E3E3E3;
-  padding: 4px 8px;
-  border-radius: 6px;
+  background: rgba(239, 125, 50, 0.12);
+  color: var(--accent-ink);
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 12px;
 }
 
@@ -107,20 +111,22 @@ input[type="file"] {
   min-width: 0;
   box-sizing: border-box;
 
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background: #ffffff;
-  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 1.25rem 1.2rem 1.15rem;
 
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 22px rgba(73, 46, 20, 0.08);
 }
 
 
 .document-card:hover {
   transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(73, 46, 20, 0.12);
 }
 
 /* PREVIEW BOX */
@@ -143,11 +149,12 @@ input[type="file"] {
 h4 {
   font-size: 16px;
   margin-bottom: 5px;
+  color: var(--accent-ink);
 }
 
 .doc-sub {
   font-size: 12px;
-  color: #777;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
@@ -178,9 +185,9 @@ h4 {
 .version-row button {
   padding: 6px 12px;
   font-size: 13px;
-  border-radius: 6px;
-  background: #ffffff;
-  border: 1px solid #d5d5d5;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border-strong);
   min-width: auto;
 }
 
@@ -213,7 +220,7 @@ h4 {
 
 /* PRIMARY ACTION */
 .doc-actions button:first-of-type {
-  background: linear-gradient(to right, #ffa946, #fc5b2e);
+  background: linear-gradient(135deg, var(--accent) 0%, #ff9b52 100%);
   color: white;
   border: none;
   font-weight: 600;
@@ -221,16 +228,16 @@ h4 {
 
 /* SECONDARY ACTIONS */
 .doc-actions button:not(:first-of-type) {
-  background: #ffffff;
-  border: 1px solid #d5d5d5;
-  color: #333;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
   font-weight: 500;
 }
 
 /* GLOBAL BUTTON STYLE */
 button {
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s ease;
   font-size: 14px;
@@ -244,10 +251,10 @@ button:hover {
   background: transparent;
   border: none;
   padding: 0;
-  color: #fc5b2e;
+  color: var(--accent-strong);
   font-weight: 600;
   cursor: pointer;
-  border-color: #fc5b2e;
+  border-color: var(--accent-strong);
   border-style: solid;
   border-width: 2px;
   padding: 5px;
@@ -255,8 +262,8 @@ button:hover {
 
 /* DELETE BUTTON */
 .delete-btn {
-  background: #f8d7da;
-  border: 1px solid #c82333;
+  background: #fce6e5;
+  border: 1px solid var(--danger);
 }
 
 .delete-btn:hover {
