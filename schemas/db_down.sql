@@ -2,9 +2,16 @@
 -- DOWN SCRIPT
 -- =========================
 
+-- Remove FK constraints
+ALTER TABLE documents
+DROP CONSTRAINT IF EXISTS fk_doc_current_version_match;
+
+ALTER TABLE document_versions
+DROP CONSTRAINT IF EXISTS document_versions_document_id_fkey;
+
 -- Drop child tables first (reverse dependency order)
 
-DROP TABLE IF EXISTS job_document_links;
+DROP TABLE IF EXISTS document_links;
 DROP TABLE IF EXISTS document_versions;
 
 -- Current child tables
