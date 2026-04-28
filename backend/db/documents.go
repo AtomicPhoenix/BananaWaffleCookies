@@ -7,16 +7,16 @@ import (
 )
 
 type Document struct {
-	ID               int             `json:"id"`
-	UserID           int             `json:"user_id"`
-	Title            string          `json:"title"`
-	DocumentType     string          `json:"document_type"`
-	Tags             []string        `json:"tags"`
-	IsArchived       bool            `json:"is_archived"`
-	CurrentVersionID int             `json:"current_version_id"`
-	CreatedAt        time.Time       `json:"created_at"`
-	UpdatedAt        time.Time       `json:"updated_at"`
-	Version          DocumentVersion `json:"versions"`
+	ID               int               `json:"id"`
+	UserID           int               `json:"user_id"`
+	Title            string            `json:"title"`
+	DocumentType     string            `json:"document_type"`
+	Tags             []string          `json:"tags"`
+	IsArchived       bool              `json:"is_archived"`
+	CurrentVersionID int               `json:"current_version_id"`
+	CreatedAt        time.Time         `json:"created_at"`
+	UpdatedAt        time.Time         `json:"updated_at"`
+	Versions         []DocumentVersion `json:"versions"`
 }
 
 type DocumentVersion struct {
@@ -241,36 +241,71 @@ func GetDocument(docID int, userID int) (Document, error) {
 	err := DbConn.QueryRow(
 		context.Background(),
 		`SELECT 
-			d.id, d.user_id, d.title, d.document_type, d.is_archived, d.created_at, d.updated_at,
-			v.id, v.version_number, v.file_name, v.file_path, v.file_size_bytes, v.created_at
-		 FROM documents d
-		 JOIN document_versions v ON v.id = d.current_version_id
-		 WHERE d.id = $1 AND d.user_id = $2`,
+			id, user_id, title, document_type, is_archived, current_version_id, created_at, updated_at
+		 FROM documents
+		 WHERE id = $1 AND user_id = $2`,
 		docID,
 		userID,
 	).Scan(
-		&doc.ID, &doc.UserID, &doc.Title, &doc.DocumentType, &doc.IsArchived, &doc.CreatedAt, &doc.UpdatedAt,
-		&doc.Version.ID, &doc.Version.VersionNumber, &doc.Version.FileName, &doc.Version.FilePath, &doc.Version.FileSizeBytes, &doc.Version.CreatedAt,
+		&doc.ID,
+		&doc.UserID,
+		&doc.Title,
+		&doc.DocumentType,
+		&doc.IsArchived,
+		&doc.CurrentVersionID,
+		&doc.CreatedAt,
+		&doc.UpdatedAt,
 	)
 
 	if err != nil {
-		return Document{}, fmt.Errorf("Failed to get document for user_id=%d, doc_id=%d; Query failed: %v\n", userID, docID, err)
+		return Document{}, fmt.Errorf("Failed to get document for user_id=%d, doc_id=%d; Querying document failed: %v\n", userID, docID, err)
+	}
+
+	rows, err := DbConn.Query(
+		context.Background(),
+		`SELECT id, document_id, version_number, file_name, file_path, file_size_bytes, created_at
+		 FROM document_versions
+		 WHERE document_id = $1
+		 ORDER BY version_number DESC`,
+		docID,
+	)
+	if err != nil {
+		return Document{}, fmt.Errorf("Failed to get document for user_id=%d, doc_id=%d; Querying document versions failed: %v\n", userID, docID, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var v DocumentVersion
+
+		if err := rows.Scan(
+			&v.ID,
+			&v.DocumentID,
+			&v.VersionNumber,
+			&v.FileName,
+			&v.FilePath,
+			&v.FileSizeBytes,
+			&v.CreatedAt,
+		); err != nil {
+			return Document{}, fmt.Errorf("Failed to get document for user_id=%d, doc_id=%d; Parsing document versions row failed: %v\n", userID, docID, err)
+		}
+
+		doc.Versions = append(doc.Versions, v)
+	}
+
+	if err = rows.Err(); err != nil {
+		return Document{}, fmt.Errorf("Failed to get document for user_id=%d, doc_id=%d; Parsing document versions rows failed: %v\n", userID, docID, err)
 	}
 
 	return doc, nil
 }
 
 func GetAllDocuments(userID int) ([]Document, error) {
-
 	rows, err := DbConn.Query(
 		context.Background(),
-		`SELECT 
-			d.id, d.user_id, d.title, d.document_type, d.is_archived, d.created_at, d.updated_at,
-			v.id, v.version_number, v.file_name, v.file_path, v.file_size_bytes, v.created_at
-		 FROM documents d
-		 JOIN document_versions v ON v.id = d.current_version_id
-		 WHERE d.user_id = $1
-		 ORDER BY d.created_at DESC`,
+		`SELECT id, user_id, title, document_type, is_archived, current_version_id, created_at, updated_at
+		 FROM documents
+		 WHERE user_id = $1
+		 ORDER BY created_at DESC`,
 		userID,
 	)
 	if err != nil {
@@ -281,34 +316,72 @@ func GetAllDocuments(userID int) ([]Document, error) {
 	var results []Document
 
 	for rows.Next() {
-		var r Document
+		var d Document
 
-		err := rows.Scan(
-			&r.ID,
-			&r.UserID,
-			&r.Title,
-			&r.DocumentType,
-			&r.IsArchived,
-			&r.CreatedAt,
-			&r.UpdatedAt,
-			&r.Version.ID,
-			&r.Version.VersionNumber,
-			&r.Version.FileName,
-			&r.Version.FilePath,
-			&r.Version.FileSizeBytes,
-			&r.Version.CreatedAt,
-		)
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to get all documents for user_id=%d; Error while scanning row: %v\n", userID, err)
+		if err := rows.Scan(
+			&d.ID,
+			&d.UserID,
+			&d.Title,
+			&d.DocumentType,
+			&d.IsArchived,
+			&d.CurrentVersionID,
+			&d.CreatedAt,
+			&d.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("Failed to get all documents for user_id=%d; Error while scanning document rows: %v\n", userID, err)
 		}
 
-		results = append(results, r)
+		// Fetch all versions per doc
+		vrows, err := DbConn.Query(
+			context.Background(),
+			`SELECT id, document_id, version_number, file_name, file_path, file_size_bytes, created_at
+			 FROM document_versions
+			 WHERE document_id = $1
+			 ORDER BY version_number DESC`,
+			d.ID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get all documents for user_id=%d; Error while querying document version rows: %v\n", userID, err)
+		}
+
+		for vrows.Next() {
+			var v DocumentVersion
+			if err := vrows.Scan(
+				&v.ID,
+				&v.DocumentID,
+				&v.VersionNumber,
+				&v.FileName,
+				&v.FilePath,
+				&v.FileSizeBytes,
+				&v.CreatedAt,
+			); err != nil {
+				vrows.Close()
+				return nil, fmt.Errorf("Failed to get all documents for user_id=%d; Error while scanning document versions row: %v\n", userID, err)
+			}
+			d.Versions = append(d.Versions, v)
+		}
+		vrows.Close()
+
+		if err = vrows.Err(); err != nil {
+			return nil, fmt.Errorf("Failed to get all documents for user_id=%d; Error while scanning document version rows: %v\n", userID, err)
+		}
+
+		results = append(results, d)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Failed to get all documents for user_id=%d; Error while executing query / reading results: %v\n", userID, err)
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("Failed to get all documents for user_id=%d; Error while scanning document rows: %v\n", userID, err)
 	}
 
-	return results, nil
+	return results, rows.Err()
+}
+
+func AssertDocumentOwnership(docID, userID int) error {
+	var id int
+	return DbConn.QueryRow(
+		context.Background(),
+		`SELECT id FROM documents WHERE id=$1 AND user_id=$2`,
+		docID,
+		userID,
+	).Scan(&id)
 }
