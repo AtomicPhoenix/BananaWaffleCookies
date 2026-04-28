@@ -91,7 +91,7 @@
         </p>
 
         <div class="doc-sub">
-          {{ doc.type }} • Status:
+          {{ doc.document_type }} • Status:
           <button @click="toggleArchive(doc)"> {{ doc.is_archived ? 'Restore' : 'Archive' }} </button>
         </div>
 
@@ -225,7 +225,7 @@ const filteredDocuments = computed(() => {
 
   if (typeFilter) {
     docs = docs.filter(d =>
-      String(d.type || '').toLowerCase() === typeFilter
+      String(d.document_type || '').toLowerCase() === typeFilter
     )
   }
 
