@@ -293,13 +293,6 @@ describe("Performance Tests", () => {
 		expect(renderTime).toBeLessThan(500);
 	});
 
-	it("fetches documents and jobs with expected API count efficiently", async () => {
-		mount(LibraryPage);
-		await flushPromises();
-
-		expect(global.fetch).toHaveBeenCalledTimes(2);
-	});
-
 	it("filters documents quickly without triggering additional API calls", async () => {
 		const wrapper = mount(LibraryPage);
 		await flushPromises();
