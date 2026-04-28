@@ -409,6 +409,8 @@ async function fetchJob() {
 
 		const data = await res.json()
 
+		console.log(data)
+
 		form.id = data.id
 		form.company_name = data.company_name || ''
 		form.title = data.title || ''
@@ -418,9 +420,9 @@ async function fetchJob() {
 		form.deadline_date = toDateInput(data.deadline_date)
 		form.status = data.status || ''
 		form.description = data.description || ''
-		company_notes.value = data.company_notes || ''
+		company_notes.value = data.notes || ''
 		createdAt.value = data.created_at || ''
-
+	
 		if (data.outcome) {
 			Object.assign(outcome, data.outcome)
 		}
