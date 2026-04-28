@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"bananawafflecookies.com/m/v2/ai"
 	"bananawafflecookies.com/m/v2/db"
 	"bananawafflecookies.com/m/v2/settings"
 	"github.com/go-chi/chi/v5"
@@ -364,4 +365,83 @@ func generatePDFBytes(content string) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// Handler for /api/jobs/{id}/company-notes {PATCH}
+func UpdateCompanyNotes(w http.ResponseWriter, r *http.Request) {
+	err, token := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		return
+	}
+
+	var body struct {
+		CompanyNotes string `json:"company_notes"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "Invalid body", http.StatusBadRequest)
+		return
+	}
+
+	err = db.UpdateJobCompanyNotes(jobID, token.Uid, body.CompanyNotes)
+	if err != nil {
+		http.Error(w, "Failed to update notes", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+	})
+}
+
+func GenerateCompanyNotes(w http.ResponseWriter, r *http.Request) {
+	err, token := GrabToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	jobIDRaw := chi.URLParam(r, "id")
+	jobID, err := strconv.Atoi(jobIDRaw)
+	if err != nil {
+		http.Error(w, "Invalid job id", http.StatusBadRequest)
+		return
+	}
+
+	// Verify ownership
+	isOwner, err := db.IsJobOwner(jobID, token.Uid)
+	if err != nil || !isOwner {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get job
+	job, err := db.GetJob(jobID, token.Uid)
+	if err != nil {
+		http.Error(w, "Failed to fetch job", http.StatusInternalServerError)
+		return
+	}
+
+	// Generate notes
+	notes, err := ai.GenerateJobNotes(job)
+	if err != nil {
+		http.Error(w, "Failed to generate notes", http.StatusInternalServerError)
+		return
+	}
+
+	job.Notes = notes
+	db.UpdateJobCompanyNotes(job.ID, job.UserID, notes)
+
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"notes":   notes,
+	})
 }

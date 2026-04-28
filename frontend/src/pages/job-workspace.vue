@@ -409,6 +409,8 @@ async function fetchJob() {
 
 		const data = await res.json()
 
+		console.log(data)
+
 		form.id = data.id
 		form.company_name = data.company_name || ''
 		form.title = data.title || ''
@@ -418,9 +420,9 @@ async function fetchJob() {
 		form.deadline_date = toDateInput(data.deadline_date)
 		form.status = data.status || ''
 		form.description = data.description || ''
-		company_notes.value = data.company_notes || ''
+		company_notes.value = data.notes || ''
 		createdAt.value = data.created_at || ''
-
+	
 		if (data.outcome) {
 			Object.assign(outcome, data.outcome)
 		}
@@ -593,66 +595,68 @@ async function saveCompanyNotes() {
 		savingCompanyNotes.value = true
 		error.value = ''
 
+		// Preserve current textarea value locally
+		const notesToSave = company_notes.value
+
 		const res = await fetch(`/api/jobs/${resolvedJobId.value}/company-notes`, {
-			method: 'PUT',
+			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json'
 			},
 			credentials: 'include',
 			body: JSON.stringify({
-				company_notes: company_notes.value
-			})
-		})
-
-		if (!res.ok) throw new Error()
-
-		await fetchJob()
-	} catch (err) {
-		error.value = 'Unable to save company notes.'
-		console.error(err)
-	} finally {
-		saving.value = false
-	}
-}
-
-async function enhanceCompanyNotes() {
-	if (!resolvedJobId.value || !company_notes.value.trim()) return
-
-	try {
-		enhancingAI.value = true
-		error.value = ''
-
-		const res = await fetch(`/api/jobs/${resolvedJobId.value}/enhance-notes`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			credentials: 'include',
-			body: JSON.stringify({
-				type: 'enhance_company_notes', //idk
-				content: company_notes.value
+				company_notes: notesToSave
 			})
 		})
 
 		if (!res.ok) {
-			throw new Error('AI enhancement failed, try again later')
+			throw new Error('Failed to save company notes')
 		}
 
-		const data = await res.json()
-
-		// expecting something like: { enhanced_text: "..." }
-		if (data?.enhanced_text) {
-			company_notes.value = data.enhanced_text
-		} else {
-			throw new Error('Invalid AI response format')
-		}
+		company_notes.value = notesToSave
 
 	} catch (err) {
-		error.value = 'Unable to enhance notes right now.'
+		error.value = 'Unable to save company notes.'
 		console.error(err)
 	} finally {
-		enhancingAI.value = false
+		savingCompanyNotes.value = false
 	}
+}
+
+const enhanceCompanyNotes = async () => {
+  if (!resolvedJobId.value) return
+
+  await saveCompanyNotes()
+
+  try {
+    enhancingAI.value = true
+    error.value = ''
+
+    const res = await fetch(`/api/jobs/${resolvedJobId.value}/company-notes`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    if (!res.ok) {
+      throw new Error('Failed to generate company notes')
+    }
+
+    const data = await res.json()
+
+    if (data?.success && data?.notes) {
+      company_notes.value = data.notes
+
+      await saveCompanyNotes()
+    } else {
+      throw new Error('Invalid response format')
+    }
+
+  } catch (err) {
+    error.value = 'Unable to generate company notes right now.'
+    console.error(err)
+  } finally {
+    enhancingAI.value = false
+  }
 }
 
 // Get resume draft

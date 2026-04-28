@@ -124,6 +124,9 @@ func main() {
 					r.Post("/resume", handlers.GetResumeDraft)
 					r.Post("/cover-letter", handlers.GetCoverLetterDraft)
 
+					r.Patch("/company-notes", handlers.UpdateCompanyNotes)
+					r.Post("/company-notes", handlers.GenerateCompanyNotes)
+
 					r.Get("/activities", handlers.GetJobActivities)
 
 					r.Route("/interviews", func(r chi.Router) {
