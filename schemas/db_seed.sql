@@ -534,3 +534,9 @@ VALUES
         FALSE
     )
 ON CONFLICT (id) DO NOTHING;
+
+-- Reset id sequences
+SELECT setval('documents_id_seq', (SELECT MAX(id) FROM documents));
+SELECT setval('document_versions_id_seq', (SELECT MAX(id) FROM document_versions));
+SELECT setval('jobs_id_seq', (SELECT MAX(id) FROM jobs));
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
