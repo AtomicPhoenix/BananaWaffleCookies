@@ -593,6 +593,9 @@ async function saveCompanyNotes() {
 		savingCompanyNotes.value = true
 		error.value = ''
 
+		// Preserve current textarea value locally
+		const notesToSave = company_notes.value
+
 		const res = await fetch(`/api/jobs/${resolvedJobId.value}/company-notes`, {
 			method: 'PATCH',
 			headers: {
@@ -600,18 +603,21 @@ async function saveCompanyNotes() {
 			},
 			credentials: 'include',
 			body: JSON.stringify({
-				company_notes: company_notes.value
+				company_notes: notesToSave
 			})
 		})
 
-		if (!res.ok) throw new Error()
+		if (!res.ok) {
+			throw new Error('Failed to save company notes')
+		}
 
-		await fetchJob()
+		company_notes.value = notesToSave
+
 	} catch (err) {
 		error.value = 'Unable to save company notes.'
 		console.error(err)
 	} finally {
-		saving.value = false
+		savingCompanyNotes.value = false
 	}
 }
 
