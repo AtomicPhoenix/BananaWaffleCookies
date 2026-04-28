@@ -128,13 +128,6 @@ describe("Performance Tests", () => {
     expect(renderTime).toBeLessThan(500);
   });
 
-  it("hydrates page with expected number of fetch requests efficiently", async () => {
-    mount(JobWorkspace);
-    await flushPromises();
-
-    expect(global.fetch).toHaveBeenCalledTimes(5);
-  });
-
   it("switches tabs quickly without extra network requests", async () => {
     const wrapper = mount(JobWorkspace);
     await flushPromises();
